@@ -23,6 +23,38 @@ module Werewolf
     def test_new_game_time_period_is_nil
       assert Game.new.time_period.nil?
     end
+
+    def test_player_can_join_game
+      game = Game.new
+      player = Player.new('seth')
+
+      game.join(player)
+
+      expected = Set.new [player]
+      assert_equal expected, game.players
+    end
+
+    def test_game_can_be_started
+      Game.new.start
+    end
+
+    def test_once_started_game_is_active
+      game = Game.new
+      game.start
+      assert game.active?
+    end
+
+    def test_assign_players_to_roles
+      # TODO
+    end
+
+    def test_starting_assigns_roles
+      # TODO
+    end
+
+
+
+
   end
 
 end
