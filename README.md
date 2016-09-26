@@ -39,8 +39,17 @@ bundles exec guard
 
 # Other notes
 ```
+### Play with slackbot
+SLACK_API_TOKEN='xoxb-tokenhere' bundle exec ruby lib/werewolf/slackbot.rb
+# in slack
+  /invite wolfbot
+  @wolfbot join
+
 ### Play with your class.  irb, but including the source code from the project
 bin/console
+
+### Run all tests
+rake test
 ```
 
 # To read
