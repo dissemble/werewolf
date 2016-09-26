@@ -22,6 +22,7 @@ module Werewolf
 
     def test_new_game_time_period_is_nil
       assert Game.new.time_period.nil?
+    end
   end
 
 end
