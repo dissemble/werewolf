@@ -35,9 +35,17 @@ bin/setup
 ### Turn on tests to run in background when tests or source are modified
 bundles exec guard
 
+### Write a test, then make it pass
+# Open test/werewolf/game_test.rb
+# ...
+
+```
+
+
+# Other notes
+```
 ### Play with your class.  irb, but including the source code from the project
 bin/console
-
 ```
 
 
