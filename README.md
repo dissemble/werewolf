@@ -1,11 +1,6 @@
 # Werewolf Design Docs
 https://github.com/dissemble/werewolf/wiki
 
-bin/setup
-bundles exec guard
-bin/console
-
-
 
 # Get hacking
 ```
