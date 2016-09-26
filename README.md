@@ -1,41 +1,64 @@
-# Werewolf
+# Werewolf Design Docs
+https://github.com/dissemble/werewolf/wiki
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/werewolf`. To experiment with that code, run `bin/console` for an interactive prompt.
+bin/setup
+bundles exec guard
+bin/console
 
-TODO: Delete this and the text above, and describe your gem
 
-## Installation
 
-Add this line to your application's Gemfile:
+# Get hacking
+```
+### Ruby Setup ###
+brew install chruby
+brew install ruby-install
+ruby-install ruby
+ruby --version #2.3.1
+# add to .bash_profile
+   source /usr/local/opt/chruby/share/chruby/chruby.sh
+   source /usr/local/opt/chruby/share/chruby/auto.sh
+echo ruby-2.3.1 > ~/.ruby-version
 
-```ruby
-gem 'werewolf'
+### Important ###
+# close terminal, open new one.  or source .bash_profile
+
+### Install bundler, ruby dependency manager
+gem install bundler
+
+### Get the source
+https://github.com/dissemble/werewolf.git
+
+### Install deps
+cd werewolf
+bin/setup
+
+### Turn on tests to run in background when tests or source are modified
+bundles exec guard
+
+### Play with your class.  irb, but including the source code from the project
+bin/console
+
 ```
 
-And then execute:
 
-    $ bundle
+# working with multiple github accounts (untested)
 
-Or install it yourself as:
+```
+$ ssh-keygen -t rsa -C "your-email-address"  # save to ~/.ssh/id_rsa_github_personal
+# attach the .pub of that key to your personal github account
+# add new section to .ssh/config
 
-    $ gem install werewolf
+    Host github-personal
+      HostName github.com
+      User git
+      IdentityFile ~/.ssh/id_rsa_github_personal
 
-## Usage
+$ git clone https://github-personal/dissemble/werewolf.git
+$ cd werewolf
+$ git config user.name "your handle"
+$ git config user.email "your-email-address" 
+```
 
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
-
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/werewolf.
-
-
-## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
 
