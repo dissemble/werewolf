@@ -40,7 +40,7 @@ bundles exec guard
 # Other notes
 ```
 ### Play with slackbot
-SLACK_API_TOKEN='xoxb-tokenhere' bundle exec ruby lib/werewolf/slackbot.rb
+SLACK_API_TOKEN='xoxb-tokenhere' bin/slackrunner.rb
 # in slack
   /invite wolfbot
   @wolfbot join
