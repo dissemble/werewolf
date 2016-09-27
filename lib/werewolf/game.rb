@@ -14,16 +14,42 @@ module Werewolf
       @time_period = nil
     end
 
-    def active?
+    def active?()
       @active
     end
 
     def join(player)
-      @players.add(player)
+      if @players.member? player
+        raise ArgumentError, 'already joined'
+      else
+        @players.add(player)
+      end
     end
 
     def start()
       @active = true
+    end
+
+    def format_players()
+      if @players.empty?
+        "Zero players.  Type 'wolfbot join' to join the game."
+      else
+        "Players:  " + @players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
+      end
+    end
+
+
+    def format_status()
+      if !active?
+        "No game running.  #{format_players}"
+      else
+        "Game is active.  #{format_players}"
+      end
+    end
+
+
+    def self.instance()
+      @instance ||= Game.new
     end
   end
 end

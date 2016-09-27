@@ -10,5 +10,4 @@ end
 
 
 game = Werewolf::Game.new
-slackbot = Werewolf::SlackBot.new
-slackbot.run
+Werewolf::App.instance.run
