@@ -1,8 +1,9 @@
 module Werewolf
   module Commands
-    class Join < SlackRubyBot::Commands::Base
-      command 'join' do |client, data, match|
-        puts '**** join ****'
+    class Start < SlackRubyBot::Commands::Base
+      command 'start' do |client, data, match|
+        #TODO copy paste debug
+        puts '**** start ****'
         puts "client: #{client}"
         puts "data: #{data}"
         puts "data.user: #{data.user}"
@@ -17,16 +18,16 @@ module Werewolf
         game = Game.instance
 
         begin
-          # TODO handle already joined
-          game.join Player.new(data.user)
-
-          puts game.players
+          game.start
 
           # ack command
-          client.say(text: "<@#{data.user}> has joined the game", channel: data.channel)
+          client.say(text: "<@#{data.user}> has started the game", channel: data.channel)
 
           # give current game status
           client.say(text: "#{game.format_status}", channel: data.channel)
+
+          # message time period
+          client.say(text: "[Dawn]", channel: data.channel)
         rescue RuntimeError => err
           # spit error out in slack
           client.say(text: "#{err.message}", channel: data.channel)

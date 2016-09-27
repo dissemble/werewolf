@@ -36,10 +36,20 @@ module Werewolf
       assert_equal expected, game.players
     end
 
+    def test_join_must_take_an_object_with_a_name_method
+      err = assert_raises(RuntimeError) {
+        Game.new.join('seth')
+      }
+    end
+
     def test_raise_if_same_player_name_added_twice
       game = Game.new
       game.join(Player.new('seth'))
-      game.join(Player.new('wesley'))
+
+      err = assert_raises(RuntimeError) {
+        game.join(Player.new('seth'))
+      }
+      assert_match /you already joined/, err.message
     end
 
     def test_game_can_be_started
@@ -61,9 +71,10 @@ module Werewolf
 
     def test_game_needs_at_least_one_player_to_start
       game = Game.new
-      assert_raises(RuntimeError) {
+      err = assert_raises(RuntimeError) {
         game.start
       }
+      assert_match /Game can't start until there is at least 1 player/, err.message
     end
 
     def test_once_started_game_is_active

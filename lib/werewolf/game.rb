@@ -19,8 +19,10 @@ module Werewolf
     end
 
     def join(player)
+      raise 'Only Player objects may join the game' unless player.respond_to?(:name)
+
       if @players.member? player
-        raise ArgumentError, 'already joined'
+        raise "you already joined"
       else
         @players.add(player)
       end
@@ -29,7 +31,7 @@ module Werewolf
     def start()
       raise "Game is already active" if active?
       raise "Game can't start until there is at least 1 player" if @players.empty?
-      
+
       @active = true
     end
 
