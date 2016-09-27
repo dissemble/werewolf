@@ -43,11 +43,32 @@ module Werewolf
     end
 
     def test_game_can_be_started
-      Game.new.start
+      game = Game.new
+      game.join(Player.new('seth'))
+      game.start
+    end
+
+    def test_game_cannot_be_started_twice
+      game = Game.new
+      game.join(Player.new('seth'))
+      game.start
+
+      err = assert_raises(RuntimeError) {
+        game.start
+      }
+      assert_match /Game is already active/, err.message
+    end
+
+    def test_game_needs_at_least_one_player_to_start
+      game = Game.new
+      assert_raises(RuntimeError) {
+        game.start
+      }
     end
 
     def test_once_started_game_is_active
       game = Game.new
+      game.join(Player.new('seth'))
       game.start
       assert game.active?
     end
@@ -80,6 +101,7 @@ module Werewolf
 
     def test_slack_format_status_newly_active_game
       game = Game.new
+      game.join(Player.new('seth'))
       game.start
       assert_match /Game is active/, game.format_status
       assert_match game.format_players, game.format_status

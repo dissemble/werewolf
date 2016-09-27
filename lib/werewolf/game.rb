@@ -27,6 +27,9 @@ module Werewolf
     end
 
     def start()
+      raise "Game is already active" if active?
+      raise "Game can't start until there is at least 1 player" if @players.empty?
+      
       @active = true
     end
 

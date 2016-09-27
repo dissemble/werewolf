@@ -46,7 +46,7 @@ SLACK_API_TOKEN='xoxb-tokenhere' bin/slackrunner.rb
   @wolfbot join
 
 ### Play with your class.  irb, but including the source code from the project
-bin/console
+bundle exec bin/console
 
 ### Run all tests
 rake test
