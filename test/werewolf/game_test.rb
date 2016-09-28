@@ -36,20 +36,24 @@ module Werewolf
       assert_equal expected, game.players
     end
 
-    def test_join_must_take_an_object_with_a_name_method
-      err = assert_raises(RuntimeError) {
-        Game.new.join('seth')
-      }
-    end
-
     def test_raise_if_same_player_name_added_twice
       game = Game.new
-      game.join(Player.new('seth'))
+      username = 'seth'
+      game.join(Player.new(username))
 
-      err = assert_raises(RuntimeError) {
+      err = assert_raises(AlreadyJoinedError) {
+        game.join(Player.new(username))
+      }
+      assert_match /already joined/, err.message
+      assert_equal username, err.username
+    end
+
+    def test_join_raises_if_game_is_active
+      game = Game.new
+      game.stubs(:active?).returns(true)
+      assert_raises(ActiveGameError) {
         game.join(Player.new('seth'))
       }
-      assert_match /you already joined/, err.message
     end
 
     def test_game_can_be_started
@@ -135,6 +139,115 @@ module Werewolf
       y = Game.instance
       assert_equal x, y
     end
+
+    def test_communicate
+      game = Game.new
+
+      message = "a message"
+      channel = "a channel"
+      client = mock('client') # TODO:  mocking an interface i don't own
+      client.expects(:say).once.with(text: message, channel: channel)
+
+      game.communicate(message, client, channel)
+    end
+
+    def test_process_join_exists
+      game = Game.new
+      game.stubs(:communicate)
+      game.process_join("fakeusername", "fakeclient", "fakechannel")
+    end
+
+    def test_process_join_joins_new_player_to_game
+      game = Game.new
+
+      username = "fakeusername"
+      mock_player = mock('player')
+      
+      Player.expects(:new).once.with(username).returns(mock_player)
+      game.expects(:join).once.with(mock_player)
+      game.stubs(:communicate)
+
+      game.process_join(username, "fakeclient", "fakechannel")
+    end
+  
+    def test_process_join_communicates_to_users
+      game = Game.new
+
+      client = mock("fakeclient")
+      channel = "fakechannel"
+      username = "fakeusername"
+      status = 'foo'
+
+      game.stubs(:format_status).returns(status)
+      game.expects(:communicate).with(regexp_matches(/#{username}/), client, channel)
+      game.expects(:communicate).with(status, client, channel)
+      
+      game.process_join(username, client, channel)
+    end
+
+    def test_process_join_communicates_already_joined_error
+      game = Game.new
+
+      username = 'seth'
+      game.stubs(:join).raises(AlreadyJoinedError.new(username, 'omg problems'))
+      game.expects(:communicate).with(regexp_matches(/#{username}.*omg problems/), anything, anything)
+
+      game.process_join('fakeusername', 'fakeclient', 'fakechannel')
+    end
+
+    def test_process_join_communicates_active_game_error
+      game = Game.new
+
+      username = 'seth'
+      game.stubs(:join).raises(ActiveGameError.new(username, 'omg problems'))
+      game.expects(:communicate).with(regexp_matches(/#{username}.*you can't join a game after it starts/), anything, anything)
+
+      game.process_join('fakeusername', 'fakeclient', 'fakechannel')
+    end
+
+    def test_process_start_starts_game
+      game = Game.new
+      game.expects(:start).once
+      game.stubs(:communicate)
+      game.process_start('fakeusername', 'fakeclient', 'fakechannel')
+    end
+
+
+    def test_process_start_communicates_status
+      game = Game.new
+
+      username = 'seth'
+      status = 'fake_status'
+      game.stubs(:format_status).returns(status)
+      game.stubs(:start)
+      game.expects(:communicate).once
+        .with(regexp_matches(/#{username}.*has started the game/), anything, anything)
+      game.expects(:communicate).once
+        .with(regexp_matches(/#{username}.*#{status}/), anything, anything)
+      game.expects(:communicate).once
+        .with('[Dawn]', anything, anything)
+
+      game.process_start(username, 'fakeclient', 'fakechannel')
+    end
+
+
+    def test_process_start_communicates_errors
+      game = Game.new
+
+      username = 'fakeusername'
+      err = RuntimeError.new('oops')
+      game.stubs(:start).raises(err)
+      game.expects(:communicate).with(regexp_matches(/#{username}.*#{err.message}/), anything, anything)
+
+      game.process_start(username, 'fakeclient', 'fakechannel')
+    end
+
+
+    def test_process_vote_exists
+      game = Game.new
+      game.process_vote('fakevoter', 'fakevotee', 'fakeclient', 'fakechannel')
+    end
+
 
 
 

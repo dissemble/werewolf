@@ -6,3 +6,5 @@ require 'minitest/autorun'
 # make test output perty
 require "minitest/reporters"
 Minitest::Reporters.use!
+
+require 'mocha/mini_test'

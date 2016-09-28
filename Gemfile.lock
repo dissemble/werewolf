@@ -65,6 +65,7 @@ GEM
       rb-inotify (~> 0.9, >= 0.9.7)
       ruby_dep (~> 1.2)
     lumberjack (1.0.10)
+    metaclass (0.0.4)
     method_source (0.8.2)
     minitest (5.9.1)
     minitest-reporters (1.1.11)
@@ -72,6 +73,8 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
+    mocha (1.1.0)
+      metaclass (~> 0.0.1)
     multipart-post (2.0.0)
     nenv (0.3.0)
     nio4r (1.2.1)
@@ -116,14 +119,15 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (~> 1.13)
-  celluloid-io
+  celluloid-io (= 0.17.3)
   guard (= 2.14.0)
   guard-minitest (= 2.4.6)
-  minitest
+  minitest (= 5.9.1)
   minitest-reporters (= 1.1.11)
+  mocha (= 1.1.0)
   rake (~> 10.0)
-  rb-fsevent
-  slack-ruby-bot
+  rb-fsevent (= 0.9.7)
+  slack-ruby-bot (= 0.9.0)
   werewolf!
 
 BUNDLED WITH

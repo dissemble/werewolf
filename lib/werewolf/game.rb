@@ -19,10 +19,10 @@ module Werewolf
     end
 
     def join(player)
-      raise 'Only Player objects may join the game' unless player.respond_to?(:name)
-
-      if @players.member? player
-        raise "you already joined"
+      if active?
+        raise ActiveGameError.new(player.name, "New players may not join once the game is active")
+      elsif @players.member? player
+        raise AlreadyJoinedError.new(player.name, "already joined")
       else
         @players.add(player)
       end
@@ -53,8 +53,68 @@ module Werewolf
     end
 
 
+    def process_join(username, client, channel)
+      player = Player.new(username)
+
+      begin
+        join(player)
+
+        ack_message = "<@#{username}> has joined the game"
+        communicate(ack_message, client, channel)
+        communicate(format_status, client, channel)
+      rescue AlreadyJoinedError => err
+        communicate("<@#{err.username}> #{err.message}", client, channel)
+      rescue ActiveGameError => err
+        communicate("<@#{err.username}> you can't join a game after it starts.", client, channel)
+      end
+    end
+
+
+    def process_start(username, client, channel)
+      begin
+        start
+        communicate("<@#{username}> has started the game", client, channel)
+        communicate("<@#{username}> #{format_status}", client, channel)
+        communicate("[Dawn]", client, channel)
+      rescue RuntimeError => err
+        communicate("<@#{username}> #{err.message}.", client, channel)
+      end
+    end
+
+
+    def process_vote(voter, votee, client, channel)
+      # TODO
+      communicate("<@#{voter}> has voted for #{votee}", client, channel)
+    end
+
+
+    def communicate(message, client, channel)
+      client.say(text: message, channel: channel)
+    end
+
+
     def self.instance()
       @instance ||= Game.new
     end
   end
+
+
+  class AlreadyJoinedError < StandardError
+    attr_reader :username
+    def initialize(username, message)
+      super(message)
+      @username = username
+    end
+  end
+
+
+  class ActiveGameError < StandardError
+    attr_reader :username
+    def initialize(username, message)
+      super(message)
+      @username = username
+    end
+  end
+
+
 end
