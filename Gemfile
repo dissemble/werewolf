@@ -7,7 +7,7 @@ gem 'slack-ruby-bot', '0.9.0'
 gem 'celluloid-io', '0.17.3'
 
 
-group :development do
+group :test do
   gem 'rb-fsevent', '0.9.7'
   gem 'guard', '2.14.0'
   gem 'guard-minitest', '2.4.6'
