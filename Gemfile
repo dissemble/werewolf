@@ -6,6 +6,7 @@ gemspec
 gem 'slack-ruby-bot', '0.9.0'
 gem 'celluloid-io', '0.17.3'
 
+
 group :development do
   gem 'rb-fsevent', '0.9.7'
   gem 'guard', '2.14.0'
@@ -13,5 +14,6 @@ group :development do
   gem 'minitest', '5.9.1'
   gem 'minitest-reporters', '1.1.11'
   gem 'mocha', '1.1.0'
+  gem 'simplecov', '0.12.0', :require => false
 end
 

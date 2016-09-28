@@ -245,6 +245,7 @@ module Werewolf
 
     def test_process_vote_exists
       game = Game.new
+      game.stubs(:communicate)
       game.process_vote('fakevoter', 'fakevotee', 'fakeclient', 'fakechannel')
     end
 
