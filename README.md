@@ -1,9 +1,11 @@
+[![Build Status](https://travis-ci.org/dissemble/werewolf.svg?branch=master)](https://travis-ci.org/dissemble/werewolf)
+
 # Werewolf Design Docs
 https://github.com/dissemble/werewolf/wiki
 
 
 # Get hacking
-```
+```sh
 ### Ruby Setup ###
 brew install chruby
 brew install ruby-install
@@ -28,7 +30,7 @@ cd werewolf
 bin/setup
 
 ### Turn on tests to run in background when tests or source are modified
-bundles exec guard
+bundle exec guard
 
 ### Write a test, then make it pass
 # Open test/werewolf/game_test.rb
@@ -38,7 +40,7 @@ bundles exec guard
 
 
 # Other notes
-```
+```sh
 ### Play with slackbot
 SLACK_API_TOKEN='xoxb-tokenhere' bin/slackrunner.rb
 # in slack
@@ -52,6 +54,7 @@ bundle exec bin/console
 rake test
 ```
 
+
 # To read
 - http://docs.ruby-doc.com/docs/ProgrammingRuby/
 - https://semaphoreci.com/community/tutorials/getting-started-with-minitest
@@ -60,24 +63,25 @@ rake test
 - http://www.mattsears.com/articles/2011/12/10/minitest-quick-reference/
 
 
-# working with multiple github accounts (untested)
-
-```
+# working with multiple github accounts
+```sh
 $ ssh-keygen -t rsa -C "your-email-address"  # save to ~/.ssh/id_rsa_github_personal
-# attach the .pub of that key to your personal github account
-# add new section to .ssh/config
+$ ssh-add ~/.ssh/id_rsa_github_personal
+# copy the generated public key (the .pub file) to your personal github account
+# add new section to your SSH configuration (~/.ssh/config)
 
     Host github-personal
       HostName github.com
       User git
       IdentityFile ~/.ssh/id_rsa_github_personal
 
-$ git clone https://github-personal/dissemble/werewolf.git
+$ git clone github-personal:/dissemble/werewolf.git
 $ cd werewolf
+# update your git user info for this repo
 $ git config user.name "your handle"
-$ git config user.email "your-email-address" 
+$ git config user.email "your-email-address"
 ```
 
 
+# License
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
