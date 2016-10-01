@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dissemble/werewolf.svg?branch=master)](https://travis-ci.org/dissemble/werewolf)
+[![Build Status](https://travis-ci.org/dissemble/werewolf.svg?branch=master)](https://travis-ci.org/dissemble/werewolf) [![Dependency Status](https://gemnasium.com/badges/github.com/dissemble/werewolf.svg)](https://gemnasium.com/github.com/dissemble/werewolf)
 
 # Werewolf Design Docs
 https://github.com/dissemble/werewolf/wiki
