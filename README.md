@@ -52,13 +52,13 @@ bundle exec bin/console
 rake test
 ```
 
+
 # To read
 - http://docs.ruby-doc.com/docs/ProgrammingRuby/
 - https://semaphoreci.com/community/tutorials/getting-started-with-minitest
 - http://nithinbekal.com/posts/guard-minitest-rails/
 - https://projectramon.wordpress.com/2014/08/12/taking-stock-of-rubys-minitest-introduction/
 - http://www.mattsears.com/articles/2011/12/10/minitest-quick-reference/
-
 
 
 # working with multiple github accounts
@@ -80,5 +80,5 @@ $ git config user.email "your-email-address"
 ```
 
 
+# License
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
