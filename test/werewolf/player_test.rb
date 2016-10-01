@@ -13,10 +13,6 @@ module Werewolf
   		assert_equal 'seth', Player.new('seth').name
   	end
 
-  	def test_new_player_has_nil_side
-  		assert Player.new('seth').side.nil?
-  	end
-
     def test_hash_uses_hash_of_player_name
       player = Player.new('seth')
       assert_equal player.name.hash, player.hash
@@ -26,6 +22,11 @@ module Werewolf
       player1 = Player.new('seth')
       player2 = Player.new('seth')
       assert player1.eql?(player2)
+    end
+
+    def test_can_set_role
+      player = Player.new('seth')
+      player.role = 'wolf'
     end
 
   end

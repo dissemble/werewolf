@@ -122,8 +122,24 @@ module Werewolf
       assert_match game.format_players, game.format_status
     end
 
-    def test_assign_players_to_roles
-      # TODO
+    def test_roles_are_assigned_at_game_start
+      game = Game.new
+      game.join(Player.new('seth'))
+      game.expects(:assign_roles)
+
+      game.start
+    end
+
+    def test_all_players_have_roles_once_game_starts
+      game = Game.new
+      game.join(Player.new('seth'))
+      game.join(Player.new('tom'))
+      game.join(Player.new('bill'))
+      game.start
+
+      game.players.each do |player|
+        assert player.role
+      end
     end
 
     def test_starting_assigns_roles
@@ -139,6 +155,9 @@ module Werewolf
       y = Game.instance
       assert_equal x, y
     end
+
+
+
 
     def test_communicate
       game = Game.new

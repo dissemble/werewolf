@@ -14,6 +14,10 @@ module Werewolf
       @time_period = nil
     end
 
+    def self.instance()
+      @instance ||= Game.new
+    end
+
     def active?()
       @active
     end
@@ -31,9 +35,18 @@ module Werewolf
     def start()
       raise "Game is already active" if active?
       raise "Game can't start until there is at least 1 player" if @players.empty?
-
+      assign_roles
       @active = true
     end
+
+    def assign_roles
+      @players.each do |player|
+        player.role = 'wolf'
+      end
+    end
+
+
+    ## TODO:  Slack communication stuff
 
     def format_players()
       if @players.empty?
@@ -42,7 +55,6 @@ module Werewolf
         "Players:  " + @players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
       end
     end
-
 
     def format_status()
       if !active?
@@ -90,11 +102,6 @@ module Werewolf
 
     def communicate(message, client, channel)
       client.say(text: message, channel: channel)
-    end
-
-
-    def self.instance()
-      @instance ||= Game.new
     end
   end
 

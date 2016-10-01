@@ -1,7 +1,7 @@
 module Werewolf
 
   class Player
-    attr_accessor :name, :side
+    attr_accessor :name, :role
 
     def initialize(name)
       @name = name
