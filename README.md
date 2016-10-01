@@ -66,6 +66,7 @@ rake test
 # working with multiple github accounts
 ```sh
 $ ssh-keygen -t rsa -C "your-email-address"  # save to ~/.ssh/id_rsa_github_personal
+$ ssh-add ~/.ssh/id_rsa_github_personal
 # copy the generated public key (the .pub file) to your personal github account
 # add new section to your SSH configuration (~/.ssh/config)
 
