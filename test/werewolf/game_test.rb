@@ -141,11 +141,7 @@ module Werewolf
         assert player.role
       end
     end
-
-    def test_starting_assigns_roles
-      # TODO
-    end
-
+    
     def test_instance_method_returns_new_instance
       assert_equal Game, Game.instance.class
     end
