@@ -28,7 +28,7 @@ cd werewolf
 bin/setup
 
 ### Turn on tests to run in background when tests or source are modified
-bundles exec guard
+bundle exec guard
 
 ### Write a test, then make it pass
 # Open test/werewolf/game_test.rb
