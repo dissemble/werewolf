@@ -3,7 +3,7 @@ https://github.com/dissemble/werewolf/wiki
 
 
 # Get hacking
-```
+```sh
 ### Ruby Setup ###
 brew install chruby
 brew install ruby-install
@@ -62,7 +62,7 @@ rake test
 
 # working with multiple github accounts (untested)
 
-```
+```sh
 $ ssh-keygen -t rsa -C "your-email-address"  # save to ~/.ssh/id_rsa_github_personal
 # attach the .pub of that key to your personal github account
 # add new section to .ssh/config
