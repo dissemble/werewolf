@@ -38,7 +38,7 @@ bundle exec guard
 
 
 # Other notes
-```
+```sh
 ### Play with slackbot
 SLACK_API_TOKEN='xoxb-tokenhere' bin/slackrunner.rb
 # in slack
