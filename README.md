@@ -60,22 +60,23 @@ rake test
 - http://www.mattsears.com/articles/2011/12/10/minitest-quick-reference/
 
 
-# working with multiple github accounts (untested)
 
+# working with multiple github accounts
 ```sh
 $ ssh-keygen -t rsa -C "your-email-address"  # save to ~/.ssh/id_rsa_github_personal
-# attach the .pub of that key to your personal github account
-# add new section to .ssh/config
+# copy the generated public key (the .pub file) to your personal github account
+# add new section to your SSH configuration (~/.ssh/config)
 
     Host github-personal
       HostName github.com
       User git
       IdentityFile ~/.ssh/id_rsa_github_personal
 
-$ git clone https://github-personal/dissemble/werewolf.git
+$ git clone github-personal:/dissemble/werewolf.git
 $ cd werewolf
+# update your git user info for this repo
 $ git config user.name "your handle"
-$ git config user.email "your-email-address" 
+$ git config user.email "your-email-address"
 ```
 
 
