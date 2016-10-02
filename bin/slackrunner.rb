@@ -9,5 +9,12 @@ if ENV['SLACK_API_TOKEN'].nil?
 end
 
 SlackRubyBot::Client.logger.level = Logger::INFO
-Werewolf::Game.new
-Werewolf::App.instance.run
+game = Werewolf::Game.new
+
+slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['fangbot'])
+slackbot.start_async
+
+while true do
+  sleep 2
+  game.advance_time
+end

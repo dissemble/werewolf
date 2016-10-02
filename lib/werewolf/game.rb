@@ -10,8 +10,8 @@ module Werewolf
       @active = false
       @players = Set.new
       @active_roles = nil
-      @day_number = 0
-      @time_period = nil
+      @time_period_generator = create_time_period_generator
+      @time_period, @day_number = @time_period_generator.next
     end
 
     def self.instance()
@@ -42,6 +42,29 @@ module Werewolf
     def assign_roles
       @players.each do |player|
         player.role = 'wolf'
+      end
+    end
+
+    def advance_time
+      @time_period, @day_number = @time_period_generator.next
+
+      # TODO: slack communication and test comms
+      if 'night' == @time_period
+        puts "[Dusk], day #{@day_number}"
+      else
+        puts "[Dawn], day #{@day_number}"
+      end
+    end
+
+    def create_time_period_generator
+      Enumerator.new do |yielder|
+        times = ['night', 'day']
+        i = 0
+        loop do
+          day = (i+1) / 2
+          yielder.yield [times[i%2], day]
+          i += 1
+        end
       end
     end
 
