@@ -66,7 +66,7 @@ module Werewolf
 
 
     def process_join(username, client, channel)
-      player = Player.new(username)
+      player = Player.new(:name => username)
 
       begin
         join(player)
@@ -85,8 +85,20 @@ module Werewolf
     def process_start(username, client, channel)
       begin
         start
+
+        # 'game start' to all
         communicate("<@#{username}> has started the game", client, channel)
+
+        # 'game status' to all
         communicate("<@#{username}> #{format_status}", client, channel)
+
+        # 'game start with role' to each player
+        @players.each do |player|
+          puts player
+          communicate("Game has begun.  Your role is: #{player.role}.", client, "@#{player.name}")
+        end
+
+        # 'day start' to all
         communicate("[Dawn]", client, channel)
       rescue RuntimeError => err
         communicate("<@#{username}> #{err.message}.", client, channel)

@@ -26,8 +26,8 @@ module Werewolf
 
     def test_join_adds_players_to_set
       game = Game.new
-      player1 = Player.new('seth')
-      player2 = Player.new('wesley')
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'wesley')
 
       game.join(player1)
       game.join(player2)
@@ -39,10 +39,10 @@ module Werewolf
     def test_raise_if_same_player_name_added_twice
       game = Game.new
       username = 'seth'
-      game.join(Player.new(username))
+      game.join(Player.new(:name => username))
 
       err = assert_raises(AlreadyJoinedError) {
-        game.join(Player.new(username))
+        game.join(Player.new(:name => username))
       }
       assert_match(/already joined/, err.message)
       assert_equal username, err.username
@@ -52,19 +52,19 @@ module Werewolf
       game = Game.new
       game.stubs(:active?).returns(true)
       assert_raises(ActiveGameError) {
-        game.join(Player.new('seth'))
+        game.join(Player.new(:name => 'seth'))
       }
     end
 
     def test_game_can_be_started
       game = Game.new
-      game.join(Player.new('seth'))
+      game.join(Player.new(:name => 'seth'))
       game.start
     end
 
     def test_game_cannot_be_started_twice
       game = Game.new
-      game.join(Player.new('seth'))
+      game.join(Player.new(:name => 'seth'))
       game.start
 
       err = assert_raises(RuntimeError) {
@@ -82,22 +82,22 @@ module Werewolf
 
     def test_once_started_game_is_active
       game = Game.new
-      game.join(Player.new('seth'))
+      game.join(Player.new(:name => 'seth'))
       game.start
       assert game.active?
     end
 
     def test_slack_formatting_players
       game = Game.new
-      player1 = Player.new('seth')
-      player2 = Player.new('wesley')
-      player3 = Player.new('plough')
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom')
+      player3 = Player.new(:name => 'bill')
 
       game.join(player1)
       game.join(player2)
       game.join(player3)
 
-      expected = "Players:  <@seth>, <@wesley>, <@plough>"
+      expected = "Players:  <@seth>, <@tom>, <@bill>"
       assert_equal expected, game.format_players
     end
 
@@ -115,7 +115,7 @@ module Werewolf
 
     def test_slack_format_status_newly_active_game
       game = Game.new
-      game.join(Player.new('seth'))
+      game.join(Player.new(:name => 'seth'))
       game.start
       assert_match(/Game is active/, game.format_status)
       assert_match game.format_players, game.format_status
@@ -123,7 +123,7 @@ module Werewolf
 
     def test_roles_are_assigned_at_game_start
       game = Game.new
-      game.join(Player.new('seth'))
+      game.join(Player.new(:name => 'seth'))
       game.expects(:assign_roles)
 
       game.start
@@ -131,9 +131,9 @@ module Werewolf
 
     def test_all_players_have_roles_once_game_starts
       game = Game.new
-      game.join(Player.new('seth'))
-      game.join(Player.new('tom'))
-      game.join(Player.new('bill'))
+      game.join(Player.new(:name => 'seth'))
+      game.join(Player.new(:name => 'tom'))
+      game.join(Player.new(:name => 'bill'))
       game.start
 
       game.players.each do |player|
@@ -177,7 +177,7 @@ module Werewolf
       username = "fakeusername"
       mock_player = mock('player')
       
-      Player.expects(:new).once.with(username).returns(mock_player)
+      Player.expects(:new).once.with(:name => username).returns(mock_player)
       game.expects(:join).once.with(mock_player)
       game.stubs(:communicate)
 
@@ -226,20 +226,35 @@ module Werewolf
       game.process_start('fakeusername', 'fakeclient', 'fakechannel')
     end
 
-
-    def test_process_start_communicates_status
+    # TODO:  disentangle multiple tests
+    def test_process_start_communicates_all_the_things
       game = Game.new
+      player1 = Player.new(:name => 'seth', :role => 'wolf')
+      player2 = Player.new(:name => 'tom', :role => 'villager')
+
+      game.join player1
+      game.join player2
 
       username = 'seth'
       status = 'fake_status'
-      game.stubs(:format_status).returns(status)
-      game.stubs(:start)
+
+      game.stubs(:format_status).once.returns(status)
+      game.stubs(:start).once
+
       game.expects(:communicate).once
         .with(regexp_matches(/#{username}.*has started the game/), anything, anything)
+
       game.expects(:communicate).once
         .with(regexp_matches(/#{username}.*#{status}/), anything, anything)
+
       game.expects(:communicate).once
         .with('[Dawn]', anything, anything)
+
+      game.expects(:communicate).once
+        .with(regexp_matches(/Game has begun.  Your role is: wolf/), anything, "@seth")
+        
+      game.expects(:communicate)
+        .with(regexp_matches(/Game has begun.  Your role is: villager/), anything, "@tom")
 
       game.process_start(username, 'fakeclient', 'fakechannel')
     end
@@ -254,21 +269,6 @@ module Werewolf
       game.expects(:communicate).with(regexp_matches(/#{username}.*#{err.message}/), anything, anything)
 
       game.process_start(username, 'fakeclient', 'fakechannel')
-    end
-
-
-    def test_process_start_informs_each_player_of_their_role
-      # game = Game.new
-      # player1 = Player.new('seth')
-      # player2 = Player.new('tom')
-      # game.join(player1)
-      # game.join(player2)
-
-      # game.expects(:communicate).with(
-      #   regexp_matches(/Game has begun.  Your role is #{player1.role}/), 
-      #   anything,
-      #   "<@\##{player1.name}>")
-      # game.process_start('fakeuser', 'fakeclient', 'fakechannel')
     end
 
 
