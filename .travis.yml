@@ -7,7 +7,3 @@ rvm:
 script:
     - 'bundle exec rake test'
     - 'bundle exec rake codeclimate'
-
-addons:
-    code_climate:
-        repo_token: 85d11bcf-5d4c-4d29-b042-9bb9f54cf6fd
