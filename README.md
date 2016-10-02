@@ -82,10 +82,10 @@ $ git config user.name "your handle"
 $ git config user.email "your-email-address"
 ```
 
-# Integration things
-https://codecov.io/gh/dissemble/werewolf
-https://travis-ci.org/dissemble/werewolf
 
+# Integration things
+- https://codecov.io/gh/dissemble/werewolf
+- https://travis-ci.org/dissemble/werewolf
 
 
 # License
