@@ -6,7 +6,7 @@ rvm:
 
 script:
     - 'bundle exec rake test'
-    - 'bundle exec codeclimate-test-reporter'
+    - 'bundle exec rake codeclimate'
 
 addons:
     code_climate:

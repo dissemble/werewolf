@@ -15,7 +15,7 @@ group :test do
   gem 'minitest-reporters', '1.1.11'
   gem 'mocha', '1.1.0'
   gem 'simplecov', '0.12.0', :require => false
-  gem 'codeclimate-test-reporter', '1.0.0.pre.rc2', :require => false
+  gem 'codeclimate-test-reporter', '1.0.0.pre.rc2'
 end
 
 
