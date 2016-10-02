@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dissemble/werewolf.svg?branch=master)](https://travis-ci.org/dissemble/werewolf) [![Dependency Status](https://gemnasium.com/badges/github.com/dissemble/werewolf.svg)](https://gemnasium.com/github.com/dissemble/werewolf)
+[![Build Status](https://travis-ci.org/dissemble/werewolf.svg?branch=master)](https://travis-ci.org/dissemble/werewolf) [![Dependency Status](https://gemnasium.com/badges/github.com/dissemble/werewolf.svg)](https://gemnasium.com/github.com/dissemble/werewolf) [![Code Climate](https://codeclimate.com/github/dissemble/werewolf/badges/gpa.svg)](https://codeclimate.com/github/dissemble/werewolf) [![Test Coverage](https://codeclimate.com/github/dissemble/werewolf/badges/coverage.svg)](https://codeclimate.com/github/dissemble/werewolf/coverage)
 
 # Werewolf Design Docs
 https://github.com/dissemble/werewolf/wiki
