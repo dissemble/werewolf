@@ -1,5 +1,5 @@
 require "werewolf/version"
-require "werewolf/app"
+require "werewolf/slackbot"
 require "werewolf/game"
 require "werewolf/player"
 require "werewolf/commands/join"

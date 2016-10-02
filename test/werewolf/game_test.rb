@@ -20,8 +20,8 @@ module Werewolf
       assert_equal 0, Game.new.day_number
     end
 
-    def test_new_game_time_period_is_nil
-      assert Game.new.time_period.nil?
+    def test_new_game_time_period_is_night
+      assert_equal 'night', Game.new.time_period
     end
 
     def test_join_adds_players_to_set
@@ -279,7 +279,35 @@ module Werewolf
     end
 
 
+    def test_create_time_period_generator
+      game = Game.new
+      generator = game.create_time_period_generator
+      assert_equal ['night', 0],  generator.next
+      assert_equal ['day', 1],    generator.next
+      assert_equal ['night', 1],  generator.next
+      assert_equal ['day', 2],    generator.next
+      assert_equal ['night', 2],  generator.next
+      assert_equal ['day', 3],    generator.next
+    end
 
+
+    def test_advance_time
+      game = Game.new
+      assert_equal 'night', game.time_period
+      assert_equal 0, game.day_number
+
+      game.advance_time
+      assert_equal 'day', game.time_period
+      assert_equal 1, game.day_number
+
+      game.advance_time
+      assert_equal 'night', game.time_period
+      assert_equal 1, game.day_number
+
+      game.advance_time
+      assert_equal 'day', game.time_period
+      assert_equal 2, game.day_number
+    end
 
 
   end

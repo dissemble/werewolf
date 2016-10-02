@@ -1,6 +1,6 @@
 require 'slack-ruby-bot'
 
 module Werewolf
-	class App < SlackRubyBot::App
+  class SlackBot < SlackRubyBot::Server
 	end
 end
