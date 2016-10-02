@@ -44,7 +44,7 @@ module Werewolf
       err = assert_raises(AlreadyJoinedError) {
         game.join(Player.new(username))
       }
-      assert_match /already joined/, err.message
+      assert_match(/already joined/, err.message)
       assert_equal username, err.username
     end
 
@@ -70,15 +70,14 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.start
       }
-      assert_match /Game is already active/, err.message
+      assert_match(/Game is already active/, err.message)
     end
 
     def test_game_needs_at_least_one_player_to_start
       game = Game.new
-      err = assert_raises(RuntimeError) {
+      assert_raises(RuntimeError) {
         game.start
       }
-      assert_match /Game can't start until there is at least 1 player/, err.message
     end
 
     def test_once_started_game_is_active
@@ -110,7 +109,7 @@ module Werewolf
 
     def test_slack_format_status_new_game
       game = Game.new
-      assert_match /No game running/, game.format_status
+      assert_match(/No game running/, game.format_status)
       assert_match game.format_players, game.format_status
     end
 
@@ -118,7 +117,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new('seth'))
       game.start
-      assert_match /Game is active/, game.format_status
+      assert_match(/Game is active/, game.format_status)
       assert_match game.format_players, game.format_status
     end
 
@@ -141,7 +140,7 @@ module Werewolf
         assert player.role
       end
     end
-    
+
     def test_instance_method_returns_new_instance
       assert_equal Game, Game.instance.class
     end
@@ -255,6 +254,21 @@ module Werewolf
       game.expects(:communicate).with(regexp_matches(/#{username}.*#{err.message}/), anything, anything)
 
       game.process_start(username, 'fakeclient', 'fakechannel')
+    end
+
+
+    def test_process_start_informs_each_player_of_their_role
+      # game = Game.new
+      # player1 = Player.new('seth')
+      # player2 = Player.new('tom')
+      # game.join(player1)
+      # game.join(player2)
+
+      # game.expects(:communicate).with(
+      #   regexp_matches(/Game has begun.  Your role is #{player1.role}/), 
+      #   anything,
+      #   "<@\##{player1.name}>")
+      # game.process_start('fakeuser', 'fakeclient', 'fakechannel')
     end
 
 

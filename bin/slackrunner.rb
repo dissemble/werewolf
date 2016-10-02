@@ -9,5 +9,5 @@ if ENV['SLACK_API_TOKEN'].nil?
 end
 
 SlackRubyBot::Client.logger.level = Logger::INFO
-game = Werewolf::Game.new
+Werewolf::Game.new
 Werewolf::App.instance.run

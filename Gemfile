@@ -17,3 +17,7 @@ group :test do
   gem 'simplecov', '0.12.0', :require => false
 end
 
+
+group :development do
+  gem 'rubocop', '0.43.0'
+end

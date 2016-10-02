@@ -24,9 +24,10 @@ module Werewolf
       assert player1.eql?(player2)
     end
 
-    def test_can_set_role
+    def test_can_set_and_get_role
       player = Player.new('seth')
       player.role = 'wolf'
+      assert_equal 'wolf', player.role
     end
 
   end
