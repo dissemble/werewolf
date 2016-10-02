@@ -82,6 +82,11 @@ $ git config user.name "your handle"
 $ git config user.email "your-email-address"
 ```
 
+# Integration things
+https://codecov.io/gh/dissemble/werewolf
+https://travis-ci.org/dissemble/werewolf
+
+
 
 # License
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
