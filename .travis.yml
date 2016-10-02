@@ -2,6 +2,12 @@ language: ruby
 cache: bundler
 
 rvm:
-  - 2.3.1
+    - 2.3.1
 
-script: 'bundle exec rake test'
+script:
+    - 'bundle exec rake test'
+    - 'bundle exec codeclimate-test-reporter'
+
+addons:
+    code_climate:
+        repo_token: 85d11bcf-5d4c-4d29-b042-9bb9f54cf6fd
