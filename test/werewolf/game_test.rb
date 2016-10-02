@@ -176,14 +176,14 @@ module Werewolf
 
       username = "fakeusername"
       mock_player = mock('player')
-      
+
       Player.expects(:new).once.with(:name => username).returns(mock_player)
       game.expects(:join).once.with(mock_player)
       game.stubs(:communicate)
 
       game.process_join(username, "fakeclient", "fakechannel")
     end
-  
+
     def test_process_join_communicates_to_users
       game = Game.new
 
@@ -195,7 +195,7 @@ module Werewolf
       game.stubs(:format_status).returns(status)
       game.expects(:communicate).with(regexp_matches(/#{username}/), client, channel)
       game.expects(:communicate).with(status, client, channel)
-      
+
       game.process_join(username, client, channel)
     end
 
@@ -259,7 +259,7 @@ module Werewolf
 
       game.expects(:communicate).once
         .with(regexp_matches(/Game has begun.  Your role is: wolf/), anything, "@seth")
-        
+
       game.expects(:communicate)
         .with(regexp_matches(/Game has begun.  Your role is: villager/), anything, "@tom")
 
