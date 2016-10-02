@@ -219,6 +219,13 @@ module Werewolf
       game.process_join('fakeusername', 'fakeclient', 'fakechannel')
     end
 
+    def test_process_status_communicates_game_status
+      game = Game.new
+      game.stubs(:format_status).once.returns('some info about the game state')
+      game.expects(:communicate).with('some info about the game state', anything, anything)
+      game.process_status('fakeclient', 'fakechannel')
+    end
+
     def test_process_start_starts_game
       game = Game.new
       game.expects(:start).once

@@ -81,6 +81,9 @@ module Werewolf
       end
     end
 
+    def process_status(client, channel)
+      communicate(format_status, client, channel)
+    end
 
     def process_start(username, client, channel)
       begin
