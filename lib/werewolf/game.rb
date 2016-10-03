@@ -1,8 +1,11 @@
 require 'set'
+require 'observer'
 
 module Werewolf
 
   class Game
+    include Observable
+
     attr_reader :players
     attr_accessor :active_roles, :day_number, :time_period
 
@@ -47,6 +50,9 @@ module Werewolf
 
     def advance_time
       @time_period, @day_number = @time_period_generator.next
+
+      changed
+      notify_observers(:action => 'advance_time')
 
       # TODO: slack communication and test comms
       if 'night' == @time_period

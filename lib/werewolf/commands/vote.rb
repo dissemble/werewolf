@@ -12,8 +12,7 @@ module Werewolf
         # puts "match['expression']:  #{match['expression']}"        
         # puts '........'
 
-        game = Game.instance
-        game.process_vote(data.user, match['expression'], client, data.channel)
+        Game.instance.process_vote(data.user, match['expression'], client, data.channel)
       end
     end
   end
