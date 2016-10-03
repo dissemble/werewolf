@@ -36,26 +36,6 @@ module Werewolf
       assert_equal expected, game.players
     end
 
-    # def test_raise_if_same_player_name_added_twice
-    #   game = Game.new
-    #   username = 'seth'
-    #   game.join(Player.new(:name => username))
-
-    #   err = assert_raises(AlreadyJoinedError) {
-    #     game.join(Player.new(:name => username))
-    #   }
-    #   assert_match(/already joined/, err.message)
-    #   assert_equal username, err.username
-    # end
-
-    # def test_join_raises_if_game_is_active
-    #   game = Game.new
-    #   game.stubs(:active?).returns(true)
-    #   assert_raises(ActiveGameError) {
-    #     game.join(Player.new(:name => 'seth'))
-    #   }
-    # end
-
     def test_game_can_be_started
       game = Game.new
       game.join(Player.new(:name => 'seth'))
@@ -170,11 +150,38 @@ module Werewolf
       game.communicate(message, client, channel)
     end
 
-    def test_process_status_communicates_game_status
+
+    def test_format_time_when_game_active
       game = Game.new
-      game.stubs(:format_status).once.returns('some info about the game state')
-      game.expects(:communicate).with('some info about the game state', anything, anything)
-      game.process_status('fakeclient', 'fakechannel')
+      game.stubs(:active?).returns(true)
+      game.stubs(:time_period).returns('night')
+      game.stubs(:day_number).returns(17)
+      assert_equal "It is night (day 17)", game.format_time
+    end
+
+
+    def test_format_time_when_game_inactive
+      game = Game.new
+      game.stubs(:active?).returns(false)
+      assert_equal "No game running", game.format_time
+    end
+
+
+    def test_notification_when_status_called
+      game = Game.new
+      fake_format_time = "the the far end of town where the grickle-grass grows"
+      fake_players = [1,2,3]
+      game.stubs(:format_time).returns(fake_format_time)
+      game.stubs(:players).returns(fake_players)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'status',
+        :message => fake_format_time,
+        :players => fake_players)
+      game.add_observer(mock_observer)
+
+      game.status
     end
 
     def test_process_start_starts_game

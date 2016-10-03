@@ -120,6 +120,49 @@ module Werewolf
     end
 
 
+    def test_game_notifies_on_status
+      game = Game.new
+      slackbot = Werewolf::SlackBot.new
+      game.add_observer(slackbot)
+
+      game.stubs(:players).returns(123)
+      slackbot.expects(:handle_status).once.with(
+        :message => "No game running",
+        :players => 123)
+
+      game.status
+    end
+
+
+    def test_handler_status_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      message = "humpty dumpty sat on a wall"
+      fake_players = "no peeps"
+      slackbot.stubs(:format_players).returns(fake_players)
+      slackbot.expects(:tell_all).once.with("#{message}.  #{fake_players}")
+      slackbot.handle_status(:message => message, :players => nil)
+    end
+
+
+    def test_format_player
+      slackbot = Werewolf::SlackBot.new
+      players = Set.new([
+        Player.new(:name => 'john'),
+        Player.new(:name => 'seth'),
+        Player.new(:name => 'tom'),
+        Player.new(:name => 'bill')
+        ])
+
+      assert_equal "Players: <@john>, <@seth>, <@tom>, <@bill>", slackbot.format_players(players)
+    end
+
+
+    def test_format_player_when_no_players
+      slackbot = Werewolf::SlackBot.new
+      assert_equal "Zero players.  Type 'wolfbot join' to join the game.", slackbot.format_players(Set.new())
+    end
+
+
     def test_tell_all
       slackbot = Werewolf::SlackBot.new
       message = 'ab cum de ex in pro sine sub'

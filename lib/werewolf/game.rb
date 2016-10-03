@@ -56,6 +56,40 @@ module Werewolf
     end
 
 
+    def status()
+      changed
+      notify_observers(:action => 'status', :message => format_time, :players => players)
+    end
+
+
+    def format_time
+      if active?
+        "It is #{time_period} (day #{day_number})"
+      else
+        "No game running"
+      end
+    end
+
+
+    # TODO: kill
+    def format_status()
+      if !active?
+        "No game running.  #{format_players}"
+      else
+        "Game is active.  #{format_players}"
+      end
+    end
+
+    # TODO: kill
+    def format_players()
+      if @players.empty?
+        "Zero players.  Type 'wolfbot join' to join the game."
+      else
+        "Players:  " + @players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
+      end
+    end
+
+
     def assign_roles
       @players.each do |player|
         player.role = 'wolf'
@@ -66,10 +100,10 @@ module Werewolf
     def advance_time
       @time_period, @day_number = @time_period_generator.next
 
-      if 'night' == @time_period
-        message = "[Dusk], day #{@day_number}"
+      if 'night' == time_period
+        message = "[Dusk], day #{day_number}"
       else
-        message = "[Dawn], day #{@day_number}"
+        message = "[Dawn], day #{day_number}"
       end
 
       changed
@@ -90,30 +124,8 @@ module Werewolf
     end
 
 
+
     ## TODO:  Slack communication stuff
-
-    def format_players()
-      if @players.empty?
-        "Zero players.  Type 'wolfbot join' to join the game."
-      else
-        "Players:  " + @players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
-      end
-    end
-
-
-    def format_status()
-      if !active?
-        "No game running.  #{format_players}"
-      else
-        "Game is active.  #{format_players}"
-      end
-    end
-
-
-    def process_status(client, channel)
-      communicate(format_status, client, channel)
-    end
-
 
     def process_start(username, client, channel)
       begin

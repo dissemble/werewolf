@@ -2,7 +2,7 @@ module Werewolf
   module Commands
     class Status < SlackRubyBot::Commands::Base
       command 'status' do |client, data, _match|
-        Game.instance.process_status(client, data.channel)
+        Game.instance.status()
       end
     end
   end

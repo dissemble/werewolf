@@ -25,6 +25,11 @@ module Werewolf
     end
 
 
+    def handle_status(options = {})
+      tell_all("#{options[:message]}.  #{format_players(options[:players])}")
+    end
+
+
     def tell_all(message)
       # puts "tell_all:  #{message}"
       client.say(text: message, channel: 'G2FQMNAF8')
@@ -35,6 +40,14 @@ module Werewolf
       # TODO:  implement me
     end
 
+
+    def format_players(players)
+      if players.empty?
+        "Zero players.  Type 'wolfbot join' to join the game."
+      else
+        "Players: " + players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
+      end
+    end
 
 
 
