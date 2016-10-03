@@ -36,25 +36,25 @@ module Werewolf
       assert_equal expected, game.players
     end
 
-    def test_raise_if_same_player_name_added_twice
-      game = Game.new
-      username = 'seth'
-      game.join(Player.new(:name => username))
+    # def test_raise_if_same_player_name_added_twice
+    #   game = Game.new
+    #   username = 'seth'
+    #   game.join(Player.new(:name => username))
 
-      err = assert_raises(AlreadyJoinedError) {
-        game.join(Player.new(:name => username))
-      }
-      assert_match(/already joined/, err.message)
-      assert_equal username, err.username
-    end
+    #   err = assert_raises(AlreadyJoinedError) {
+    #     game.join(Player.new(:name => username))
+    #   }
+    #   assert_match(/already joined/, err.message)
+    #   assert_equal username, err.username
+    # end
 
-    def test_join_raises_if_game_is_active
-      game = Game.new
-      game.stubs(:active?).returns(true)
-      assert_raises(ActiveGameError) {
-        game.join(Player.new(:name => 'seth'))
-      }
-    end
+    # def test_join_raises_if_game_is_active
+    #   game = Game.new
+    #   game.stubs(:active?).returns(true)
+    #   assert_raises(ActiveGameError) {
+    #     game.join(Player.new(:name => 'seth'))
+    #   }
+    # end
 
     def test_game_can_be_started
       game = Game.new
@@ -86,6 +86,14 @@ module Werewolf
       game.start
       assert game.active?
     end
+
+
+    def test_add()
+      game = Game.new
+      game.add_username_to_game('seth')
+      assert_equal 'seth', game.players.first.name
+    end
+
 
     def test_slack_formatting_players
       game = Game.new
@@ -151,9 +159,6 @@ module Werewolf
       assert_equal x, y
     end
 
-
-
-
     def test_communicate
       game = Game.new
 
@@ -163,60 +168,6 @@ module Werewolf
       client.expects(:say).once.with(text: message, channel: channel)
 
       game.communicate(message, client, channel)
-    end
-
-    def test_process_join_exists
-      game = Game.new
-      game.stubs(:communicate)
-      game.process_join("fakeusername", "fakeclient", "fakechannel")
-    end
-
-    def test_process_join_joins_new_player_to_game
-      game = Game.new
-
-      username = "fakeusername"
-      mock_player = mock('player')
-
-      Player.expects(:new).once.with(:name => username).returns(mock_player)
-      game.expects(:join).once.with(mock_player)
-      game.stubs(:communicate)
-
-      game.process_join(username, "fakeclient", "fakechannel")
-    end
-
-    def test_process_join_communicates_to_users
-      game = Game.new
-
-      client = mock("fakeclient")
-      channel = "fakechannel"
-      username = "fakeusername"
-      status = 'foo'
-
-      game.stubs(:format_status).returns(status)
-      game.expects(:communicate).with(regexp_matches(/#{username}/), client, channel)
-      game.expects(:communicate).with(status, client, channel)
-
-      game.process_join(username, client, channel)
-    end
-
-    def test_process_join_communicates_already_joined_error
-      game = Game.new
-
-      username = 'seth'
-      game.stubs(:join).raises(AlreadyJoinedError.new(username, 'omg problems'))
-      game.expects(:communicate).with(regexp_matches(/#{username}.*omg problems/), anything, anything)
-
-      game.process_join('fakeusername', 'fakeclient', 'fakechannel')
-    end
-
-    def test_process_join_communicates_active_game_error
-      game = Game.new
-
-      username = 'seth'
-      game.stubs(:join).raises(ActiveGameError.new(username, 'omg problems'))
-      game.expects(:communicate).with(regexp_matches(/#{username}.*you can't join a game after it starts/), anything, anything)
-
-      game.process_join('fakeusername', 'fakeclient', 'fakechannel')
     end
 
     def test_process_status_communicates_game_status
@@ -321,12 +272,53 @@ module Werewolf
       game = Game.new
 
       mock_observer = mock('observer')
-      mock_observer.expects(:update).once.with(:action => 'advance_time')
+      mock_observer.expects(:update).once.with(
+        :action => 'advance_time',
+        :message => '[Dawn], day 1')
       game.add_observer(mock_observer)
 
       game.advance_time
     end
 
+
+    def test_game_notifies_when_player_joins
+      game = Game.new
+      player = Player.new(:name => 'seth')
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(:action => 'join', :player => player, :message => 'has joined the game')
+      game.add_observer(mock_observer)
+
+      game.join player
+    end
+
+
+    def test_notification_when_already_joined
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'join_error', 
+        :message => "Player already joined")
+      game.add_observer(mock_observer)
+
+      game.join(Player.new(:name => 'seth'))
+    end
+
+
+    def test_notification_when_joining_active_game
+      game = Game.new
+      game.expects(:active?).once.returns(true)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'join_error', 
+        :message => "New players may not join once the game is active")
+      game.add_observer(mock_observer)
+
+      game.join(Player.new(:name => 'seth'))
+    end
 
 
   end
