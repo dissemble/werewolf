@@ -150,23 +150,4 @@ module Werewolf
     end
   end
 
-
-  class AlreadyJoinedError < StandardError
-    attr_reader :username
-    def initialize(username, message)
-      super(message)
-      @username = username
-    end
-  end
-
-
-  class ActiveGameError < StandardError
-    attr_reader :username
-    def initialize(username, message)
-      super(message)
-      @username = username
-    end
-  end
-
-
 end
