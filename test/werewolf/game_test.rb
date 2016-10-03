@@ -317,6 +317,18 @@ module Werewolf
     end
 
 
+    def test_game_notifies_when_time_changes
+      game = Game.new
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(:action => 'advance_time')
+      game.add_observer(mock_observer)
+
+      game.advance_time
+    end
+
+
+
   end
 
 end
