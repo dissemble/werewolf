@@ -161,7 +161,7 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
       message = "humpty dumpty sat on a wall"
-      slackbot.expects(:tell_all).once.with("#{player.name} #{message}")
+      slackbot.expects(:tell_all).once.with("<@#{player.name}> #{message}")
       slackbot.handle_join_error(:player => player, :message => message)
     end
 
