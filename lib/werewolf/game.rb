@@ -36,10 +36,16 @@ module Werewolf
     def join(player)
       if active?
         changed
-        notify_observers(:action => 'join_error', :message => "New players may not join once the game is active")
+        notify_observers(
+          :action => 'join_error', 
+          :player => player, 
+          :message => "game is active, joining is not allowed")
       elsif @players.member? player
         changed
-        notify_observers(:action => 'join_error', :message => 'Player already joined')
+        notify_observers(
+          :action => 'join_error', 
+          :player => player,
+          :message => 'you already joined!')
       else
         @players.add(player)
         changed
@@ -48,11 +54,28 @@ module Werewolf
     end
 
 
-    def start()
-      raise "Game is already active" if active?
-      raise "Game can't start until there is at least 1 player" if @players.empty?
-      assign_roles
-      @active = true
+    def start(start_initiator='Unknown')
+      if active?
+        changed
+        notify_observers(:action => 'tell_all', :message => "Game is already active")
+      elsif @players.empty?
+        changed
+        notify_observers(:action => 'tell_all', :message => "Game can't start until there is at least 1 player")
+      else
+        assign_roles
+        @active = true
+
+        changed
+        notify_observers(:action => 'start', :start_initiator => start_initiator, :message => 'has started the game')
+
+        status
+        
+        # 'game start with role' to each player
+        @players.each do |player|
+          changed
+          notify_observers(:action => 'tell_player', :player => player, :message => "boom")
+        end
+      end
     end
 
 
@@ -126,30 +149,6 @@ module Werewolf
 
 
     ## TODO:  Slack communication stuff
-
-    def process_start(username, client, channel)
-      begin
-        start
-
-        # 'game start' to all
-        communicate("<@#{username}> has started the game", client, channel)
-
-        # 'game status' to all
-        communicate("<@#{username}> #{format_status}", client, channel)
-
-        # 'game start with role' to each player
-        @players.each do |player|
-          puts player
-          communicate("Game has begun.  Your role is: #{player.role}.", client, "@#{player.name}")
-        end
-
-        # 'day start' to all
-        communicate("[Dawn]", client, channel)
-      rescue RuntimeError => err
-        communicate("<@#{username}> #{err.message}.", client, channel)
-      end
-    end
-
 
     def process_vote(voter, votee, client, channel)
       # TODO

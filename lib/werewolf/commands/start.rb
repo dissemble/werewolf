@@ -15,7 +15,7 @@ module Werewolf
         # puts '........'
 
 
-        Game.instance.process_start(data.user, client, data.channel)
+        Game.instance.start(data.user)
       end
     end
   end

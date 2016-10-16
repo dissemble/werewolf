@@ -47,18 +47,30 @@ module Werewolf
       game.join(Player.new(:name => 'seth'))
       game.start
 
-      err = assert_raises(RuntimeError) {
-        game.start
-      }
-      assert_match(/Game is already active/, err.message)
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_all', 
+        :message => 'Game is already active')
+      game.add_observer(mock_observer)
+      game.expects(:assign_roles).never
+
+      game.start
     end
+
 
     def test_game_needs_at_least_one_player_to_start
       game = Game.new
-      assert_raises(RuntimeError) {
-        game.start
-      }
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_all', 
+        :message => "Game can't start until there is at least 1 player")
+      game.add_observer(mock_observer)
+      game.expects(:assign_roles).never
+
+      game.start
     end
+
 
     def test_once_started_game_is_active
       game = Game.new
@@ -184,58 +196,6 @@ module Werewolf
       game.status
     end
 
-    def test_process_start_starts_game
-      game = Game.new
-      game.expects(:start).once
-      game.stubs(:communicate)
-      game.process_start('fakeusername', 'fakeclient', 'fakechannel')
-    end
-
-    # TODO:  disentangle multiple tests
-    def test_process_start_communicates_all_the_things
-      game = Game.new
-      player1 = Player.new(:name => 'seth', :role => 'wolf')
-      player2 = Player.new(:name => 'tom', :role => 'villager')
-
-      game.join player1
-      game.join player2
-
-      username = 'seth'
-      status = 'fake_status'
-
-      game.stubs(:format_status).once.returns(status)
-      game.stubs(:start).once
-
-      game.expects(:communicate).once
-        .with(regexp_matches(/#{username}.*has started the game/), anything, anything)
-
-      game.expects(:communicate).once
-        .with(regexp_matches(/#{username}.*#{status}/), anything, anything)
-
-      game.expects(:communicate).once
-        .with('[Dawn]', anything, anything)
-
-      game.expects(:communicate).once
-        .with(regexp_matches(/Game has begun.  Your role is: wolf/), anything, "@seth")
-
-      game.expects(:communicate)
-        .with(regexp_matches(/Game has begun.  Your role is: villager/), anything, "@tom")
-
-      game.process_start(username, 'fakeclient', 'fakechannel')
-    end
-
-
-    def test_process_start_communicates_errors
-      game = Game.new
-
-      username = 'fakeusername'
-      err = RuntimeError.new('oops')
-      game.stubs(:start).raises(err)
-      game.expects(:communicate).with(regexp_matches(/#{username}.*#{err.message}/), anything, anything)
-
-      game.process_start(username, 'fakeclient', 'fakechannel')
-    end
-
 
     def test_process_vote_exists
       game = Game.new
@@ -302,31 +262,73 @@ module Werewolf
 
     def test_notification_when_already_joined
       game = Game.new
-      game.join(Player.new(:name => 'seth'))
+      player = Player.new(:name => 'seth')
+      game.join(player)
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'join_error', 
-        :message => "Player already joined")
+        :player => player,
+        :message => "you already joined!")
       game.add_observer(mock_observer)
 
-      game.join(Player.new(:name => 'seth'))
+      game.join(player)
     end
 
 
     def test_notification_when_joining_active_game
       game = Game.new
+      player = Player.new(:name => 'seth')
       game.expects(:active?).once.returns(true)
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'join_error', 
-        :message => "New players may not join once the game is active")
+        :player => player,
+        :message => "game is active, joining is not allowed")
       game.add_observer(mock_observer)
 
-      game.join(Player.new(:name => 'seth'))
+      game.join(player)
     end
 
+
+
+    def test_start_notifies_room_and_players
+      game = Game.new
+      start_initiator = "fakeuser"
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom')
+      game.join(player1)
+      game.join(player2)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'start', 
+        :start_initiator => start_initiator, 
+        :message => 'has started the game')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_player', 
+        :player => player1, 
+        :message => 'boom')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_player', 
+        :player => player2, 
+        :message => 'boom')
+      game.stubs(:status)
+      game.add_observer(mock_observer)
+
+      game.start(start_initiator)
+    end
+
+
+    def test_start_calls_status
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      game.join(Player.new(:name => 'tom'))
+      game.expects(:status)
+
+      game.start
+    end
 
   end
 

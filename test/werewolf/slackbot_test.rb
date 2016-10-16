@@ -19,7 +19,19 @@ module Werewolf
 
     def test_tell_player_exists
       slackbot = Werewolf::SlackBot.new
-      slackbot.tell_player()
+      slackbot.stubs(:client).raises(RuntimeError.new("oops"))
+      assert_raises(RuntimeError) {
+        slackbot.tell_player(Player.new(:name => 'seth'), "amessage")
+      }      
+    end
+
+
+    def test_tell_all_exists
+      slackbot = Werewolf::SlackBot.new
+      slackbot.stubs(:client).raises(RuntimeError.new("oops"))
+      assert_raises(RuntimeError) {
+        slackbot.tell_all("some nice text")
+      }
     end
 
 
@@ -98,6 +110,37 @@ module Werewolf
     end
 
 
+    def test_handle_start_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      initiator = "seth"
+      message = "is exceptional"
+      slackbot.expects(:tell_all).once.with("<@#{initiator}> #{message}")
+      slackbot.handle_start(
+        :start_initiator => initiator,
+        :message => message)
+    end
+
+
+    def test_handle_tell_player
+      fake_player = "bert"
+      fake_message = "where is ernie?"
+
+      slackbot = Werewolf::SlackBot.new
+      slackbot.expects(:tell_player).once.with(fake_player, fake_message)
+      slackbot.handle_tell_player(
+        :player => fake_player,
+        :message => fake_message)
+    end
+
+
+    def test_handle_tell_all
+      fake_message = "look into thy glass"
+
+      slackbot = Werewolf::SlackBot.new
+      slackbot.expects(:tell_all).once.with(fake_message)
+      slackbot.handle_tell_all(:message => fake_message)
+    end
+
 
     def test_game_notifies_on_join_error
       game = Game.new
@@ -105,18 +148,21 @@ module Werewolf
       game.add_observer(slackbot)
 
       game.stubs(:active?).returns(true)
+      player = Player.new(:name => 'seth')
       slackbot.expects(:handle_join_error).once.with(
-        :message =>'New players may not join once the game is active')
+        :player => player,
+        :message =>'game is active, joining is not allowed')
 
-      game.join(Player.new(:name => 'seth'))
+      game.join(player)
     end
 
 
     def test_handler_join_error_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
       message = "humpty dumpty sat on a wall"
-      slackbot.expects(:tell_all).once.with(message)
-      slackbot.handle_join_error(:message => message)
+      slackbot.expects(:tell_all).once.with("<@#{player.name}> #{message}")
+      slackbot.handle_join_error(:player => player, :message => message)
     end
 
 
