@@ -9,6 +9,7 @@ module Werewolf
     attr_reader :players
     attr_accessor :active_roles, :day_number, :time_period
 
+
     def initialize()
       @active = false
       @players = Set.new
@@ -21,19 +22,31 @@ module Werewolf
       @instance ||= Game.new
     end
 
+
     def active?()
       @active
     end
 
+
+    def add_username_to_game(name)
+      join(Player.new(:name => name))
+    end
+
+
     def join(player)
       if active?
-        raise ActiveGameError.new(player.name, "New players may not join once the game is active")
+        changed
+        notify_observers(:action => 'join_error', :message => "New players may not join once the game is active")
       elsif @players.member? player
-        raise AlreadyJoinedError.new(player.name, "already joined")
+        changed
+        notify_observers(:action => 'join_error', :message => 'Player already joined')
       else
         @players.add(player)
+        changed
+        notify_observers(:action => 'join', :player => player, :message => "has joined the game")
       end
     end
+
 
     def start()
       raise "Game is already active" if active?
@@ -42,25 +55,61 @@ module Werewolf
       @active = true
     end
 
+
+    def status()
+      changed
+      notify_observers(:action => 'status', :message => format_time, :players => players)
+    end
+
+
+    def format_time
+      if active?
+        "It is #{time_period} (day #{day_number})"
+      else
+        "No game running"
+      end
+    end
+
+
+    # TODO: kill
+    def format_status()
+      if !active?
+        "No game running.  #{format_players}"
+      else
+        "Game is active.  #{format_players}"
+      end
+    end
+
+    # TODO: kill
+    def format_players()
+      if @players.empty?
+        "Zero players.  Type 'wolfbot join' to join the game."
+      else
+        "Players:  " + @players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
+      end
+    end
+
+
     def assign_roles
       @players.each do |player|
         player.role = 'wolf'
       end
     end
 
+
     def advance_time
       @time_period, @day_number = @time_period_generator.next
 
-      changed
-      notify_observers(:action => 'advance_time')
-
-      # TODO: slack communication and test comms
-      if 'night' == @time_period
-        puts "[Dusk], day #{@day_number}"
+      if 'night' == time_period
+        message = "[Dusk], day #{day_number}"
       else
-        puts "[Dawn], day #{@day_number}"
+        message = "[Dawn], day #{day_number}"
       end
+
+      changed
+      notify_observers(:action => 'advance_time', :message => message)
     end
+
 
     def create_time_period_generator
       Enumerator.new do |yielder|
@@ -75,44 +124,8 @@ module Werewolf
     end
 
 
+
     ## TODO:  Slack communication stuff
-
-    def format_players()
-      if @players.empty?
-        "Zero players.  Type 'wolfbot join' to join the game."
-      else
-        "Players:  " + @players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
-      end
-    end
-
-    def format_status()
-      if !active?
-        "No game running.  #{format_players}"
-      else
-        "Game is active.  #{format_players}"
-      end
-    end
-
-
-    def process_join(username, client, channel)
-      player = Player.new(:name => username)
-
-      begin
-        join(player)
-
-        ack_message = "<@#{username}> has joined the game"
-        communicate(ack_message, client, channel)
-        communicate(format_status, client, channel)
-      rescue AlreadyJoinedError => err
-        communicate("<@#{err.username}> #{err.message}", client, channel)
-      rescue ActiveGameError => err
-        communicate("<@#{err.username}> you can't join a game after it starts.", client, channel)
-      end
-    end
-
-    def process_status(client, channel)
-      communicate(format_status, client, channel)
-    end
 
     def process_start(username, client, channel)
       begin
@@ -148,24 +161,5 @@ module Werewolf
       client.say(text: message, channel: channel)
     end
   end
-
-
-  class AlreadyJoinedError < StandardError
-    attr_reader :username
-    def initialize(username, message)
-      super(message)
-      @username = username
-    end
-  end
-
-
-  class ActiveGameError < StandardError
-    attr_reader :username
-    def initialize(username, message)
-      super(message)
-      @username = username
-    end
-  end
-
 
 end

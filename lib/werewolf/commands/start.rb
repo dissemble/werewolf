@@ -7,14 +7,15 @@ module Werewolf
         # puts "client: #{client}"
         # puts "data: #{data}"
         # puts "data.user: #{data.user}"
-        # puts "match: #{match}"
-        # puts "match['bot']:  #{match['bot']}"
-        # puts "match['command']:  #{match['command']}"
-        # puts "match['expression']:  #{match['expression']}"        
+        # puts "data.channel: #{data.channel}"
+        # puts "match: #{_match}"
+        # puts "match['bot']:  #{_match['bot']}"
+        # puts "match['command']:  #{_match['command']}"
+        # puts "match['expression']:  #{_match['expression']}"        
         # puts '........'
 
 
-        game = Game.instance.process_start(data.user, client, data.channel)
+        Game.instance.process_start(data.user, client, data.channel)
       end
     end
   end
