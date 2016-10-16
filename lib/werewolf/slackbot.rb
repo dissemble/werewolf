@@ -21,7 +21,7 @@ module Werewolf
 
 
     def handle_join_error(options = {})
-      tell_all(options[:message])
+      tell_all("<@#{options[:player].name}> #{options[:message]}")
     end
 
 
@@ -35,9 +35,14 @@ module Werewolf
     end
 
 
-    def handle_tell(options = {})
-      puts "tell_player(#{options[:player]}, #{options[:message]})"
+    def handle_tell_player(options = {})
+      # puts "tell_player(#{options[:player]}, #{options[:message]})"
       tell_player(options[:player], options[:message])
+    end
+
+
+    def handle_tell_all(options = {})
+      tell_all(options[:message])
     end
 
 
@@ -48,10 +53,7 @@ module Werewolf
 
 
     def tell_player(player, message)
-      # TODO this has no tests
-
       im = client.web_client.im_open(:user => "#{player.name}")
-      puts im
       client.say(text: message, channel: "#{im.channel.id}")
     end
 
