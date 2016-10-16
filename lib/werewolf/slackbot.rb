@@ -30,14 +30,29 @@ module Werewolf
     end
 
 
+    def handle_start(options = {})
+      tell_all("<@#{options[:start_initiator]}> #{options[:message]}")
+    end
+
+
+    def handle_tell(options = {})
+      puts "tell_player(#{options[:player]}, #{options[:message]})"
+      tell_player(options[:player], options[:message])
+    end
+
+
     def tell_all(message)
       # puts "tell_all:  #{message}"
       client.say(text: message, channel: 'G2FQMNAF8')
     end
 
 
-    def tell_player()
-      # TODO:  implement me
+    def tell_player(player, message)
+      # TODO this has no tests
+
+      im = client.web_client.im_open(:user => "#{player.name}")
+      puts im
+      client.say(text: message, channel: "#{im.channel.id}")
     end
 
 

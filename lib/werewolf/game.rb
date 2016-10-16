@@ -48,11 +48,22 @@ module Werewolf
     end
 
 
-    def start()
+    def start(start_initiator='Unknown')
       raise "Game is already active" if active?
       raise "Game can't start until there is at least 1 player" if @players.empty?
       assign_roles
       @active = true
+
+      changed
+      notify_observers(:action => 'start', :start_initiator => start_initiator, :message => 'has started the game')
+
+      status
+      
+      # 'game start with role' to each player
+      @players.each do |player|
+        changed
+        notify_observers(:action => 'tell', :player => player, :message => "boom")
+      end
     end
 
 

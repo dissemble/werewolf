@@ -19,7 +19,8 @@ module Werewolf
 
     def test_tell_player_exists
       slackbot = Werewolf::SlackBot.new
-      slackbot.tell_player()
+      slackbot.stubs(:client).returns(stub(:say))
+      slackbot.tell_player("seth", "nice work")
     end
 
 
@@ -97,6 +98,28 @@ module Werewolf
         :player => player)
     end
 
+
+    def test_handle_start_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      initiator = "seth"
+      message = "is exceptional"
+      slackbot.expects(:tell_all).once.with("<@#{initiator}> #{message}")
+      slackbot.handle_start(
+        :start_initiator => initiator,
+        :message => message)
+    end
+
+
+    def test_handle_tell
+      fake_player = "bert"
+      fake_message = "where is ernie?"
+
+      slackbot = Werewolf::SlackBot.new
+      slackbot.expects(:tell_player).once.with(fake_player, fake_message)
+      slackbot.handle_tell(
+        :player => fake_player,
+        :message => fake_message)
+    end
 
 
     def test_game_notifies_on_join_error

@@ -328,6 +328,44 @@ module Werewolf
     end
 
 
+
+    def test_start_notifies_room_and_players
+      game = Game.new
+      start_initiator = "fakeuser"
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom')
+      game.join(player1)
+      game.join(player2)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'start', 
+        :start_initiator => start_initiator, 
+        :message => 'has started the game')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell', 
+        :player => player1, 
+        :message => 'boom')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell', 
+        :player => player2, 
+        :message => 'boom')
+      game.stubs(:status)
+      game.add_observer(mock_observer)
+
+      game.start(start_initiator)
+    end
+
+
+    def test_start_calls_status
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      game.join(Player.new(:name => 'tom'))
+      game.expects(:status)
+
+      game.start
+    end
+
   end
 
 end
