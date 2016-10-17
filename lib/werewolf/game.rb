@@ -12,11 +12,13 @@ module Werewolf
 
     def initialize()
       @active = false
-      @players = Set.new
+      @players = Hash.new
       @active_roles = nil
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
+      @vote_tally = {} # voted => list of voters
     end
+
 
     def self.instance()
       @instance ||= Game.new
@@ -40,14 +42,14 @@ module Werewolf
           :action => 'join_error', 
           :player => player, 
           :message => "game is active, joining is not allowed")
-      elsif @players.member? player
+      elsif @players.has_key? player.name
         changed
         notify_observers(
           :action => 'join_error', 
           :player => player,
           :message => 'you already joined!')
       else
-        @players.add(player)
+        @players[player.name] = player
         changed
         notify_observers(:action => 'join', :player => player, :message => "has joined the game")
       end
@@ -71,7 +73,7 @@ module Werewolf
         status
         
         # 'game start with role' to each player
-        @players.each do |player|
+        @players.values.each do |player|
           changed
           notify_observers(:action => 'tell_player', :player => player, :message => "boom")
         end
@@ -79,9 +81,33 @@ module Werewolf
     end
 
 
+    def vote(voter_name, candidate_name)
+      unless @players.has_key? candidate_name
+        puts "keys"
+        puts @players.keys
+        raise RuntimeError.new("'#{candidate_name}' is not a player.  You may only vote for players")
+      end
+
+      unless @players.has_key? voter_name
+        raise RuntimeError.new("'#{voter_name}' is not a player.  Only players may vote")
+      end
+
+      if @vote_tally.has_key? candidate_name
+        @vote_tally[candidate_name] << voter_name
+      else
+        @vote_tally[candidate_name] = [voter_name]
+      end
+    end
+
+
+    def tally
+      @vote_tally
+    end
+
+
     def status()
       changed
-      notify_observers(:action => 'status', :message => format_time, :players => players)
+      notify_observers(:action => 'status', :message => format_time, :players => players.values)
     end
 
 
@@ -94,27 +120,8 @@ module Werewolf
     end
 
 
-    # TODO: kill
-    def format_status()
-      if !active?
-        "No game running.  #{format_players}"
-      else
-        "Game is active.  #{format_players}"
-      end
-    end
-
-    # TODO: kill
-    def format_players()
-      if @players.empty?
-        "Zero players.  Type 'wolfbot join' to join the game."
-      else
-        "Players:  " + @players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
-      end
-    end
-
-
     def assign_roles
-      @players.each do |player|
+      @players.values.each do |player|
         player.role = 'wolf'
       end
     end
@@ -125,6 +132,7 @@ module Werewolf
 
       if 'night' == time_period
         message = "[Dusk], day #{day_number}"
+        lynch
       else
         message = "[Dawn], day #{day_number}"
       end
@@ -146,6 +154,10 @@ module Werewolf
       end
     end
 
+
+    def lynch
+
+    end
 
 
     ## TODO:  Slack communication stuff

@@ -171,10 +171,10 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       game.add_observer(slackbot)
 
-      game.stubs(:players).returns(123)
+      game.stubs(:players).returns({:foo => 123})
       slackbot.expects(:handle_status).once.with(
         :message => "No game running",
-        :players => 123)
+        :players => [123])
 
       game.status
     end

@@ -24,7 +24,7 @@ module Werewolf
       assert_equal 'night', Game.new.time_period
     end
 
-    def test_join_adds_players_to_set
+    def test_join_add_to_players
       game = Game.new
       player1 = Player.new(:name => 'seth')
       player2 = Player.new(:name => 'wesley')
@@ -32,15 +32,30 @@ module Werewolf
       game.join(player1)
       game.join(player2)
 
-      expected = Set.new [player1, player2]
+      expected = {player1.name => player1, player2.name =>player2}
       assert_equal expected, game.players
     end
+
+
+    def test_same_name_cant_join_twice
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'seth')
+
+      game.join(player1)
+      game.join(player2)
+
+      expected = {player1.name => player1}
+      assert_equal expected, game.players
+    end
+
 
     def test_game_can_be_started
       game = Game.new
       game.join(Player.new(:name => 'seth'))
       game.start
     end
+
 
     def test_game_cannot_be_started_twice
       game = Game.new
@@ -80,46 +95,13 @@ module Werewolf
     end
 
 
-    def test_add()
+    def test_add_username_to_game()
       game = Game.new
       game.add_username_to_game('seth')
-      assert_equal 'seth', game.players.first.name
+      # TODO:  london school?
+      assert_equal 'seth', game.players.keys.first
     end
 
-
-    def test_slack_formatting_players
-      game = Game.new
-      player1 = Player.new(:name => 'seth')
-      player2 = Player.new(:name => 'tom')
-      player3 = Player.new(:name => 'bill')
-
-      game.join(player1)
-      game.join(player2)
-      game.join(player3)
-
-      expected = "Players:  <@seth>, <@tom>, <@bill>"
-      assert_equal expected, game.format_players
-    end
-
-    def test_slack_formatting_players_when_no_players
-      game = Game.new
-      expected = "Zero players.  Type 'wolfbot join' to join the game."
-      assert_equal expected, game.format_players
-    end
-
-    def test_slack_format_status_new_game
-      game = Game.new
-      assert_match(/No game running/, game.format_status)
-      assert_match game.format_players, game.format_status
-    end
-
-    def test_slack_format_status_newly_active_game
-      game = Game.new
-      game.join(Player.new(:name => 'seth'))
-      game.start
-      assert_match(/Game is active/, game.format_status)
-      assert_match game.format_players, game.format_status
-    end
 
     def test_roles_are_assigned_at_game_start
       game = Game.new
@@ -129,6 +111,7 @@ module Werewolf
       game.start
     end
 
+
     def test_all_players_have_roles_once_game_starts
       game = Game.new
       game.join(Player.new(:name => 'seth'))
@@ -136,7 +119,7 @@ module Werewolf
       game.join(Player.new(:name => 'bill'))
       game.start
 
-      game.players.each do |player|
+      game.players.values.each do |player|
         assert player.role
       end
     end
@@ -181,8 +164,8 @@ module Werewolf
 
     def test_notification_when_status_called
       game = Game.new
-      fake_format_time = "the the far end of town where the grickle-grass grows"
-      fake_players = [1,2,3]
+      fake_format_time = "the far end of town where the grickle-grass grows"
+      fake_players = {1 => 2, 3 => 4}
       game.stubs(:format_time).returns(fake_format_time)
       game.stubs(:players).returns(fake_players)
 
@@ -190,7 +173,7 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'status',
         :message => fake_format_time,
-        :players => fake_players)
+        :players => [2, 4])
       game.add_observer(mock_observer)
 
       game.status
@@ -329,6 +312,93 @@ module Werewolf
 
       game.start
     end
+
+
+    def test_vote
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.vote('seth', 'seth')
+    end
+
+
+    def test_can_only_vote_for_real_players
+      game = Game.new
+      game.add_username_to_game('seth')
+      assert_raises(RuntimeError) {
+        game.vote('seth', 'babar')
+      }
+    end
+
+
+    # def test_can_only_vote_for_living_players
+    #   #TODO
+    # end
+
+
+    def test_only_real_players_can_vote
+      game = Game.new
+      game.add_username_to_game('seth')
+      assert_raises(RuntimeError) {
+        game.vote('babar', 'seth')
+      }
+    end
+
+
+    def test_tally_starts_empty
+      game = Game.new
+      assert_equal Hash.new, game.tally
+    end
+
+
+    def test_tally_after_voting
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.add_username_to_game('bill')
+      game.vote('seth', 'tom')
+      game.vote('tom', 'bill')
+      game.vote('bill', 'tom')
+
+      expected = {'tom' => ['seth', 'bill'], 'bill' => ['tom']}
+      assert_equal expected, game.tally
+    end
+
+
+    def test_lynch_exists
+      game = Game.new
+      game.lynch
+    end
+
+
+    def test_lynch_called_at_dusk
+      game = Game.new
+      game.advance_time
+      assert_equal 'day', game.time_period
+
+      game.expects(:lynch).once
+
+      game.advance_time
+    end
+
+
+    def test_lynch_kills_tally_leader
+
+    end
+
+
+    def test_lynch_kills_no_one_if_tally_is_tied
+
+    end
+
+
+
+    def test_tally_is_cleared_after_lynch
+      #TODO
+    end
+
+
+
+
 
   end
 
