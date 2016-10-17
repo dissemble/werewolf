@@ -142,6 +142,32 @@ module Werewolf
     end
 
 
+    def test_handle_vote_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      voter = Player.new(:name => 'foo')
+      votee = Player.new(:name => 'baz')
+      message = 'baz'
+      slackbot.expects(:tell_all).once.with("<@#{voter.name}> #{message} <@#{votee.name}>")
+      slackbot.handle_vote(
+        :voter => voter,
+        :votee => votee,
+        :message => message)
+    end
+
+
+    def test_handle_kill_player
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+      message = 'and with its head, he went galumphing back'
+
+      slackbot.expects(:tell_all).once.with("#{message} <@#{player.name}>")
+
+      slackbot.handle_kill_player(
+        :player => player,
+        :message => message)
+    end
+
+
     def test_game_notifies_on_join_error
       game = Game.new
       slackbot = Werewolf::SlackBot.new
@@ -171,10 +197,10 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       game.add_observer(slackbot)
 
-      game.stubs(:players).returns(123)
+      game.stubs(:players).returns({:foo => 123})
       slackbot.expects(:handle_status).once.with(
         :message => "No game running",
-        :players => 123)
+        :players => [123])
 
       game.status
     end

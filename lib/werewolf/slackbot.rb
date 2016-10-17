@@ -46,6 +46,16 @@ module Werewolf
     end
 
 
+    def handle_vote(options = {})
+      tell_all("<@#{options[:voter].name}> #{options[:message]} <@#{options[:votee].name}>")
+    end
+
+
+    def handle_kill_player(options = {})
+      tell_all("#{options[:message]} <@#{options[:player].name}>")
+    end
+
+
     def tell_all(message)
       # puts "tell_all:  #{message}"
       client.say(text: message, channel: 'G2FQMNAF8')

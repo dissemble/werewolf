@@ -5,15 +5,25 @@ module Werewolf
 
     def initialize(args)
       args.each { |k,v| instance_variable_set("@#{k}", v) }
+      @alive = true
     end
 
-    def hash()
-      name.hash()
+    def alive?
+      @alive
     end
 
-    def eql?(other)
-      @name == other.name
+    def dead?
+      !alive?
     end
+
+    def kill!
+      if(dead?)
+        raise RuntimeError.new("already dead") 
+      else
+        @alive = false
+      end
+    end
+    
   end
   
 end

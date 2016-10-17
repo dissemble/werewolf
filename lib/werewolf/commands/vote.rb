@@ -12,7 +12,8 @@ module Werewolf
         # puts "match['expression']:  #{match['expression']}"        
         # puts '........'
 
-        Game.instance.process_vote(data.user, match['expression'], client, data.channel)
+        name = Util::SlackParser.extract_username(match['expression'])
+        Game.instance.vote(data.user, name)
       end
     end
   end
