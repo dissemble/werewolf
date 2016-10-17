@@ -351,6 +351,41 @@ module Werewolf
     end
 
 
+    def test_kill_player_calls_kill_on_player
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join player
+      player.expects(:kill!).once
+      game.kill_player player
+    end
+
+
+    def test_kill_player_makes_them_dead
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join player
+      game.kill_player player
+      assert player.dead?
+    end
+
+
+    def test_kill_player_notifies
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join player
+      
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'kill_player', 
+        :player => player,
+        :message => 'With pitchforks in hand, the townsfolk killed')
+      game.add_observer(mock_observer)
+
+      game.kill_player player
+    end
+
+
+
     def test_lynch_called_at_dusk
       game = Game.new
       game.advance_time
@@ -378,9 +413,9 @@ module Werewolf
       game.vote('seth', 'seth')
       game.vote('john', 'seth')
       assert player1.alive?
+      game.expects(:kill_player).once.with(player1)
 
       game.lynch
-      assert player1.dead?
     end
 
 

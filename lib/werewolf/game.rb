@@ -121,11 +121,22 @@ module Werewolf
         if vote_leaders.size > 1
           # tie
         else
-          @players[lynchee_name].kill!
+          kill_player @players[lynchee_name]
         end
       end
 
       @vote_tally = {}
+    end
+
+
+    def kill_player(player)
+      player.kill!
+
+      changed
+      notify_observers(
+        :action => 'kill_player',
+        :player => player,
+        :message => 'With pitchforks in hand, the townsfolk killed')
     end
 
 

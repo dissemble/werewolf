@@ -155,6 +155,19 @@ module Werewolf
     end
 
 
+    def test_handle_kill_player
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+      message = 'and with its head, he went galumphing back'
+
+      slackbot.expects(:tell_all).once.with("#{message} <@#{player.name}>")
+
+      slackbot.handle_kill_player(
+        :player => player,
+        :message => message)
+    end
+
+
     def test_game_notifies_on_join_error
       game = Game.new
       slackbot = Werewolf::SlackBot.new
