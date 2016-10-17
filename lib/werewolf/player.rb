@@ -23,14 +23,7 @@ module Werewolf
         @alive = false
       end
     end
-
-    # def hash()
-    #   name.hash()
-    # end
-
-    # def eql?(other)
-    #   @name == other.name
-    # end
+    
   end
   
 end

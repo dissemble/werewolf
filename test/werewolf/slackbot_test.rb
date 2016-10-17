@@ -142,6 +142,19 @@ module Werewolf
     end
 
 
+    def test_handle_vote_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      voter = Player.new(:name => 'foo')
+      votee = Player.new(:name => 'baz')
+      message = 'baz'
+      slackbot.expects(:tell_all).once.with("<@#{voter.name}> #{message} <@#{votee.name}>")
+      slackbot.handle_vote(
+        :voter => voter,
+        :votee => votee,
+        :message => message)
+    end
+
+
     def test_game_notifies_on_join_error
       game = Game.new
       slackbot = Werewolf::SlackBot.new

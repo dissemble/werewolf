@@ -134,17 +134,6 @@ module Werewolf
       assert_equal x, y
     end
 
-    def test_communicate
-      game = Game.new
-
-      message = "a message"
-      channel = "a channel"
-      client = mock('client') # TODO:  mocking an interface i don't own
-      client.expects(:say).once.with(text: message, channel: channel)
-
-      game.communicate(message, client, channel)
-    end
-
 
     def test_format_time_when_game_active
       game = Game.new
@@ -177,13 +166,6 @@ module Werewolf
       game.add_observer(mock_observer)
 
       game.status
-    end
-
-
-    def test_process_vote_exists
-      game = Game.new
-      game.stubs(:communicate)
-      game.process_vote('fakevoter', 'fakevotee', 'fakeclient', 'fakechannel')
     end
 
 
@@ -330,9 +312,14 @@ module Werewolf
     end
 
 
-    # def test_can_only_vote_for_living_players
-    #   #TODO
-    # end
+    def test_can_only_vote_for_living_players
+      #TODO
+    end
+
+
+    def test_can_only_vote_during_day
+      #TODO
+    end
 
 
     def test_only_real_players_can_vote
@@ -364,12 +351,6 @@ module Werewolf
     end
 
 
-    def test_lynch_exists
-      game = Game.new
-      game.lynch
-    end
-
-
     def test_lynch_called_at_dusk
       game = Game.new
       game.advance_time
@@ -381,21 +362,77 @@ module Werewolf
     end
 
 
-    def test_lynch_kills_tally_leader
+    def test_lynch_with_no_votes
+      game = Game.new
+      game.lynch
+    end
 
+
+    def test_lynch_kills_tally_leader
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'john')
+      game.join(player1)
+      game.join(player2)
+
+      game.vote('seth', 'seth')
+      game.vote('john', 'seth')
+      assert player1.alive?
+
+      game.lynch
+      assert player1.dead?
     end
 
 
     def test_lynch_kills_no_one_if_tally_is_tied
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'john')
+      game.join(player1)
+      game.join(player2)
 
+      game.vote('seth', 'john')
+      game.vote('john', 'seth')
+
+      game.lynch
+      assert player1.alive?
+      assert player2.alive?
     end
-
 
 
     def test_tally_is_cleared_after_lynch
-      #TODO
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.vote('seth', 'seth')
+      assert_equal 1, game.tally.size
+
+      game.lynch
+      assert_equal 0, game.tally.size
     end
 
+
+    def test_notification_on_successful_vote
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom')
+      game.join(player1)
+      game.join(player2)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'vote', 
+        :voter => player1,
+        :votee => player2,
+        :message => 'voted for')
+      game.add_observer(mock_observer)
+
+      game.vote('seth', 'tom')
+    end
+
+
+    def test_notification_on_failed_vote
+      #TODO
+    end
 
 
 

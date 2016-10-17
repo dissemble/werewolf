@@ -83,8 +83,6 @@ module Werewolf
 
     def vote(voter_name, candidate_name)
       unless @players.has_key? candidate_name
-        puts "keys"
-        puts @players.keys
         raise RuntimeError.new("'#{candidate_name}' is not a player.  You may only vote for players")
       end
 
@@ -97,11 +95,37 @@ module Werewolf
       else
         @vote_tally[candidate_name] = [voter_name]
       end
+
+      changed
+      notify_observers(
+        :action => 'vote', 
+        :voter => @players[voter_name], 
+        :votee => @players[candidate_name],
+        :message => "voted for")
     end
 
 
     def tally
       @vote_tally
+    end
+
+
+    def lynch
+      unless @vote_tally.empty?
+        # this gives the voters for the player with the most votes
+        lynchee_name, voters = @vote_tally.max_by{|k,v| v.size}
+
+        # but there may be a tie.  find anyone with that many voters
+        vote_leaders = @vote_tally.select{|k,v| v.size == voters.size}
+
+        if vote_leaders.size > 1
+          # tie
+        else
+          @players[lynchee_name].kill!
+        end
+      end
+
+      @vote_tally = {}
     end
 
 
@@ -154,23 +178,6 @@ module Werewolf
       end
     end
 
-
-    def lynch
-
-    end
-
-
-    ## TODO:  Slack communication stuff
-
-    def process_vote(voter, votee, client, channel)
-      # TODO
-      communicate("<@#{voter}> has voted for #{votee}", client, channel)
-    end
-
-
-    def communicate(message, client, channel)
-      client.say(text: message, channel: channel)
-    end
   end
 
 end
