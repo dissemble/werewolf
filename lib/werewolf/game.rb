@@ -6,17 +6,21 @@ module Werewolf
   class Game
     include Observable
 
-    attr_reader :players
+    attr_reader :players, :vote_tally
     attr_accessor :active_roles, :day_number, :time_period
 
-
     def initialize()
-      @active = false
+      reset
+    end
+
+
+    def reset
       @players = Hash.new
+      @active = false
       @active_roles = nil
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
-      @vote_tally = {} # voted => set of voters
+      @vote_tally = {} 
     end
 
 
@@ -25,7 +29,7 @@ module Werewolf
     end
 
 
-    def active?()
+    def active?
       @active
     end
 
@@ -87,6 +91,17 @@ module Werewolf
     end
 
 
+    def end_game(name='Unknown')
+      raise RuntimeError.new('Game is not active') unless active?
+
+      ender = @players[name]
+
+      reset
+      changed
+      notify_observers(:action => 'end_game', :player => ender, :message => 'ended the game')
+    end
+
+
     def notify_active_roles
       changed
       role_string = active_roles.join(', ')
@@ -134,11 +149,6 @@ module Werewolf
     end
 
 
-    def tally
-      @vote_tally
-    end
-
-
     def lynch
       unless @vote_tally.empty?
         # this gives the voters for the player with the most votes
@@ -150,7 +160,7 @@ module Werewolf
         if vote_leaders.size > 1
           # tie
         else
-          kill_player @players[lynchee_name]
+          lynch_player @players[lynchee_name]
         end
       end
 
@@ -158,19 +168,23 @@ module Werewolf
     end
 
 
-    def kill_player(player)
+    def lynch_player(player)
       player.kill!
 
       changed
       notify_observers(
-        :action => 'kill_player',
+        :action => 'lynch_player',
         :player => player,
         :message => 'With pitchforks in hand, the townsfolk killed')
     end
 
 
     def nightkill(name)
-      raise RuntimeError.new("no such player as #{name}") unless @players[name]
+      victim = @players[name]
+      raise RuntimeError.new("no such player as #{name}") unless victim
+
+      changed
+      notify_observers(:action => 'nightkill', :player => victim, :message => 'was killed during the night')
 
       @players[name].kill!
     end

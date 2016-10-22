@@ -475,6 +475,100 @@ module Werewolf
     end
 
 
+    def test_end_calls_reset
+      game = Game.new
+      game.stubs(:active?).returns(true)
+      game.expects(:reset).once
+      game.end_game
+    end
+
+
+    def test_end_game_notifies_room
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      game.join(player1)
+      game.start
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'end_game', 
+        :player => player1, 
+        :message => "ended the game")
+      game.add_observer(mock_observer)
+
+      game.end_game('seth')
+    end
+
+
+    def test_cant_end_unless_game_active
+      game = Game.new
+      err = assert_raises(RuntimeError) {
+        game.end_game
+      }
+      assert_match /Game is not active/, err.message
+    end
+
+
+    def test_reset_resets_players
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      game.join(Player.new(:name => 'tom'))
+      assert_equal 2, game.players.size
+
+      game.reset
+      assert_equal 0, game.players.size
+    end
+
+
+    def test_reset_inactivates_game
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      game.start
+      assert game.active?
+
+      game.reset
+      assert !game.active?
+    end
+
+
+    def test_reset_resets_active_roles
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      game.start
+      assert !game.active_roles.nil?
+
+      game.reset
+      assert game.active_roles.nil?
+    end
+
+
+    def test_reset_resets_time_period_and_day
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      game.start
+      game.advance_time
+      assert_equal 1, game.day_number
+      assert_equal 'day', game.time_period
+
+      game.reset
+      assert_equal 0, game.day_number
+      assert_equal 'night', game.time_period
+    end
+
+
+    def test_reset_resets_vote_tally
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      game.start
+      game.advance_time
+      game.vote('seth', 'seth')
+      assert_equal 1, game.vote_tally.size
+
+      game.reset
+      assert_equal 0, game.vote_tally.size
+    end
+
+
     def test_notify_active_roles
       game = Game.new
       game.stubs(:active_roles).returns(['a', 'b', 'c'])
@@ -487,6 +581,23 @@ module Werewolf
 
       game.notify_active_roles
     end
+
+
+    def test_nightkill_notifies_room
+      game = Game.new
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      game.join(seer)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'nightkill', 
+        :player => seer, 
+        :message => "was killed during the night")
+      game.add_observer(mock_observer)
+
+      game.nightkill('seth')
+    end
+
 
 
     def test_start_calls_status
@@ -556,7 +667,7 @@ module Werewolf
 
     def test_tally_starts_empty
       game = Game.new
-      assert_equal Hash.new, game.tally
+      assert_equal Hash.new, game.vote_tally
     end
 
 
@@ -574,7 +685,7 @@ module Werewolf
         'tom' => Set.new(['seth', 'bill']), 
         'bill' => Set.new(['tom'])
       }
-      assert_equal expected, game.tally
+      assert_equal expected, game.vote_tally
     end
 
 
@@ -586,45 +697,45 @@ module Werewolf
       game.stubs(:time_period).returns('day')
       game.vote(voter_name='seth', candidate_name='seth')
       expected_tally = {'seth' => Set.new(['seth'])}
-      assert_equal expected_tally, game.tally
+      assert_equal expected_tally, game.vote_tally
 
       game.vote(voter_name='seth', candidate_name='tom')
       expected_tally = {'tom' => Set.new(['seth'])}
-      assert_equal expected_tally, game.tally
+      assert_equal expected_tally, game.vote_tally
     end
 
 
-    def test_kill_player_calls_kill_on_player
+    def test_lynch_player_calls_kill_on_player
       game = Game.new
       player = Player.new(:name => 'seth')
       game.join player
       player.expects(:kill!).once
-      game.kill_player player
+      game.lynch_player player
     end
 
 
-    def test_kill_player_makes_them_dead
+    def test_lynch_player_makes_them_dead
       game = Game.new
       player = Player.new(:name => 'seth')
       game.join player
-      game.kill_player player
+      game.lynch_player player
       assert player.dead?
     end
 
 
-    def test_kill_player_notifies
+    def test_lynch_player_notifies
       game = Game.new
       player = Player.new(:name => 'seth')
       game.join player
       
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
-        :action => 'kill_player', 
+        :action => 'lynch_player', 
         :player => player,
         :message => 'With pitchforks in hand, the townsfolk killed')
       game.add_observer(mock_observer)
 
-      game.kill_player player
+      game.lynch_player player
     end
 
 
@@ -657,7 +768,7 @@ module Werewolf
       game.vote('seth', 'seth')
       game.vote('john', 'seth')
       assert player1.alive?
-      game.expects(:kill_player).once.with(player1)
+      game.expects(:lynch_player).once.with(player1)
 
       game.lynch
     end
@@ -685,10 +796,10 @@ module Werewolf
       game.add_username_to_game('seth')
       game.stubs(:time_period).returns('day')
       game.vote('seth', 'seth')
-      assert_equal 1, game.tally.size
+      assert_equal 1, game.vote_tally.size
 
       game.lynch
-      assert_equal 0, game.tally.size
+      assert_equal 0, game.vote_tally.size
     end
 
 

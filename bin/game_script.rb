@@ -25,7 +25,7 @@ game.join(villager2)
 game.join(villager3)
 
 # start 5 player game
-game.start
+game.start('seer')
 
 # reassign roles
 seer.role = 'seer'

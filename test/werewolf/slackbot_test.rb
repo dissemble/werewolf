@@ -116,6 +116,30 @@ module Werewolf
     end
 
 
+    def test_handle_nightkill_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+      message = "i see the moon, and the moon sees me"
+      slackbot.expects(:tell_all).once.with("***** <@seth> #{message}")
+      slackbot.handle_nightkill(
+        :player => player,
+        :message => message)
+    end
+
+
+    def test_handle_end_game_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+      message = "this justifies the means"
+      slackbot.expects(:tell_all).once.with("***** <@seth> #{message}")
+      slackbot.handle_end_game(
+        :player => player,
+        :message => message)
+    end
+
+
+
+
     def test_handle_start_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
@@ -161,14 +185,14 @@ module Werewolf
     end
 
 
-    def test_handle_kill_player
+    def test_handle_lynch_player
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
       message = 'and with its head, he went galumphing back'
 
-      slackbot.expects(:tell_all).once.with("#{message} <@#{player.name}>")
+      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}>")
 
-      slackbot.handle_kill_player(
+      slackbot.handle_lynch_player(
         :player => player,
         :message => message)
     end
