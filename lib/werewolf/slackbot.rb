@@ -44,8 +44,17 @@ module Werewolf
     end
 
 
+    def handle_nightkill(options = {})
+      tell_all("***** #{slackify(options[:player])} #{options[:message]}")
+    end
+
+
+    def handle_end_game(options = {})
+      tell_all("***** #{slackify(options[:player])} #{options[:message]}")
+    end
+
+
     def handle_tell_player(options = {})
-      # puts "tell_player(#{options[:player]}, #{options[:message]})"
       tell_player(options[:player], options[:message])
     end
 
@@ -60,8 +69,30 @@ module Werewolf
     end
 
 
-    def handle_kill_player(options = {})
-      tell_all("#{options[:message]} #{slackify(options[:player])}")
+    def tell_all(message)
+      puts "tell_all:  #{message}"
+      client.say(text: message, channel: 'G2FQMNAF8')
+    end
+
+
+    def tell_player(player, message)
+      puts "tell_player:  #{player.name}, #{message}"
+      tell_player(options[:player], options[:message])
+    end
+
+
+    def handle_tell_all(options = {})
+      tell_all(options[:message])
+    end
+
+
+    def handle_vote(options = {})
+      tell_all("#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}")
+    end
+
+
+    def handle_lynch_player(options = {})
+      tell_all("***** #{options[:message]} #{slackify(options[:player])}")
     end
 
 
@@ -72,8 +103,11 @@ module Werewolf
 
 
     def tell_player(player, message)
-      im = client.web_client.im_open(:user => "#{player.name}")
-      client.say(text: message, channel: "#{im.channel.id}")
+      puts "tell_player:  #{player.name}, #{message}"
+      unless player.bot?
+        im = client.web_client.im_open(:user => "#{player.name}")
+        client.say(text: message, channel: "#{im.channel.id}")
+      end
     end
 
 
