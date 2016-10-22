@@ -43,7 +43,7 @@ module Werewolf
       game.advance_time
       assert game.players['villager2'].dead?
       assert_equal 'evil', seer.see(wolf)
-      game.nightkill('villager3')
+      game.nightkill(werewolf='wolf', victim='villager3')
       assert game.players['villager3'].dead?
 
       # Day 2
@@ -583,23 +583,6 @@ module Werewolf
     end
 
 
-    def test_nightkill_notifies_room
-      game = Game.new
-      seer = Player.new(:name => 'seth', :role => 'seer')
-      game.join(seer)
-
-      mock_observer = mock('observer')
-      mock_observer.expects(:update).once.with(
-        :action => 'nightkill', 
-        :player => seer, 
-        :message => "was killed during the night")
-      game.add_observer(mock_observer)
-
-      game.nightkill('seth')
-    end
-
-
-
     def test_start_calls_status
       game = Game.new
       game.join(Player.new(:name => 'seth'))
@@ -828,21 +811,43 @@ module Werewolf
     end
 
 
-    def test_nightkill
+    def test_nightkill_is_available_to_wolves
       game = Game.new
-      game.join Player.new(:name => 'seth')
-      game.nightkill('seth')
+      game.join Player.new(:name => 'seth', :role => 'wolf')
+      game.join Player.new(:name => 'tom', :role => 'villager')
+      game.nightkill(werewolf='seth', victim='tom')
+    end
+
+
+    def test_nightkill_is_not_available_to_nonplayers
+      game = Game.new
+      game.join Player.new(:name => 'tom', :role => 'villager')
+      err = assert_raises(RuntimeError) {
+        game.nightkill(werewolf='lupin', victim='tom')
+      }
+      assert_match /Only players may nightkill/, err.message
+    end
+
+
+    def test_nightkill_is_not_available_to_nonwolves
+      game = Game.new
+      game.join Player.new(:name => 'seth', :role => 'villager')
+      game.join Player.new(:name => 'tom', :role => 'villager')
+      err = assert_raises(RuntimeError) {
+        game.nightkill(werewolf='seth', victim='tom')
+      }
+      assert_match /Only wolves may nightkill/, err.message
     end
 
 
     def test_can_only_nightkill_living_players
       game = Game.new
-      player1 = Player.new(:name => 'seth')
+      player1 = Player.new(:name => 'seth', :role => 'wolf')
       game.join(player1)
       player1.kill!
 
       err = assert_raises(RuntimeError) {
-        game.nightkill('seth')
+        game.nightkill(werewolf='seth', victim='seth')
       }
       assert_match /already dead/, err.message
     end
@@ -851,9 +856,42 @@ module Werewolf
     def test_can_only_nightkill_real_players
       game = Game.new
       err = assert_raises(RuntimeError) {
-        game.nightkill('bigfoot')
+        game.nightkill(werewolf=nil, victim='bigfoot')
       }
       assert_match /no such player/, err.message
+    end
+
+
+    def test_nightkill_only_works_at_night
+      game = Game.new
+      game.join Player.new(:name => 'seth', :role => 'wolf')
+      game.join Player.new(:name => 'tom', :role => 'villager')
+      game.expects(:time_period).once.returns('day')
+      err = assert_raises(RuntimeError) {
+        game.nightkill(werewolf='seth', victim='tom')
+      }
+      assert_match /nightkill may only be used at night/, err.message
+    end
+
+
+    def test_only_one_nightkill_per_night
+      #TODO
+    end
+
+
+    def test_nightkill_notifies_room
+      game = Game.new
+      player1 = Player.new(:name => 'seth', :role => 'wolf')
+      game.join(player1)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'nightkill', 
+        :player => player1, 
+        :message => "was killed during the night")
+      game.add_observer(mock_observer)
+
+      game.nightkill(werewolf='seth', victim='seth')
     end
 
 

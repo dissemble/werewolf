@@ -179,14 +179,18 @@ module Werewolf
     end
 
 
-    def nightkill(name)
-      victim = @players[name]
-      raise RuntimeError.new("no such player as #{name}") unless victim
+    def nightkill(werewolf=name1, victim=name2)
+      wolf_player = @players[werewolf]
+      victim_player = @players[victim]
+      raise RuntimeError.new("no such player as #{victim}") unless victim_player
+      raise RuntimeError.new('Only players may nightkill') unless wolf_player
+      raise RuntimeError.new('Only wolves may nightkill') unless wolf_player.role == 'wolf'
+      raise RuntimeError.new('nightkill may only be used at night') unless time_period == 'night'
+
+      @players[victim].kill!
 
       changed
-      notify_observers(:action => 'nightkill', :player => victim, :message => 'was killed during the night')
-
-      @players[name].kill!
+      notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
     end
 
 

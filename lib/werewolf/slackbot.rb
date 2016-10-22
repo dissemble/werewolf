@@ -110,7 +110,7 @@ module Werewolf
         "Players: " + players.to_a.map{|p| "#{slackify(p)}" }.join(", ")
       end
     end
-
+    
 
     def slackify(player)
       if player.bot?
