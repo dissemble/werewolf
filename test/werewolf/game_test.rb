@@ -4,54 +4,59 @@ module Werewolf
 
   class GameTest < Minitest::Test
 
-    # def test_aspirations
-    #   game = Game.new
-    #   seer = Player.new(:name => 'a_seer')
-    #   wolf = Player.new(:name => 'a_wolf')
-    #   villager1 = Player.new(:name => 'a_villager_1')
-    #   villager2 = Player.new(:name => 'a_villager_2')
-    #   villager3 = Player.new(:name => 'a_villager_3')
+    def test_aspirations
+      game = Game.new
+      seer = Player.new(:name => 'a_seer')
+      wolf = Player.new(:name => 'a_wolf')
+      villager1 = Player.new(:name => 'a_villager_1')
+      villager2 = Player.new(:name => 'a_villager_2')
+      villager3 = Player.new(:name => 'a_villager_3')
 
-    #   game.join(seer)
-    #   game.join(wolf)
-    #   game.join(villager1)
-    #   game.join(villager2)
-    #   game.join(villager3)
+      game.join(seer)
+      game.join(wolf)
+      game.join(villager1)
+      game.join(villager2)
+      game.join(villager3)
 
-    #   # setup roles...
+      # start 5 player game
+      game.start
 
-    #   # start 5 player game
-    #   game.start
+      # reassign roles
+      seer.role = 'seer'
+      wolf.role = 'wolf'
+      villager1.role = 'villager'
+      villager2.role = 'villager'
+      villager3.role = 'villager'
 
-    #   # Night 0
-    #   assert_equal 'good', seer.see('villager1')
-    #   game.advance_time
+      # Night 0
+      assert_equal 'good', seer.see(villager1)
+      game.advance_time
 
-    #   # Day 1
-    #   seer.vote('a_villager_2')
-    #   wolf.vote('a_villager_2')
-    #   villager1.vote('a_seer')
-    #   villager2.vote('a_wolf')
-    #   #villager3 doesn't vote
+      # Day 1
+      game.vote(voter_name='a_seer', 'a_villager_2')
+      game.vote(voter_name='a_wolf', 'a_villager_2')
+      game.vote(voter_name='a_villager_1', 'a_seer')
+      game.vote(voter_name='a_villager_2', 'a_wolf')
+      #villager3 doesn't vote
 
-    #   # Night 1
-    #   game.advance_time
-    #   assert game.players('a_villager_2').dead?
-    #   assert_equal 'evil' seer.see(a_wolf)
-    #   wolf.nightkill('villager3')
-    #   assert game.players('a_villager_3').dead?
+      # Night 1
+      game.advance_time
+      assert game.players['a_villager_2'].dead?
+      assert_equal 'evil', seer.see(wolf)
+      game.nightkill('a_villager_3')
+      assert game.players['a_villager_3'].dead?
 
-    #   # Day 2
-    #   game.advance_time
-    #   seer.vote('wolf')
-    #   wolf.vote('seer')
-    #   villager1.vote('wolf')
+      # Day 2
+      game.advance_time
+      game.vote(voter_name='a_seer', 'a_wolf')
+      game.vote(voter_name='a_wolf', 'a_seer')
+      game.vote(voter_name='a_villager_1', 'a_wolf')
 
-    #   # Game over
-    #   game.advance_time
-    #   assert game.players('wolf').dead?
-    #   assert_equal 'good' game.winner
-    # end
+      # Game over
+      game.advance_time
+      assert game.players['a_wolf'].dead?
+      assert_equal 'good', game.winner
+    end
 
 
 
@@ -282,9 +287,10 @@ module Werewolf
     def test_define_roles_raises_if_no_roleset_for_number_of_players
       game = Game.new
 
-      assert_raises(RuntimeError) {
+      err = assert_raises(RuntimeError) {
         game.define_roles
       }
+      assert_match /no rolesets/, err.message
     end
 
     def test_all_players_have_roles_once_game_starts
@@ -490,6 +496,7 @@ module Werewolf
     def test_vote
       game = Game.new
       game.add_username_to_game('seth')
+      game.stubs(:time_period).returns('day')
       game.vote('seth', 'seth')
     end
 
@@ -497,28 +504,47 @@ module Werewolf
     def test_can_only_vote_for_real_players
       game = Game.new
       game.add_username_to_game('seth')
-      assert_raises(RuntimeError) {
+      err = assert_raises(RuntimeError) {
         game.vote('seth', 'babar')
       }
+      assert_match /is not a player/, err.message
     end
 
 
     def test_can_only_vote_for_living_players
-      #TODO
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.players['tom'].kill!
+      game.stubs(:time_period).returns('day')
+      err = assert_raises(RuntimeError) {
+        game.vote('seth', 'tom')
+      }
+      assert_match /is not alive/, err.message
     end
 
 
     def test_can_only_vote_during_day
-      #TODO
+      game = Game.new
+      game.add_username_to_game('seth')
+
+      game.start
+      assert_equal 'night', game.time_period
+
+      err = assert_raises(RuntimeError) {
+        game.vote('seth', 'seth')
+      }
+      assert_match /you may not vote at night/, err.message
     end
 
 
     def test_only_real_players_can_vote
       game = Game.new
       game.add_username_to_game('seth')
-      assert_raises(RuntimeError) {
+      err = assert_raises(RuntimeError) {
         game.vote('babar', 'seth')
       }
+      assert_match /Only players may vote/, err.message
     end
 
 
@@ -528,19 +554,37 @@ module Werewolf
     end
 
 
-
-
     def test_tally_after_voting
       game = Game.new
       game.add_username_to_game('seth')
       game.add_username_to_game('tom')
       game.add_username_to_game('bill')
+      game.stubs(:time_period).returns('day')
       game.vote('seth', 'tom')
       game.vote('tom', 'bill')
       game.vote('bill', 'tom')
 
-      expected = {'tom' => ['seth', 'bill'], 'bill' => ['tom']}
+      expected = {
+        'tom' => Set.new(['seth', 'bill']), 
+        'bill' => Set.new(['tom'])
+      }
       assert_equal expected, game.tally
+    end
+
+
+    def test_can_only_vote_once
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      
+      game.stubs(:time_period).returns('day')
+      game.vote(voter_name='seth', candidate_name='seth')
+      expected_tally = {'seth' => Set.new(['seth'])}
+      assert_equal expected_tally, game.tally
+
+      game.vote(voter_name='seth', candidate_name='tom')
+      expected_tally = {'tom' => Set.new(['seth'])}
+      assert_equal expected_tally, game.tally
     end
 
 
@@ -603,6 +647,7 @@ module Werewolf
       game.join(player1)
       game.join(player2)
 
+      game.stubs(:time_period).returns('day')
       game.vote('seth', 'seth')
       game.vote('john', 'seth')
       assert player1.alive?
@@ -619,6 +664,7 @@ module Werewolf
       game.join(player1)
       game.join(player2)
 
+      game.stubs(:time_period).returns('day')
       game.vote('seth', 'john')
       game.vote('john', 'seth')
 
@@ -631,6 +677,7 @@ module Werewolf
     def test_tally_is_cleared_after_lynch
       game = Game.new
       game.add_username_to_game('seth')
+      game.stubs(:time_period).returns('day')
       game.vote('seth', 'seth')
       assert_equal 1, game.tally.size
 
@@ -654,6 +701,7 @@ module Werewolf
         :message => 'voted for')
       game.add_observer(mock_observer)
 
+      game.stubs(:time_period).returns('day')
       game.vote('seth', 'tom')
     end
 
@@ -663,7 +711,67 @@ module Werewolf
     end
 
 
+    def test_nightkill
+      game = Game.new
+      game.join Player.new(:name => 'seth')
+      game.nightkill('seth')
+    end
 
+
+    def test_can_only_nightkill_living_players
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      game.join(player1)
+      player1.kill!
+
+      err = assert_raises(RuntimeError) {
+        game.nightkill('seth')
+      }
+      assert_match /already dead/, err.message
+    end
+
+
+    def test_can_only_nightkill_real_players
+      game = Game.new
+      err = assert_raises(RuntimeError) {
+        game.nightkill('bigfoot')
+      }
+      assert_match /no such player/, err.message
+    end
+
+
+    def test_winner
+      game = Game.new
+      assert_nil game.winner
+    end
+
+
+    def test_good_wins_when_only_good_players_are_alive
+      game = Game.new
+      game.join(Player.new(:name => 'villager', :role => 'villager'))
+      game.join(Player.new(:name => 'seer', :role => 'seer'))
+      game.join(Player.new(:name => 'wolf', :role => 'wolf'))
+      game.players['wolf'].kill!
+      assert_equal 'good', game.winner
+    end
+
+
+    def test_evil_wins_when_only_evil_players_are_alive
+      game = Game.new
+      game.join(Player.new(:name => 'villager', :role => 'villager'))
+      game.join(Player.new(:name => 'seer', :role => 'seer'))
+      game.join(Player.new(:name => 'wolf', :role => 'wolf'))
+      game.players['villager'].kill!
+      game.players['seer'].kill!
+      assert_equal 'evil', game.winner
+    end
+    
+
+    def test_good_wins_when_only_villagers_are_alive
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'villager'))
+      assert_equal 'good', game.winner
+    end
 
   end
 

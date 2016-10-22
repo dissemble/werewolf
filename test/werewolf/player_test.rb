@@ -37,9 +37,45 @@ module Werewolf
     def test_killing_twice_raises_error
       player = Player.new(:name => 'seth')
       player.kill!
-      assert_raises(RuntimeError) {
+      err = assert_raises(RuntimeError) {
         player.kill!
       }
+      assert_match /already dead/, err.message
+    end
+
+    def test_seer_can_see
+      player = Player.new(:name => 'seth', :role => 'seer')
+      player.see(player)
+    end
+
+    def test_non_seer_cannot_see
+      player = Player.new(:name => 'seth', :role => 'wolf')
+      err = assert_raises(RuntimeError) {
+        player.see(player)
+      }
+      assert_match /only seer may see/, err.message
+    end
+
+    def test_see_shows_team
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      villager = Player.new(:name => 'john', :role => 'villager')
+      villager.stubs(:team).returns('chaotic good')
+      assert_equal 'chaotic good', seer.see(villager)
+    end
+
+    def test_team_is_good_for_seer
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      assert_equal 'good', seer.team
+    end
+
+    def test_team_is_good_for_villager
+      villager = Player.new(:name => 'seth', :role => 'villager')
+      assert_equal 'good', villager.team
+    end
+
+    def test_team_is_evil_for_wolf
+      villager = Player.new(:name => 'seth', :role => 'wolf')
+      assert_equal 'evil', villager.team
     end
 
 

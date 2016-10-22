@@ -16,7 +16,7 @@ module Werewolf
       @active_roles = nil
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
-      @vote_tally = {} # voted => list of voters
+      @vote_tally = {} # voted => set of voters
     end
 
 
@@ -94,19 +94,36 @@ module Werewolf
     end
 
 
-    def vote(voter_name, candidate_name)
+    def vote(voter_name=name1, candidate_name=name2)
+     unless @players.has_key? voter_name
+        raise RuntimeError.new("'#{voter_name}' is not a player.  Only players may vote")
+      end
+
       unless @players.has_key? candidate_name
         raise RuntimeError.new("'#{candidate_name}' is not a player.  You may only vote for players")
       end
 
-      unless @players.has_key? voter_name
-        raise RuntimeError.new("'#{voter_name}' is not a player.  Only players may vote")
+      unless @players[candidate_name].alive?
+        raise RuntimeError.new("'#{candidate_name}' is not alive.  You may only vote for living players")
       end
 
+      unless 'day' == time_period
+        raise RuntimeError.new('you may not vote at night')
+      end
+
+      # remove any previous vote
+      @vote_tally.each do |k,v| 
+        if v.delete?(voter_name) && v.empty?
+          @vote_tally.delete(k)
+        end
+      end
+
+
+      # add new vote
       if @vote_tally.has_key? candidate_name
         @vote_tally[candidate_name] << voter_name
       else
-        @vote_tally[candidate_name] = [voter_name]
+        @vote_tally[candidate_name] = Set.new([voter_name])
       end
 
       changed
@@ -150,6 +167,13 @@ module Werewolf
         :action => 'kill_player',
         :player => player,
         :message => 'With pitchforks in hand, the townsfolk killed')
+    end
+
+
+    def nightkill(name)
+      raise RuntimeError.new("no such player as #{name}") unless @players[name]
+
+      @players[name].kill!
     end
 
 
@@ -229,6 +253,18 @@ module Werewolf
           yielder.yield [times[i%2], day]
           i += 1
         end
+      end
+    end
+
+
+    def winner
+      the_living = players.find_all{|k,v| v.alive?}
+      remaining_sides = the_living.map{|k,v| v.team}.uniq
+
+      if remaining_sides.size == 1
+        remaining_sides.first
+      else
+        nil
       end
     end
 
