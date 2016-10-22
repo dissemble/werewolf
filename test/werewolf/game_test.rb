@@ -157,11 +157,135 @@ module Werewolf
     def test_roles_are_assigned_at_game_start
       game = Game.new
       game.join(Player.new(:name => 'seth'))
-      game.expects(:assign_roles)
+      game.expects(:assign_roles).once
+      game.expects(:notify_active_roles).once
 
       game.start
     end
 
+
+    def test_assign_roles_defines_the_active_roles
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      fake_roles = [:foo]
+      game.expects(:define_roles).once.returns(fake_roles)
+      game.assign_roles
+      assert_equal fake_roles, game.active_roles
+    end
+
+
+
+    def test_assign_roles_assigns_one_active_role_to_each_player
+      game = Game.new
+      roles = [:a, :b, :c, :d]
+
+      game.add_username_to_game('john')
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.add_username_to_game('bill')
+      game.expects(:define_roles).once.returns(roles)
+      game.assign_roles
+
+      game.players.values.each do |player|
+        assert roles.find{ |r| r == player.role }
+      end
+
+      roles_assigned_to_players = game.players.values.map{|p| p.role}
+      roles.each do |role|
+        assert roles_assigned_to_players.find{ |r| r == role }
+      end
+    end
+
+
+    def test_define_roles_1_player_game
+      game = Game.new
+      game.add_username_to_game('seth')
+      expected = ['wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_2_player_game
+      game = Game.new
+      game.add_username_to_game('john')
+      game.add_username_to_game('seth')
+      expected = ['villager', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_3_player_game
+      game = Game.new
+      game.add_username_to_game('john')
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      expected = ['villager', 'villager', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_4_player_game
+      game = Game.new
+      1.upto(4) { |i| game.add_username_to_game("#{i}") }
+      expected = ['seer', 'villager', 'villager', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_5_player_game
+      game = Game.new
+      1.upto(5) { |i| game.add_username_to_game("#{i}") }
+      expected = ['seer', 'villager', 'villager', 'wolf', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_6_player_game
+      game = Game.new
+      1.upto(6) { |i| game.add_username_to_game("#{i}") }
+      expected = ['seer', 'villager', 'villager', 'villager', 'wolf', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_7_player_game
+      game = Game.new
+      1.upto(7) { |i| game.add_username_to_game("#{i}") }
+      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_8_player_game
+      game = Game.new
+      1.upto(8) { |i| game.add_username_to_game("#{i}") }
+      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+    def test_define_roles_9_player_game
+      game = Game.new
+      1.upto(9) { |i| game.add_username_to_game("#{i}") }
+      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_10_player_game
+      game = Game.new
+      1.upto(10) { |i| game.add_username_to_game("#{i}") }
+      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
+      assert_equal expected, game.define_roles
+    end
+
+
+    def test_define_roles_raises_if_no_roleset_for_number_of_players
+      game = Game.new
+
+      assert_raises(RuntimeError) {
+        game.define_roles
+      }
+    end
 
     def test_all_players_have_roles_once_game_starts
       game = Game.new
@@ -325,15 +449,31 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'tell_player', 
         :player => player1, 
-        :message => 'boom')
+        :message => "Your role is #{player1.role}")
       mock_observer.expects(:update).once.with(
         :action => 'tell_player', 
         :player => player2, 
-        :message => 'boom')
+        :message => "Your role is #{player2.role}")
       game.stubs(:status)
+      game.stubs(:assign_roles)
+      game.expects(:notify_active_roles).once
       game.add_observer(mock_observer)
 
       game.start(start_initiator)
+    end
+
+
+    def test_notify_active_roles
+      game = Game.new
+      game.stubs(:active_roles).returns(['a', 'b', 'c'])
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_all', 
+        :message => "active roles:  [a, b, c]")
+      game.add_observer(mock_observer)
+
+      game.notify_active_roles
     end
 
 
