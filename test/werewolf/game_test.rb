@@ -4,6 +4,57 @@ module Werewolf
 
   class GameTest < Minitest::Test
 
+    # def test_aspirations
+    #   game = Game.new
+    #   seer = Player.new(:name => 'a_seer')
+    #   wolf = Player.new(:name => 'a_wolf')
+    #   villager1 = Player.new(:name => 'a_villager_1')
+    #   villager2 = Player.new(:name => 'a_villager_2')
+    #   villager3 = Player.new(:name => 'a_villager_3')
+
+    #   game.join(seer)
+    #   game.join(wolf)
+    #   game.join(villager1)
+    #   game.join(villager2)
+    #   game.join(villager3)
+
+    #   # setup roles...
+
+    #   # start 5 player game
+    #   game.start
+
+    #   # Night 0
+    #   assert_equal 'good', seer.see('villager1')
+    #   game.advance_time
+
+    #   # Day 1
+    #   seer.vote('a_villager_2')
+    #   wolf.vote('a_villager_2')
+    #   villager1.vote('a_seer')
+    #   villager2.vote('a_wolf')
+    #   #villager3 doesn't vote
+
+    #   # Night 1
+    #   game.advance_time
+    #   assert game.players('a_villager_2').dead?
+    #   assert_equal 'evil' seer.see(a_wolf)
+    #   wolf.nightkill('villager3')
+    #   assert game.players('a_villager_3').dead?
+
+    #   # Day 2
+    #   game.advance_time
+    #   seer.vote('wolf')
+    #   wolf.vote('seer')
+    #   villager1.vote('wolf')
+
+    #   # Game over
+    #   game.advance_time
+    #   assert game.players('wolf').dead?
+    #   assert_equal 'good' game.winner
+    # end
+
+
+
     def test_new_game_is_inactive
       assert !Game.new.active?
     end
@@ -335,6 +386,8 @@ module Werewolf
       game = Game.new
       assert_equal Hash.new, game.tally
     end
+
+
 
 
     def test_tally_after_voting
