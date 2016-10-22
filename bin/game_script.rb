@@ -4,17 +4,18 @@ SlackRubyBot::Client.logger.level = Logger::INFO
 game = Werewolf::Game.instance
 
 slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['fangbot'])
-slackbot.replace_names_with_handles = false
 game.add_observer(slackbot)
 
 slackbot.start_async
 
+sleep 2
 
-seer = Werewolf::Player.new(:name => 'seer')
-wolf = Werewolf::Player.new(:name => 'wolf')
-villager1 = Werewolf::Player.new(:name => 'villager1')
-villager2 = Werewolf::Player.new(:name => 'villager2')
-villager3 = Werewolf::Player.new(:name => 'villager3')
+
+seer = Werewolf::Player.new(:name => 'seer', :bot => true)
+wolf = Werewolf::Player.new(:name => 'wolf', :bot => true)
+villager1 = Werewolf::Player.new(:name => 'villager1', :bot => true)
+villager2 = Werewolf::Player.new(:name => 'villager2', :bot => true)
+villager3 = Werewolf::Player.new(:name => 'villager3', :bot => true)
 
 
 game.join(seer)
