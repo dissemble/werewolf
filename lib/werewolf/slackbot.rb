@@ -3,6 +3,14 @@ require 'slack-ruby-bot'
 module Werewolf
   class SlackBot < SlackRubyBot::Server
 
+    # handy for testing with players that aren't real slack users
+    attr_accessor :replace_names_with_handles
+
+    def initialize(args)
+      @replace_names_with_handles = true
+      super args
+    end
+
     # This receives notifications from a Game instance upon changes.
     # Game is Observable, and the slackbot is an observer.  
     def update(options = {})
@@ -16,12 +24,12 @@ module Werewolf
 
 
     def handle_join(options = {})
-      tell_all("<@#{options[:player].name}> #{options[:message]}")
+      tell_all("#{slackify(options[:player])} #{options[:message]}")
     end
 
 
     def handle_join_error(options = {})
-      tell_all("<@#{options[:player].name}> #{options[:message]}")
+      tell_all("#{slackify(options[:player])} #{options[:message]}")
     end
 
 
@@ -31,6 +39,7 @@ module Werewolf
 
 
     def handle_start(options = {})
+      # TODO:  this should be passing a player and use slackify
       tell_all("<@#{options[:start_initiator]}> #{options[:message]}")
     end
 
@@ -47,17 +56,17 @@ module Werewolf
 
 
     def handle_vote(options = {})
-      tell_all("<@#{options[:voter].name}> #{options[:message]} <@#{options[:votee].name}>")
+      tell_all("#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}")
     end
 
 
     def handle_kill_player(options = {})
-      tell_all("#{options[:message]} <@#{options[:player].name}>")
+      tell_all("#{options[:message]} #{slackify(options[:player])}")
     end
 
 
     def tell_all(message)
-      # puts "tell_all:  #{message}"
+      puts "tell_all:  #{message}"
       client.say(text: message, channel: 'G2FQMNAF8')
     end
 
@@ -72,10 +81,17 @@ module Werewolf
       if players.empty?
         "Zero players.  Type 'wolfbot join' to join the game."
       else
-        "Players: " + players.to_a.map{|p| "<@#{p.name}>" }.join(", ")
+        "Players: " + players.to_a.map{|p| "#{slackify(p)}" }.join(", ")
       end
     end
 
+    def slackify(player)
+      if replace_names_with_handles
+        "<@#{player.name}>"
+      else
+        player.name
+      end
+    end
 
 
 	end

@@ -247,5 +247,18 @@ module Werewolf
       slackbot.tell_all(message)
     end
 
+
+    def test_slackify
+      slackbot = Werewolf::SlackBot.new
+      assert_equal '<@foo>', slackbot.slackify(Player.new(:name => 'foo'))
+    end
+
+
+    def test_slackify_with_slack_handle_replacement_off
+      slackbot = Werewolf::SlackBot.new
+      slackbot.replace_names_with_handles = false
+      assert_equal 'foo', slackbot.slackify(Player.new(:name => 'foo'))
+    end
+
   end
 end

@@ -118,7 +118,6 @@ module Werewolf
         end
       end
 
-
       # add new vote
       if @vote_tally.has_key? candidate_name
         @vote_tally[candidate_name] << voter_name

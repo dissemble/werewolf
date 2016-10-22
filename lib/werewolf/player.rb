@@ -21,6 +21,7 @@ module Werewolf
         raise RuntimeError.new("already dead") 
       else
         @alive = false
+        true
       end
     end
 

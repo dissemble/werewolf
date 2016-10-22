@@ -6,11 +6,11 @@ module Werewolf
 
     def test_aspirations
       game = Game.new
-      seer = Player.new(:name => 'a_seer')
-      wolf = Player.new(:name => 'a_wolf')
-      villager1 = Player.new(:name => 'a_villager_1')
-      villager2 = Player.new(:name => 'a_villager_2')
-      villager3 = Player.new(:name => 'a_villager_3')
+      seer = Player.new(:name => 'seer')
+      wolf = Player.new(:name => 'wolf')
+      villager1 = Player.new(:name => 'villager1')
+      villager2 = Player.new(:name => 'villager2')
+      villager3 = Player.new(:name => 'villager3')
 
       game.join(seer)
       game.join(wolf)
@@ -33,28 +33,28 @@ module Werewolf
       game.advance_time
 
       # Day 1
-      game.vote(voter_name='a_seer', 'a_villager_2')
-      game.vote(voter_name='a_wolf', 'a_villager_2')
-      game.vote(voter_name='a_villager_1', 'a_seer')
-      game.vote(voter_name='a_villager_2', 'a_wolf')
+      game.vote(voter_name='seer', 'villager2')
+      game.vote(voter_name='wolf', 'villager2')
+      game.vote(voter_name='villager1', 'seer')
+      game.vote(voter_name='villager2', 'wolf')
       #villager3 doesn't vote
 
       # Night 1
       game.advance_time
-      assert game.players['a_villager_2'].dead?
+      assert game.players['villager2'].dead?
       assert_equal 'evil', seer.see(wolf)
-      game.nightkill('a_villager_3')
-      assert game.players['a_villager_3'].dead?
+      game.nightkill('villager3')
+      assert game.players['villager3'].dead?
 
       # Day 2
       game.advance_time
-      game.vote(voter_name='a_seer', 'a_wolf')
-      game.vote(voter_name='a_wolf', 'a_seer')
-      game.vote(voter_name='a_villager_1', 'a_wolf')
+      game.vote(voter_name='seer', 'wolf')
+      game.vote(voter_name='wolf', 'seer')
+      game.vote(voter_name='villager1', 'wolf')
 
       # Game over
       game.advance_time
-      assert game.players['a_wolf'].dead?
+      assert game.players['wolf'].dead?
       assert_equal 'good', game.winner
     end
 
@@ -348,6 +348,12 @@ module Werewolf
 
       game.status
     end
+
+
+    def test_status
+      #TODO
+    end
+
 
 
     def test_create_time_period_generator
@@ -765,7 +771,7 @@ module Werewolf
       game.players['seer'].kill!
       assert_equal 'evil', game.winner
     end
-    
+
 
     def test_good_wins_when_only_villagers_are_alive
       game = Game.new
