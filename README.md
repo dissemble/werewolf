@@ -50,6 +50,10 @@ SLACK_API_TOKEN='xoxb-tokenhere' bin/slackrunner.rb
 ### Play with your class.  irb, but including the source code from the project
 bundle exec bin/console
 
+### Run game scripts
+bundle exec bin/console
+load 'bin/game_script.rb'
+
 ### Run all tests
 rake test
 ```

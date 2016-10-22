@@ -3,14 +3,6 @@ require 'slack-ruby-bot'
 module Werewolf
   class SlackBot < SlackRubyBot::Server
 
-    # handy for testing with players that aren't real slack users
-    attr_accessor :replace_names_with_handles
-
-    def initialize(args={})
-      @replace_names_with_handles = true
-      super args
-    end
-
     # This receives notifications from a Game instance upon changes.
     # Game is Observable, and the slackbot is an observer.  
     def update(options = {})
@@ -72,8 +64,10 @@ module Werewolf
 
 
     def tell_player(player, message)
-      im = client.web_client.im_open(:user => "#{player.name}")
-      client.say(text: message, channel: "#{im.channel.id}")
+      unless player.bot?
+        im = client.web_client.im_open(:user => "#{player.name}")
+        client.say(text: message, channel: "#{im.channel.id}")
+      end
     end
 
 
@@ -85,11 +79,12 @@ module Werewolf
       end
     end
 
+
     def slackify(player)
-      if replace_names_with_handles
-        "<@#{player.name}>"
-      else
+      if player.bot?
         player.name
+      else
+        "<@#{player.name}>"
       end
     end
 

@@ -26,6 +26,12 @@ module Werewolf
     end
 
 
+    def test_tell_player_with_bot
+      slackbot = Werewolf::SlackBot.new
+      slackbot.tell_player(Player.new(:name => 'seth', :bot => true), "amessage")
+    end
+
+
     def test_tell_all_exists
       slackbot = Werewolf::SlackBot.new
       slackbot.stubs(:client).raises(RuntimeError.new("oops"))
@@ -248,16 +254,15 @@ module Werewolf
     end
 
 
-    def test_slackify
+    def test_slackify_with_real_player
       slackbot = Werewolf::SlackBot.new
       assert_equal '<@foo>', slackbot.slackify(Player.new(:name => 'foo'))
     end
 
 
-    def test_slackify_with_slack_handle_replacement_off
+    def test_slackify_with_bot
       slackbot = Werewolf::SlackBot.new
-      slackbot.replace_names_with_handles = false
-      assert_equal 'foo', slackbot.slackify(Player.new(:name => 'foo'))
+      assert_equal 'foo', slackbot.slackify(Player.new(:name => 'foo', :bot => true))
     end
 
   end

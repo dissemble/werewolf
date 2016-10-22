@@ -34,6 +34,10 @@ module Werewolf
       other_player.team
     end
     
+    def bot?
+      @bot
+    end
+
   end
   
 end
