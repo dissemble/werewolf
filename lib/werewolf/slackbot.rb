@@ -6,7 +6,7 @@ module Werewolf
     # handy for testing with players that aren't real slack users
     attr_accessor :replace_names_with_handles
 
-    def initialize(args)
+    def initialize(args={})
       @replace_names_with_handles = true
       super args
     end
