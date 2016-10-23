@@ -284,14 +284,14 @@ MESSAGE
       rolesets = {
         1 => ['seer'],
         2 => ['seer', 'beholder'],
-        3 => ['villager', 'villager', 'wolf'],
+        3 => ['seer', 'villager', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
-        5 => ['seer', 'villager', 'villager', 'wolf', 'wolf'],
-        6 => ['seer', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        7 => ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        8 => ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
-        9 => ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
-        10 => ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        5 => ['seer', 'beholder', 'villager', 'wolf', 'wolf'],
+        6 => ['seer', 'beholder', 'villager', 'villager', 'wolf', 'wolf'],
+        7 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
+        8 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        9 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        10 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
       }
 
       available_roles = rolesets[@players.size]

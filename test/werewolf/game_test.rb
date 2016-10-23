@@ -226,7 +226,7 @@ module Werewolf
       game.add_username_to_game('john')
       game.add_username_to_game('seth')
       game.add_username_to_game('tom')
-      expected = ['villager', 'villager', 'wolf']
+      expected = ['seer', 'villager', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -242,7 +242,7 @@ module Werewolf
     def test_define_roles_5_player_game
       game = Game.new
       1.upto(5) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -250,7 +250,7 @@ module Werewolf
     def test_define_roles_6_player_game
       game = Game.new
       1.upto(6) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'villager', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -258,7 +258,7 @@ module Werewolf
     def test_define_roles_7_player_game
       game = Game.new
       1.upto(7) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -266,14 +266,14 @@ module Werewolf
     def test_define_roles_8_player_game
       game = Game.new
       1.upto(8) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 
     def test_define_roles_9_player_game
       game = Game.new
       1.upto(9) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -281,7 +281,7 @@ module Werewolf
     def test_define_roles_10_player_game
       game = Game.new
       1.upto(10) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 

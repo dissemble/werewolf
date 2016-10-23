@@ -11,16 +11,16 @@ slackbot.start_async
 sleep 2
 
 
-seer = Werewolf::Player.new(:name => 'seer', :bot => true)
-wolf = Werewolf::Player.new(:name => 'wolf', :bot => true)
-villager1 = Werewolf::Player.new(:name => 'villager1', :bot => true)
-villager2 = Werewolf::Player.new(:name => 'villager2', :bot => true)
-villager3 = Werewolf::Player.new(:name => 'villager3', :bot => true)
+seer = Werewolf::Player.new(:name => 'bill', :bot => true)
+wolf = Werewolf::Player.new(:name => 'tom', :bot => true)
+beholder = Werewolf::Player.new(:name => 'seth', :bot => true)
+villager2 = Werewolf::Player.new(:name => 'john', :bot => true)
+villager3 = Werewolf::Player.new(:name => 'monty', :bot => true)
 
 
 game.join(seer)
 game.join(wolf)
-game.join(villager1)
+game.join(beholder)
 game.join(villager2)
 game.join(villager3)
 
@@ -30,41 +30,41 @@ game.start('seer')
 # reassign roles
 seer.role = 'seer'
 wolf.role = 'wolf'
-villager1.role = 'villager'
+beholder.role = 'beholder'
 villager2.role = 'villager'
 villager3.role = 'villager'
 
 # Night 0
-seer.view(villager1)
+seer.view(beholder)
 game.advance_time
 
 # Day 1
-game.vote(voter_name='seer', 'villager2')
-game.vote(voter_name='wolf', 'villager2')
-game.vote(voter_name='villager1', 'seer')
-game.vote(voter_name='villager2', 'wolf')
+game.vote(voter_name='bill', 'john')
+game.vote(voter_name='tom', 'john')
+game.vote(voter_name='seth', 'bill')
+game.vote(voter_name='john', 'tom')
 #villager3 doesn't vote
 game.vote_tally
 game.status
 
 # Night 1
 game.advance_time
-game.players['villager2'].dead?
+game.players['john'].dead?
 seer.view(wolf)
-game.nightkill('wolf', 'villager3')
-game.players['villager3'].dead?
+game.nightkill('tom', 'monty')
+game.players['monty'].dead?
 game.status
 
 # Day 2
 game.advance_time
-game.vote(voter_name='seer', 'wolf')
-game.vote(voter_name='wolf', 'seer')
-game.vote(voter_name='villager1', 'wolf')
+game.vote(voter_name='bill', 'tom')
+game.vote(voter_name='tom', 'bill')
+game.vote(voter_name='seth', 'tom')
 game.vote_tally
 game.status
 
 # Game over
 game.advance_time
 game.status
-game.players['wolf'].dead?
+game.players['tom'].dead?
 game.winner
