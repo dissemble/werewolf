@@ -30,6 +30,11 @@ module Werewolf
     end
 
 
+    def handle_view(options = {})
+      tell_player(options[:viewer], "#{slackify(options[:viewee])} #{options[:message]}")
+    end
+
+
     def handle_start(options = {})
       # TODO:  this should be passing a player and use slackify
       tell_all("<@#{options[:start_initiator]}> #{options[:message]}")

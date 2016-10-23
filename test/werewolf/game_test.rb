@@ -29,7 +29,7 @@ module Werewolf
       villager3.role = 'villager'
 
       # Night 0
-      assert_equal 'good', seer.see(villager1)
+      assert_equal 'good', seer.view(villager1)
       game.advance_time
 
       # Day 1
@@ -42,12 +42,14 @@ module Werewolf
       # Night 1
       game.advance_time
       assert game.players['villager2'].dead?
-      assert_equal 'evil', seer.see(wolf)
+      assert_equal 'evil', seer.view(wolf)
       game.nightkill(werewolf='wolf', victim='villager3')
+      
+      # Process night actions
+      game.advance_time
       assert game.players['villager3'].dead?
 
       # Day 2
-      game.advance_time
       game.vote(voter_name='seer', 'wolf')
       game.vote(voter_name='wolf', 'seer')
       game.vote(voter_name='villager1', 'wolf')
@@ -205,7 +207,7 @@ module Werewolf
     def test_define_roles_1_player_game
       game = Game.new
       game.add_username_to_game('seth')
-      expected = ['wolf']
+      expected = ['seer']
       assert_equal expected, game.define_roles
     end
 
@@ -387,6 +389,36 @@ module Werewolf
     end
 
 
+    def test_advance_time_calls_process_night_actions
+      game = Game.new
+      game.expects(:process_night_actions).once
+      game.advance_time
+    end
+
+
+    def test_process_night_actions_applies_all_actions
+      game = Game.new
+      x = 10
+      game.night_actions['nightkill'] = lambda {x *= 2}
+      game.night_actions['see'] = lambda {x += 5}
+
+      game.process_night_actions
+      assert_equal 25, x
+    end
+
+
+    def test_process_night_actions_leaves_night_actions_empty
+      game = Game.new
+      x = 10
+      game.night_actions['nightkill'] = lambda {x *= 2}
+      game.night_actions['see'] = lambda {x += 5}
+      assert !game.night_actions.empty?
+
+      game.process_night_actions
+      assert game.night_actions.empty?
+    end
+
+
     def test_game_notifies_when_time_changes
       game = Game.new
 
@@ -461,11 +493,11 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'tell_player', 
         :player => player1, 
-        :message => "Your role is #{player1.role}")
+        :message => "Your role is: #{player1.role}")
       mock_observer.expects(:update).once.with(
         :action => 'tell_player', 
         :player => player2, 
-        :message => "Your role is #{player2.role}")
+        :message => "Your role is: #{player2.role}")
       game.stubs(:status)
       game.stubs(:assign_roles)
       game.expects(:notify_active_roles).once
@@ -848,6 +880,7 @@ module Werewolf
 
       err = assert_raises(RuntimeError) {
         game.nightkill(werewolf='seth', victim='seth')
+        game.process_night_actions
       }
       assert_match /already dead/, err.message
     end
@@ -892,6 +925,102 @@ module Werewolf
       game.add_observer(mock_observer)
 
       game.nightkill(werewolf='seth', victim='seth')
+      game.process_night_actions
+    end
+
+
+    def test_nightfall_adds_a_deferred_action
+      game = Game.new
+      game.join Player.new(:name => 'seth', :role => 'wolf')
+      assert game.night_actions.empty?
+
+      game.nightkill(werewolf='seth', victim='seth')
+      assert !game.night_actions.empty?
+    end
+
+
+    def test_view
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'seer'))
+      game.join(Player.new(:name => 'tom', :role => 'villager'))
+      game.view(viewer='seth', viewer='tom')
+    end
+
+
+    def test_view_only_available_to_players
+      game = Game.new
+      game.join(Player.new(:name => 'tom', :role => 'villager'))
+      err = assert_raises(RuntimeError) do
+        game.view(viewer='bartelby', viewer='tom')
+      end
+      assert_match /View is only available to players/, err.message
+    end
+
+
+    def test_view_only_available_to_seer
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'villager'))
+      game.join(Player.new(:name => 'tom', :role => 'villager'))
+      err = assert_raises(RuntimeError) do
+        game.view(viewer='seth', viewer='tom')
+      end
+      assert_match /View is only available to the seer/, err.message
+    end
+
+
+    def test_view_only_available_to_seer
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'seer'))
+      err = assert_raises(RuntimeError) do
+        game.view(viewer='seth', viewer='hercules')
+      end
+      assert_match /You must view a real player/, err.message
+    end
+
+
+    def test_view_adds_a_night_action
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'seer'))
+      game.join(Player.new(:name => 'tom', :role => 'villager'))
+      assert game.night_actions.empty?
+      
+      game.view(viewer='seth', viewer='tom')
+      assert game.night_actions['view']
+    end
+
+
+    def test_view_notifies_seer
+      game = Game.new
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      game.join(seer)
+      game.join(villager)
+
+      game.view(viewer='seth', viewee='tom')
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'view', 
+        :viewer => seer,
+        :viewee => villager,
+        :message => "is on the side of #{villager.team}")
+      game.add_observer(mock_observer)
+      game.expects(:assign_roles).never
+
+
+      game.process_night_actions
+    end
+
+
+    def test_help_notifies_player
+      game = Game.new
+
+      mock_observer = mock('observer')
+      # TODO:  needs love
+      mock_observer.expects(:update).once
+      game.add_observer(mock_observer)
+
+      game.help('seth')
     end
 
 

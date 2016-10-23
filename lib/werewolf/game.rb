@@ -7,7 +7,7 @@ module Werewolf
     include Observable
 
     attr_reader :players, :vote_tally
-    attr_accessor :active_roles, :day_number, :time_period
+    attr_accessor :active_roles, :day_number, :night_actions, :time_period
 
     def initialize()
       reset
@@ -21,6 +21,7 @@ module Werewolf
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
       @vote_tally = {} 
+      @night_actions = {}
     end
 
 
@@ -85,7 +86,7 @@ module Werewolf
           notify_observers(
             :action => 'tell_player', 
             :player => player, 
-            :message => "Your role is #{player.role}")
+            :message => "Your role is: #{player.role}")
         end
       end
     end
@@ -187,10 +188,55 @@ module Werewolf
       raise RuntimeError.new('Only wolves may nightkill') unless wolf_player.role == 'wolf'
       raise RuntimeError.new('nightkill may only be used at night') unless time_period == 'night'
 
-      @players[victim].kill!
+      @night_actions['nightkill'] = lambda {
+        victim_player.kill!
+        changed
+        notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+      }
+    end
+
+
+    def view(viewer=name1, viewee=name2)
+      viewing_player = @players[viewer]
+      viewed_player = @players[viewee]
+
+      raise RuntimeError.new('View is only available to players') unless viewing_player
+      raise RuntimeError.new('View is only available to the seer') unless viewing_player.role == 'seer'
+      raise RuntimeError.new('You must view a real player') unless viewed_player
+
+      @night_actions['view'] = lambda {
+        team = viewing_player.view(viewed_player)
+        changed
+        notify_observers(
+          :action => 'view', 
+          :viewer => viewing_player, 
+          :viewee => viewed_player,
+          :message => "is on the side of #{team}")
+      }
+    end
+
+
+    def help(name)
+      player = Player.new(:name => name)
+
+      message = <<MESSAGE
+Commands you can use:
+help:   this command
+join:   join the game (only before the game starts)
+start:  start the game (only after players have joined)
+end:    terminate running game
+status: should probably work...
+kill:   as a werewolf, nightkill a player.  (only at night)
+view:   as the seer, reveals the alignment of another player.  (only at night)
+vote:   vote to lynch a player.  (only during day)
+
+MESSAGE
 
       changed
-      notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+      notify_observers(
+        :action => 'tell_player', 
+        :player => player, 
+        :message => message)
     end
 
 
@@ -211,7 +257,7 @@ module Werewolf
 
     def define_roles
       rolesets = {
-        1 => ['wolf'],
+        1 => ['seer'],
         2 => ['villager', 'wolf'],
         3 => ['villager', 'villager', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
@@ -257,6 +303,8 @@ module Werewolf
 
       if 'night' == time_period
         lynch
+      else
+        process_night_actions
       end
     end
 
@@ -271,6 +319,17 @@ module Werewolf
           i += 1
         end
       end
+    end
+
+
+    def process_night_actions
+      # TODO:  define processing order
+      @night_actions.each do |action_name, action_lambda|
+        action_lambda[]
+        @night_actions.delete action_name
+      end
+
+      @night_actions.clear
     end
 
 

@@ -35,7 +35,7 @@ villager2.role = 'villager'
 villager3.role = 'villager'
 
 # Night 0
-seer.see(villager1)
+seer.view(villager1)
 game.advance_time
 
 # Day 1
@@ -44,27 +44,24 @@ game.vote(voter_name='wolf', 'villager2')
 game.vote(voter_name='villager1', 'seer')
 game.vote(voter_name='villager2', 'wolf')
 #villager3 doesn't vote
-game.tally
+game.vote_tally
 game.status
-game.winner
 
 # Night 1
 game.advance_time
 game.players['villager2'].dead?
-seer.see(wolf)
-game.nightkill('villager3')
+seer.view(wolf)
+game.nightkill('wolf', 'villager3')
 game.players['villager3'].dead?
 game.status
-game.winner
 
 # Day 2
 game.advance_time
 game.vote(voter_name='seer', 'wolf')
 game.vote(voter_name='wolf', 'seer')
 game.vote(voter_name='villager1', 'wolf')
-game.tally
+game.vote_tally
 game.status
-game.winner
 
 # Game over
 game.advance_time

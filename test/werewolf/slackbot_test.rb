@@ -138,6 +138,21 @@ module Werewolf
     end
 
 
+    def test_handle_view_notifies_viewer
+      slackbot = Werewolf::SlackBot.new
+      viewer = Player.new(:name => 'seth')
+      viewee = Player.new(:name => 'tom')
+      message = "lorem ipsum dolor"
+
+      slackbot.expects(:tell_player).once.with(viewer, "<@tom> #{message}")
+
+      slackbot.handle_view(
+        :action => 'view', 
+        :viewer => viewer, 
+        :viewee => viewee,
+        :message => message
+      )
+    end
 
 
     def test_handle_start_broadcasts_to_room

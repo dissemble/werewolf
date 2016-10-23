@@ -43,24 +43,24 @@ module Werewolf
       assert_match /already dead/, err.message
     end
 
-    def test_seer_can_see
+    def test_seer_can_view
       player = Player.new(:name => 'seth', :role => 'seer')
-      player.see(player)
+      player.view(player)
     end
 
-    def test_non_seer_cannot_see
+    def test_non_seer_cannot_view
       player = Player.new(:name => 'seth', :role => 'wolf')
       err = assert_raises(RuntimeError) {
-        player.see(player)
+        player.view(player)
       }
       assert_match /only seer may see/, err.message
     end
 
-    def test_see_shows_team
+    def test_view_shows_team
       seer = Player.new(:name => 'seth', :role => 'seer')
       villager = Player.new(:name => 'john', :role => 'villager')
       villager.stubs(:team).returns('chaotic good')
-      assert_equal 'chaotic good', seer.see(villager)
+      assert_equal 'chaotic good', seer.view(villager)
     end
 
     def test_team_is_good_for_seer
