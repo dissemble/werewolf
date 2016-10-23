@@ -35,6 +35,11 @@ module Werewolf
     end
 
 
+    def handle_behold(options = {})
+      tell_player(options[:beholder], "#{options[:message]} #{slackify(options[:seer])}")
+    end
+
+
     def handle_tally(options = {})
       vote_hash = options[:vote_tally]
 

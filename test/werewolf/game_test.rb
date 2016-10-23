@@ -165,7 +165,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth'))
       game.expects(:assign_roles).once
-      game.expects(:notify_active_roles).once
+      game.expects(:notify_of_active_roles).once
 
       game.start
     end
@@ -204,21 +204,21 @@ module Werewolf
     end
 
 
-    def test_define_roles_1_player_game
-      game = Game.new
-      game.add_username_to_game('seth')
-      expected = ['seer']
-      assert_equal expected, game.define_roles
-    end
+    # def test_define_roles_1_player_game
+    #   game = Game.new
+    #   game.add_username_to_game('seth')
+    #   expected = ['seer']
+    #   assert_equal expected, game.define_roles
+    # end
 
 
-    def test_define_roles_2_player_game
-      game = Game.new
-      game.add_username_to_game('john')
-      game.add_username_to_game('seth')
-      expected = ['villager', 'wolf']
-      assert_equal expected, game.define_roles
-    end
+    # def test_define_roles_2_player_game
+    #   game = Game.new
+    #   game.add_username_to_game('john')
+    #   game.add_username_to_game('seth')
+    #   expected = ['villager', 'wolf']
+    #   assert_equal expected, game.define_roles
+    # end
 
 
     def test_define_roles_3_player_game
@@ -502,20 +502,60 @@ module Werewolf
         :action => 'start', 
         :start_initiator => start_initiator, 
         :message => 'has started the game')
+      game.add_observer(mock_observer)
+
+      # TODO:  naming convention for methods that notify
+      # these each do their own notifications
+      game.expects(:status)
+      game.expects(:notify_of_active_roles)
+      # game.expects
+      game.expects(:notify_player_of_role).once.with(player1)
+      game.expects(:notify_player_of_role).once.with(player2)
+      # game.expects(:assign_role_to_player)
+
+      game.start(start_initiator)
+    end
+
+
+    def test_notify_player_of_role
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+
+      mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'tell_player', 
         :player => player1, 
         :message => "Your role is: #{player1.role}")
-      mock_observer.expects(:update).once.with(
-        :action => 'tell_player', 
-        :player => player2, 
-        :message => "Your role is: #{player2.role}")
-      game.stubs(:status)
-      game.stubs(:assign_roles)
-      game.expects(:notify_active_roles).once
       game.add_observer(mock_observer)
 
-      game.start(start_initiator)
+      game.notify_player_of_role(player1)
+    end
+
+
+    def test_notify_player_calls_behold
+      game = Game.new
+      beholder = Player.new(:name => 'bill', :role => 'beholder')
+      game.expects(:behold).once.with(beholder)
+      game.notify_player_of_role(beholder)
+    end
+
+
+    def test_beholder_notifies_with_seer
+      game = Game.new
+      seer = Player.new(:name => 'tom', :role => 'seer')
+      beholder = Player.new(:name => 'bill', :role => 'beholder')
+      game.join seer
+      game.join beholder
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'behold', 
+        :beholder => beholder,
+        :seer => seer, 
+        :message => "The seer is:")
+      game.add_observer(mock_observer)
+
+      game.behold(beholder)
     end
 
 
@@ -613,7 +653,7 @@ module Werewolf
     end
 
 
-    def test_notify_active_roles
+    def test_notify_of_active_roles
       game = Game.new
       game.stubs(:active_roles).returns(['a', 'b', 'c'])
 
@@ -623,7 +663,7 @@ module Werewolf
         :message => "active roles:  [a, b, c]")
       game.add_observer(mock_observer)
 
-      game.notify_active_roles
+      game.notify_of_active_roles
     end
 
 
@@ -857,6 +897,11 @@ module Werewolf
       game.stubs(:time_period).returns('day')
       game.expects(:print_tally).once
       game.vote('seth', 'tom')
+    end
+
+
+    def test_dusk_falls_early_when_all_votes_have_been_cast
+      #TODO
     end
 
 

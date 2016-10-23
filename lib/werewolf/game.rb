@@ -75,21 +75,36 @@ module Werewolf
         changed
         notify_observers(:action => 'start', :start_initiator => start_initiator, :message => 'has started the game')
 
-        # working around mocking issues
-        notify_active_roles
+        notify_of_active_roles
 
         status
         
-        # 'game start with role' to each player
         @players.values.each do |player|
-          changed
-          notify_observers(
-            :action => 'tell_player', 
-            :player => player, 
-            :message => "Your role is: #{player.role}")
-        end
+          notify_player_of_role(player)
+        end 
       end
     end
+
+
+    def notify_player_of_role(player)
+      changed
+      notify_observers(
+        :action => 'tell_player', 
+        :player => player, 
+        :message => "Your role is: #{player.role}")
+
+      if 'beholder' == player.role
+        behold(player)
+      end
+    end
+
+
+    def behold(beholder)
+      seer = @players.values.find{|p| p.role == 'seer'}
+      changed
+      notify_observers(:action => 'behold', :beholder => beholder, :seer => seer, :message => 'The seer is:')
+    end
+
 
 
     def end_game(name='Unknown')
@@ -109,7 +124,7 @@ module Werewolf
     end
 
 
-    def notify_active_roles
+    def notify_of_active_roles
       changed
       role_string = active_roles.join(', ')
       notify_observers(:action => 'tell_all', :message => "active roles:  [#{role_string}]")
@@ -268,7 +283,7 @@ MESSAGE
     def define_roles
       rolesets = {
         1 => ['seer'],
-        2 => ['villager', 'wolf'],
+        2 => ['seer', 'beholder'],
         3 => ['villager', 'villager', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'villager', 'villager', 'wolf', 'wolf'],

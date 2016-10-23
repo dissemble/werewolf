@@ -155,6 +155,23 @@ module Werewolf
     end
 
 
+    def test_handle_behold_notifies_beholder
+      slackbot = Werewolf::SlackBot.new
+      beholder = Player.new(:name => 'seth')
+      seer = Player.new(:name => 'tom')
+      message = "da seer be"
+
+      slackbot.expects(:tell_player).once.with(beholder, "#{message} <@tom>")
+
+      slackbot.handle_behold(
+        :action => 'view', 
+        :beholder => beholder, 
+        :seer => seer,
+        :message => message
+      )
+    end
+
+
     def test_handle_start_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
