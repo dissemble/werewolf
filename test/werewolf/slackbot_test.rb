@@ -228,6 +228,33 @@ module Werewolf
     end
 
 
+    def test_handle_tally
+      slackbot = Werewolf::SlackBot.new
+      expected = 
+        "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
+        "Lynch <@bill>:  (1 vote) - <@tom>"
+
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_tally( {
+        :vote_tally => {
+          'tom' => Set.new(['seth', 'bill']), 
+          'bill' => Set.new(['tom'])
+        }
+      } )
+    end
+
+
+    def test_handle_tally_when_empty
+      slackbot = Werewolf::SlackBot.new
+      expected = "No votes yet"
+
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_tally({ :vote_tally => {} })
+    end
+
+
     def test_handler_join_error_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')

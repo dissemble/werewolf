@@ -35,6 +35,23 @@ module Werewolf
     end
 
 
+    def handle_tally(options = {})
+      vote_hash = options[:vote_tally]
+
+      if vote_hash.empty?
+        message = "No votes yet"
+      else
+        lines = vote_hash.map do |k, v|
+          voters = v.map{|name| "<@#{name}>"}.join(', ')
+          "Lynch <@#{k}>:  (#{pluralize_votes(v.size)}) - #{voters}"
+        end
+        message = lines.join("\n")
+      end
+
+      tell_all(message)
+    end
+
+
     def handle_start(options = {})
       # TODO:  this should be passing a player and use slackify
       tell_all("<@#{options[:start_initiator]}> #{options[:message]}")
@@ -125,6 +142,15 @@ module Werewolf
       end
     end
 
+    private
+
+    def pluralize_votes(number)
+      if number == 1
+        "1 vote"
+      else
+        "#{number} votes"
+      end
+    end
 
 	end
 end

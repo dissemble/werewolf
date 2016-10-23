@@ -357,7 +357,6 @@ module Werewolf
     end
 
 
-
     def test_create_time_period_generator
       game = Game.new
       generator = game.create_time_period_generator
@@ -416,6 +415,19 @@ module Werewolf
 
       game.process_night_actions
       assert game.night_actions.empty?
+    end
+
+
+    def test_print_tally_notifies_room
+      game = Game.new
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tally',
+        :vote_tally => game.vote_tally)
+      game.add_observer(mock_observer)
+
+      game.print_tally
     end
 
 
@@ -680,6 +692,15 @@ module Werewolf
     end
 
 
+    def test_vote_calls_print_tally
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.stubs(:time_period).returns('day')
+      game.expects(:print_tally).once
+      game.vote('seth', 'seth')
+    end
+
+
     def test_tally_starts_empty
       game = Game.new
       assert_equal Hash.new, game.vote_tally
@@ -834,6 +855,7 @@ module Werewolf
       game.add_observer(mock_observer)
 
       game.stubs(:time_period).returns('day')
+      game.expects(:print_tally).once
       game.vote('seth', 'tom')
     end
 
@@ -943,7 +965,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
       game.join(Player.new(:name => 'tom', :role => 'villager'))
-      game.view(viewer='seth', viewer='tom')
+      game.view(viewer='seth', viewee='tom')
     end
 
 
@@ -951,7 +973,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       err = assert_raises(RuntimeError) do
-        game.view(viewer='bartelby', viewer='tom')
+        game.view(viewer='bartelby', viewee='tom')
       end
       assert_match /View is only available to players/, err.message
     end
@@ -962,7 +984,7 @@ module Werewolf
       game.join(Player.new(:name => 'seth', :role => 'villager'))
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       err = assert_raises(RuntimeError) do
-        game.view(viewer='seth', viewer='tom')
+        game.view(viewer='seth', viewee='tom')
       end
       assert_match /View is only available to the seer/, err.message
     end
@@ -972,9 +994,21 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
       err = assert_raises(RuntimeError) do
-        game.view(viewer='seth', viewer='hercules')
+        game.view(viewer='seth', viewee='hercules')
       end
       assert_match /You must view a real player/, err.message
+    end
+
+
+    def test_view_only_available_at_night
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'seer'))
+      game.stubs(:time_period).returns('day')
+
+      err = assert_raises(RuntimeError) do
+        game.view(viewer='seth', viewee='seth')
+      end
+      assert_match /You can only view at night/, err.message
     end
 
 

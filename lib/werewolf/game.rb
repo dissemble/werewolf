@@ -103,6 +103,12 @@ module Werewolf
     end
 
 
+    def print_tally
+      changed
+      notify_observers(:action => 'tally', :vote_tally => vote_tally)
+    end
+
+
     def notify_active_roles
       changed
       role_string = active_roles.join(', ')
@@ -147,6 +153,8 @@ module Werewolf
         :voter => @players[voter_name], 
         :votee => @players[candidate_name],
         :message => "voted for")
+
+      print_tally
     end
 
 
@@ -202,6 +210,7 @@ module Werewolf
 
       raise RuntimeError.new('View is only available to players') unless viewing_player
       raise RuntimeError.new('View is only available to the seer') unless viewing_player.role == 'seer'
+      raise RuntimeError.new('You can only view at night') unless time_period == 'night'
       raise RuntimeError.new('You must view a real player') unless viewed_player
 
       @night_actions['view'] = lambda {
@@ -226,6 +235,7 @@ join:   join the game (only before the game starts)
 start:  start the game (only after players have joined)
 end:    terminate running game
 status: should probably work...
+tally:  show lynch-vote tally (only during day)
 kill:   as a werewolf, nightkill a player.  (only at night)
 view:   as the seer, reveals the alignment of another player.  (only at night)
 vote:   vote to lynch a player.  (only during day)
