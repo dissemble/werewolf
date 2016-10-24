@@ -119,7 +119,7 @@ module Werewolf
       message = options[:message]
       options[:players].each do |name,player|
         line = player.dead? ? '-' : "+"
-        line.concat " #{name}: #{player.role}\n"
+        line.concat " #{slackify(player)}: #{player.role}\n"
         message.concat line
       end
       tell_all(message)

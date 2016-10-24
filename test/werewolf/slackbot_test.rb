@@ -182,10 +182,10 @@ module Werewolf
 
       expected = <<MESSAGE
 Evil won the game!
-- bill: villager
-- tom: seer
-- seth: beholder
-+ john: wolf
+- <@bill>: villager
+- <@tom>: seer
+- <@seth>: beholder
++ <@john>: wolf
 MESSAGE
       slackbot.expects(:tell_all).once.with(expected)
 
