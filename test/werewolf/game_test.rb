@@ -868,6 +868,23 @@ module Werewolf
     end
 
 
+    def test_lynch_with_no_votes_notifies
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom')
+      game.join player1
+      game.join player2
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_all',
+        :message => "No one voted - no one was lynched")
+      game.add_observer(mock_observer)
+
+      game.lynch
+    end
+
+
     def test_lynch_kills_tally_leader
       game = Game.new
       player1 = Player.new(:name => 'seth')
