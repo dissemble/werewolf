@@ -397,5 +397,11 @@ MESSAGE
       assert_equal 'foo', slackbot.slackify(Player.new(:name => 'foo', :bot => true))
     end
 
+
+    def test_slackify_with_nil
+      slackbot = Werewolf::SlackBot.new
+      assert_equal '', slackbot.slackify(nil)
+    end
+
   end
 end

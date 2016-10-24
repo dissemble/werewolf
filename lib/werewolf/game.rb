@@ -183,6 +183,10 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
+          changed
+          notify_observers(
+            :action =>"tell_all", 
+            :message => "The townsfolk couldn't decide - no one was lynched")
         else
           lynch_player @players[lynchee_name]
         end

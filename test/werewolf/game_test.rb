@@ -831,6 +831,25 @@ module Werewolf
     end
 
 
+    def test_lynch_tie_notifies
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom')
+      game.join player1
+      game.join player2
+      game.advance_time
+      game.vote('seth', 'tom')
+      game.vote('tom', 'seth')
+      
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_all',
+        :message => "The townsfolk couldn't decide - no one was lynched")
+      game.add_observer(mock_observer)
+
+      game.lynch
+    end
+
 
     def test_lynch_called_at_dusk
       game = Game.new

@@ -160,14 +160,18 @@ module Werewolf
     
 
     def slackify(player)
-      if player.bot?
+      if player.nil?
+        ''
+      elsif player.bot?
         player.name
       else
         "<@#{player.name}>"
       end
     end
 
+
     private
+
 
     def pluralize_votes(number)
       if number == 1
