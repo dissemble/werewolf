@@ -55,6 +55,7 @@ module Werewolf
       game.vote(voter_name='villager1', 'wolf')
 
       # Game over
+      game.expects(:end_game)
       game.advance_time
       assert game.players['wolf'].dead?
       assert_equal 'good', game.winner?
@@ -395,10 +396,10 @@ module Werewolf
     end
 
 
-    def test_advance_time_prints_results_if_winner
+    def test_advance_time_end_game_if_winner
       game = Game.new
       game.stubs(:winner?).once.returns(true)
-      game.expects(:print_results)
+      game.expects(:end_game)
       game.advance_time
     end
 
@@ -654,11 +655,8 @@ module Werewolf
 
     def test_reset_resets_time_period_and_day
       game = Game.new
-      game.join(Player.new(:name => 'seth'))
-      game.start
-      game.advance_time
-      assert_equal 1, game.day_number
-      assert_equal 'day', game.time_period
+      game.day_number = 99
+      game.time_period = 'justpastmidnight'
 
       game.reset
       assert_equal 0, game.day_number
@@ -669,9 +667,7 @@ module Werewolf
     def test_reset_resets_vote_tally
       game = Game.new
       game.join(Player.new(:name => 'seth'))
-      game.start
-      game.advance_time
-      game.vote('seth', 'seth')
+      game.vote_tally = ['fakething']
       assert_equal 1, game.vote_tally.size
 
       game.reset
@@ -679,16 +675,18 @@ module Werewolf
     end
 
 
+    def test_reset_resets_time_remaining_in_round
+      game = Game.new
+      game.time_remaining_in_round = 99981
+      game.reset
+      assert_equal game.default_time_remaining_in_round, game.time_remaining_in_round
+    end
+
+
     def test_notify_of_active_roles
       game = Game.new
       game.stubs(:active_roles).returns(['a', 'b', 'c'])
-
-      mock_observer = mock('observer')
-      mock_observer.expects(:update).once.with(
-        :action => 'tell_all', 
-        :message => "active roles:  [a, b, c]")
-      game.add_observer(mock_observer)
-
+      game.expects(:notify_all).once.with("active roles:  [a, b, c]")
       game.notify_of_active_roles
     end
 
@@ -844,7 +842,7 @@ module Werewolf
     def test_lynch_tie_notifies
       game = Game.new
       player1 = Player.new(:name => 'seth')
-      player2 = Player.new(:name => 'tom')
+      player2 = Player.new(:name => 'tom', :role => 'wolf')
       game.join player1
       game.join player2
       game.advance_time
@@ -1237,8 +1235,71 @@ module Werewolf
     end
 
 
+    def test_print_results_when_no_winner
+      game = Game.new
+      game.join(Player.new(:name => 'bill', :role => 'villager'))
+      game.join(Player.new(:name => 'tom', :role => 'seer'))
+      game.join(Player.new(:name => 'john', :role => 'wolf'))
+
+      assert !game.winner?
+
+      game.print_results
+    end
 
 
+
+    def test_advance_time_resets_time_remaining_in_round
+      game = Game.new
+      game.time_remaining_in_round = 4187
+      game.advance_time
+      assert_equal game.default_time_remaining_in_round, game.time_remaining_in_round
+    end
+
+
+    def test_round_expired_with_positive_time_remaining_in_round
+      game = Game.new
+      game.time_remaining_in_round = 3
+      assert !game.round_expired?
+    end
+
+
+    def test_round_expired_with_negative_time_remaining_in_round
+      game = Game.new
+      game.time_remaining_in_round = -1
+      assert game.round_expired?
+    end
+
+
+    def test_tick
+      game = Game.new
+      game.time_remaining_in_round = 100
+      game.tick(5)
+      assert_equal 95, game.time_remaining_in_round
+    end
+
+
+    def test_tick_can_result_in_negative_time_remaining
+      game = Game.new
+      game.time_remaining_in_round = 5
+      game.tick(7)
+      expected = -2
+      assert_equal expected, game.time_remaining_in_round
+    end
+
+
+    def test_notify_all
+      game = Game.new
+
+      message = "hushabye, don't you cry"
+      
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_all', 
+        :message => message )
+      game.add_observer(mock_observer)
+
+      game.notify_all(message)
+    end
   end
 
 end

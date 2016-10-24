@@ -377,8 +377,7 @@ MESSAGE
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
-      # channel = 'G2FQMNAF8'
-      channel = 'C2EP92WF3'
+      channel = slackbot.slackbot_channel
       mock_client.expects(:say).once.with(text: message, channel: channel)
       slackbot.stubs(:client).returns(mock_client)
 

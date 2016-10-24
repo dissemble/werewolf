@@ -3,6 +3,11 @@ require 'slack-ruby-bot'
 module Werewolf
   class SlackBot < SlackRubyBot::Server
 
+    def slackbot_channel
+      werewolf_bot_dev_channel = 'G2FQMNAF8'
+      #werewolf_channel = 'C2EP92WF3'
+    end
+
     # This receives notifications from a Game instance upon changes.
     # Game is Observable, and the slackbot is an observer.  
     def update(options = {})
@@ -129,9 +134,7 @@ module Werewolf
     def tell_all(message)
       puts "tell_all:  #{message}"
 
-      werewolf_bot_dev_channel = 'G2FQMNAF8'
-      werewolf_channel = 'C2EP92WF3'
-      client.say(text: message, channel: werewolf_channel)
+      client.say(text: message, channel: slackbot_channel)
     end
 
 
