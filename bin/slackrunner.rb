@@ -17,7 +17,7 @@ game.add_observer(slackbot)
 slackbot.start_async
 
 time_increment = 1
-warning_tick = 10
+warning_tick = 20
 
 loop do
   sleep time_increment

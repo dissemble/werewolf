@@ -28,7 +28,7 @@ module Werewolf
 
 
     def default_time_remaining_in_round
-      20
+      120
     end
 
 
