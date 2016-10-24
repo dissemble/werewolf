@@ -334,12 +334,34 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       players = Set.new([
         Player.new(:name => 'john'),
-        Player.new(:name => 'seth'),
+        Player.new(:name => 'seth', :alive => false),
         Player.new(:name => 'tom'),
         Player.new(:name => 'bill')
         ])
 
-      assert_equal "Players: <@john>, <@seth>, <@tom>, <@bill>", slackbot.format_players(players)
+      assert_equal "Dead: [<@seth>]  Living: [<@john>, <@tom>, <@bill>]", slackbot.format_players(players)
+    end
+
+
+    def test_format_player_all_dead
+      slackbot = Werewolf::SlackBot.new
+      players = Set.new([
+        Player.new(:name => 'john', :alive => false),
+        Player.new(:name => 'seth', :alive => false),
+        ])
+
+      assert_equal "Dead: [<@john>, <@seth>]  Living: []", slackbot.format_players(players)
+    end
+
+
+    def test_format_player_all_alive
+      slackbot = Werewolf::SlackBot.new
+      players = Set.new([
+        Player.new(:name => 'john'),
+        Player.new(:name => 'seth'),
+        ])
+
+      assert_equal "Dead: []  Living: [<@john>, <@seth>]", slackbot.format_players(players)
     end
 
 

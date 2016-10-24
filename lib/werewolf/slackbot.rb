@@ -148,7 +148,13 @@ module Werewolf
       if players.empty?
         "Zero players.  Type 'wolfbot join' to join the game."
       else
-        "Players: " + players.to_a.map{|p| "#{slackify(p)}" }.join(", ")
+        dead = players.to_a.find_all{|p| p.dead?}
+        living = players.to_a.find_all{|p| p.alive?}
+
+        dead_string = dead.map{|p| "#{slackify(p)}" }.join(", ")
+        living_string = living.map{|p| "#{slackify(p)}" }.join(", ")
+
+        "Dead: [#{dead_string}]  Living: [#{living_string}]"
       end
     end
     

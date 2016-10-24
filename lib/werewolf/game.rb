@@ -225,6 +225,7 @@ module Werewolf
 
       raise RuntimeError.new('View is only available to players') unless viewing_player
       raise RuntimeError.new('View is only available to the seer') unless viewing_player.role == 'seer'
+      raise RuntimeError.new('Seer must be alive to view') unless viewing_player.alive?
       raise RuntimeError.new('You can only view at night') unless time_period == 'night'
       raise RuntimeError.new('You must view a real player') unless viewed_player
 

@@ -1073,6 +1073,16 @@ module Werewolf
     end
 
 
+    def test_view_only_available_if_seer_is_alive
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'seer', :alive => false))
+      err = assert_raises(RuntimeError) do
+        game.view(viewer='seth', viewee='seth')
+      end
+      assert_match /Seer must be alive to view/, err.message
+    end
+
+
     def test_view_adds_a_night_action
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
