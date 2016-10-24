@@ -49,7 +49,7 @@ module Werewolf
 
       slackbot.expects(:update).with(
         :action => 'advance_time', 
-        :message => "[Dawn], day 1")
+        :message => "[Dawn], day 1.  The sun will set again in #{game.default_time_remaining_in_round} seconds.")
 
       game.advance_time
     end
