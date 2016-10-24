@@ -87,6 +87,12 @@ module Werewolf
       player = Player.new(:name => 'seth', :bot => true)
       assert player.bot?
     end
+
+    def test_initialize_can_override_alive
+      player = Player.new(:name => 'seth', :alive => false)
+      assert player.dead?
+    end
+
   end
 
 end

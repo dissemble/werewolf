@@ -283,7 +283,7 @@ MESSAGE
     def define_roles
       rolesets = {
         1 => ['seer'],
-        2 => ['seer', 'beholder'],
+        2 => ['seer', 'wolf'],
         3 => ['seer', 'villager', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'beholder', 'villager', 'wolf', 'wolf'],
@@ -331,6 +331,10 @@ MESSAGE
       else
         process_night_actions
       end
+
+      if winner?
+        print_results
+      end
     end
 
 
@@ -358,15 +362,20 @@ MESSAGE
     end
 
 
-    def winner
+    def winner?
       the_living = players.find_all{|k,v| v.alive?}
       remaining_sides = the_living.map{|k,v| v.team}.uniq
 
-      if remaining_sides.size == 1
-        remaining_sides.first
-      else
-        nil
-      end
+      (remaining_sides.size == 1) ? remaining_sides.first : false
+    end
+
+
+    def print_results
+      changed
+      notify_observers(
+        :action => 'game_results', 
+        :players => players, 
+        :message => "#{winner?.capitalize} won the game!\n" )
     end
 
   end

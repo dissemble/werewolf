@@ -4,8 +4,8 @@ module Werewolf
     attr_accessor :name, :role
 
     def initialize(args)
-      args.each { |k,v| instance_variable_set("@#{k}", v) }
       @alive = true
+      args.each { |k,v| instance_variable_set("@#{k}", v) }
     end
 
     def alive?

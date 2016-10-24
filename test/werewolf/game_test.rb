@@ -57,7 +57,7 @@ module Werewolf
       # Game over
       game.advance_time
       assert game.players['wolf'].dead?
-      assert_equal 'good', game.winner
+      assert_equal 'good', game.winner?
     end
 
 
@@ -391,6 +391,22 @@ module Werewolf
     def test_advance_time_calls_process_night_actions
       game = Game.new
       game.expects(:process_night_actions).once
+      game.advance_time
+    end
+
+
+    def test_advance_time_prints_results_if_winner
+      game = Game.new
+      game.stubs(:winner?).once.returns(true)
+      game.expects(:print_results)
+      game.advance_time
+    end
+
+
+    def test_advance_time_does_NOT_prints_results_if_NO_winner
+      game = Game.new
+      game.stubs(:winner?).returns(false)
+      game.expects(:print_results).never
       game.advance_time
     end
 
@@ -1105,7 +1121,7 @@ module Werewolf
 
     def test_winner
       game = Game.new
-      assert_nil game.winner
+      assert !game.winner?
     end
 
 
@@ -1115,7 +1131,8 @@ module Werewolf
       game.join(Player.new(:name => 'seer', :role => 'seer'))
       game.join(Player.new(:name => 'wolf', :role => 'wolf'))
       game.players['wolf'].kill!
-      assert_equal 'good', game.winner
+      assert game.winner?
+      assert_equal 'good', game.winner?
     end
 
 
@@ -1126,14 +1143,42 @@ module Werewolf
       game.join(Player.new(:name => 'wolf', :role => 'wolf'))
       game.players['villager'].kill!
       game.players['seer'].kill!
-      assert_equal 'evil', game.winner
+      assert game.winner?
+      assert_equal 'evil', game.winner?
     end
 
 
-    def test_good_wins_when_only_villagers_are_alive
+    def test_winner_with_only_evil_alive
       game = Game.new
-      game.join(Player.new(:name => 'seth', :role => 'villager'))
-      assert_equal 'good', game.winner
+      game.join(Player.new(:name => 'seth', :role => 'wolf'))
+      game.join(Player.new(:name => 'tom', :role => 'villager', :alive => false))
+      assert game.winner?
+    end
+
+
+    def test_winner_with_1_of_each_team
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'wolf'))
+      game.join(Player.new(:name => 'tom', :role => 'villager'))
+      assert !game.winner?
+    end
+
+
+
+    def test_print_results
+      game = Game.new
+      game.join(Player.new(:name => 'bill', :role => 'villager', :alive => false))
+      game.join(Player.new(:name => 'tom', :role => 'seer', :alive => false))
+      game.join(Player.new(:name => 'john', :role => 'wolf'))
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'game_results', 
+        :players => game.players,
+        :message => "Evil won the game!\n" )
+      game.add_observer(mock_observer)
+
+      game.print_results
     end
 
   end

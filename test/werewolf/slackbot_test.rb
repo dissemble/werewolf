@@ -172,6 +172,31 @@ module Werewolf
     end
 
 
+    def test_handle_game_results_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      game = Game.new
+      game.join(Player.new(:name => 'bill', :role => 'villager', :alive => false))
+      game.join(Player.new(:name => 'tom', :role => 'seer', :alive => false))
+      game.join(Player.new(:name => 'seth', :role => 'beholder', :alive => false))
+      game.join(Player.new(:name => 'john', :role => 'wolf'))
+
+      expected = <<MESSAGE
+Evil won the game!
+- bill: villager
+- tom: seer
+- seth: beholder
++ john: wolf
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_game_results(
+        :action => 'game_results', 
+        :players => game.players,
+        :message => "Evil won the game!\n"
+      )
+    end
+
+
     def test_handle_start_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
@@ -330,7 +355,9 @@ module Werewolf
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
-      mock_client.expects(:say).once.with(text: message, channel: 'G2FQMNAF8')
+      # channel = 'G2FQMNAF8'
+      channel = 'C2EP92WF3'
+      mock_client.expects(:say).once.with(text: message, channel: channel)
       slackbot.stubs(:client).returns(mock_client)
 
       slackbot.tell_all(message)

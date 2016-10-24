@@ -115,9 +115,23 @@ module Werewolf
     end
 
 
+    def handle_game_results(options = {})
+      message = options[:message]
+      options[:players].each do |name,player|
+        line = player.dead? ? '-' : "+"
+        line.concat " #{name}: #{player.role}\n"
+        message.concat line
+      end
+      tell_all(message)
+    end
+
+
     def tell_all(message)
       puts "tell_all:  #{message}"
-      client.say(text: message, channel: 'G2FQMNAF8')
+
+      werewolf_bot_dev_channel = 'G2FQMNAF8'
+      werewolf_channel = 'C2EP92WF3'
+      client.say(text: message, channel: werewolf_channel)
     end
 
 
