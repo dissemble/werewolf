@@ -157,7 +157,6 @@ module Werewolf
     def test_add_username_to_game()
       game = Game.new
       game.add_username_to_game('seth')
-      # TODO:  london school?
       assert_equal 'seth', game.players.keys.first
     end
 
@@ -166,8 +165,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth'))
       game.expects(:assign_roles).once
-      game.expects(:notify_of_active_roles).once
-
+      game.stubs(:notify_start)
       game.start
     end
 
@@ -319,12 +317,25 @@ module Werewolf
     end
 
 
-    def test_format_time_when_game_active
+    def test_format_time_when_game_active_and_night
       game = Game.new
       game.stubs(:active?).returns(true)
       game.stubs(:time_period).returns('night')
       game.stubs(:day_number).returns(17)
-      assert_equal "It is night (day 17)", game.format_time
+      game.stubs(:time_remaining_in_round).returns(45)
+      expected = "It is night (day 17).  The sun will rise again in 45 seconds."
+      assert_equal expected, game.format_time
+    end
+
+
+    def test_format_time_when_game_active_and_day
+      game = Game.new
+      game.stubs(:active?).returns(true)
+      game.stubs(:time_period).returns('day')
+      game.stubs(:day_number).returns(42)
+      game.stubs(:time_remaining_in_round).returns(31)
+      expected = "It is daylight (day 42).  The sun will set again in 31 seconds."
+      assert_equal expected, game.format_time
     end
 
 
@@ -345,7 +356,7 @@ module Werewolf
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'status',
-        :message => fake_format_time,
+        :message => "#{fake_format_time}",
         :players => [2, 4])
       game.add_observer(mock_observer)
 
@@ -448,14 +459,33 @@ module Werewolf
     end
 
 
-    def test_game_notifies_when_time_changes
+    def test_game_notifies_when_time_changes_to_day
       game = Game.new
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'advance_time',
-        :message => '[Dawn], day 1')
+        :message => "[Dawn], day 1.  The sun will set again in 17 seconds.")
       game.add_observer(mock_observer)
+
+      game.stubs(:default_time_remaining_in_round).returns(17)
+
+      game.advance_time
+    end
+
+
+    def test_game_notifies_when_time_changes_to_night
+      game = Game.new
+      game.advance_time
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'advance_time',
+        :message => "[Dusk], day 1.  The sun will rise again in 17 seconds.")
+      game.add_observer(mock_observer)
+
+      game.stubs(:default_time_remaining_in_round).returns(17)
+      game.expects(:lynch)
 
       game.advance_time
     end
@@ -505,10 +535,16 @@ module Werewolf
     end
 
 
-
-    def test_start_notifies_room_and_players
+    def test_start_call_notify_start
       game = Game.new
-      start_initiator = "fakeuser"
+      game.add_username_to_game('seth')
+      game.expects(:notify_start)
+      game.start()
+    end
+
+
+    def test_notify_start
+      game = Game.new
       player1 = Player.new(:name => 'seth')
       player2 = Player.new(:name => 'tom')
       game.join(player1)
@@ -517,20 +553,27 @@ module Werewolf
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'start', 
-        :start_initiator => start_initiator, 
-        :message => 'has started the game')
+        :start_initiator => 'seth', 
+        :message => 'has started the game.  Active roles: [foo, bar, baz]')
       game.add_observer(mock_observer)
 
-      # TODO:  naming convention for methods that notify
-      # these each do their own notifications
-      game.expects(:status)
-      game.expects(:notify_of_active_roles)
-      # game.expects
+      game.stubs(:active_roles).returns(['foo', 'bar', 'baz'])
+
+      game.notify_start(player1.name)
+    end
+
+
+    def test_start_notifies_players
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom')
+      game.join(player1)
+      game.join(player2)
+
       game.expects(:notify_player_of_role).once.with(player1)
       game.expects(:notify_player_of_role).once.with(player2)
-      # game.expects(:assign_role_to_player)
 
-      game.start(start_initiator)
+      game.start
     end
 
 

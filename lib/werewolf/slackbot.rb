@@ -31,7 +31,7 @@ module Werewolf
 
 
     def handle_status(options = {})
-      tell_all("#{options[:message]}.  #{format_players(options[:players])}")
+      tell_all("#{options[:message]}\n#{format_players(options[:players])}")
     end
 
 
@@ -151,13 +151,14 @@ module Werewolf
       if players.empty?
         "Zero players.  Type 'wolfbot join' to join the game."
       else
-        dead = players.to_a.find_all{|p| p.dead?}
+        # dead = players.to_a.find_all{|p| p.dead?}
         living = players.to_a.find_all{|p| p.alive?}
 
-        dead_string = dead.map{|p| "#{slackify(p)}" }.join(", ")
+        # dead_string = dead.map{|p| "#{slackify(p)}" }.join(", ")
         living_string = living.map{|p| "#{slackify(p)}" }.join(", ")
 
-        "Dead: [#{dead_string}]  Living: [#{living_string}]"
+        # "Dead: [#{dead_string}]  Living: [#{living_string}]"
+        "Survivors: [#{living_string}]"
       end
     end
     

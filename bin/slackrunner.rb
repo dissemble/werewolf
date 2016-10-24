@@ -30,7 +30,7 @@ loop do
     end
 
     if (game.time_remaining_in_round == warning_tick)
-      game.notify_all("round ending in #{game.time_remaining_in_round} seconds")
+      game.notify_all("#{game.time_period} ending in #{game.time_remaining_in_round} seconds")
     end
 
     puts "time remaining in round: #{game.time_remaining_in_round}"

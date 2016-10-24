@@ -77,17 +77,23 @@ module Werewolf
         assign_roles
         @active = true
 
-        changed
-        notify_observers(:action => 'start', :start_initiator => start_initiator, :message => 'has started the game')
-
-        notify_of_active_roles
-
+        notify_start(start_initiator)
         status
         
         @players.values.each do |player|
           notify_player_of_role(player)
         end 
       end
+    end
+
+
+    def notify_start(start_initiator)
+      active_role_string = active_roles.join(', ')
+      changed
+      notify_observers(
+        :action => 'start', 
+        :start_initiator => start_initiator, 
+        :message => "has started the game.  Active roles: [#{active_role_string}]")
     end
 
 
@@ -276,14 +282,20 @@ MESSAGE
 
 
     def status()
+      message = "#{format_time}"
+
       changed
-      notify_observers(:action => 'status', :message => format_time, :players => players.values)
+      notify_observers(:action => 'status', :message => message, :players => players.values)
     end
 
 
     def format_time
       if active?
-        "It is #{time_period} (day #{day_number})"
+        if time_period == 'night'
+          "It is night (day #{day_number}).  The sun will rise again in #{time_remaining_in_round} seconds."
+        else
+          "It is daylight (day #{day_number}).  The sun will set again in #{time_remaining_in_round} seconds."
+        end
       else
         "No game running"
       end
@@ -328,9 +340,9 @@ MESSAGE
       @time_period, @day_number = @time_period_generator.next
 
       if 'night' == time_period
-        message = "[Dusk], day #{day_number}"
+        message = "[Dusk], day #{day_number}.  The sun will rise again in #{default_time_remaining_in_round} seconds."
       else
-        message = "[Dawn], day #{day_number}"
+        message = "[Dawn], day #{day_number}.  The sun will set again in #{default_time_remaining_in_round} seconds."
       end
 
       changed
