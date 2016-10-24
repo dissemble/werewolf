@@ -6,8 +6,9 @@ module Werewolf
   class Game
     include Observable
 
-    attr_reader :players, :vote_tally
+    attr_reader :players
     attr_accessor :active_roles, :day_number, :night_actions, :time_period
+    attr_accessor :time_remaining_in_round, :vote_tally
 
     def initialize()
       reset
@@ -22,6 +23,12 @@ module Werewolf
       @time_period, @day_number = @time_period_generator.next
       @vote_tally = {} 
       @night_actions = {}
+      @time_remaining_in_round = default_time_remaining_in_round
+    end
+
+
+    def default_time_remaining_in_round
+      120
     end
 
 
@@ -63,26 +70,30 @@ module Werewolf
 
     def start(start_initiator='Unknown')
       if active?
-        changed
-        notify_observers(:action => 'tell_all', :message => "Game is already active")
+        notify_all("Game is already active")
       elsif @players.empty?
-        changed
-        notify_observers(:action => 'tell_all', :message => "Game can't start until there is at least 1 player")
+        notify_all("Game can't start until there is at least 1 player")
       else
         assign_roles
         @active = true
 
-        changed
-        notify_observers(:action => 'start', :start_initiator => start_initiator, :message => 'has started the game')
-
-        notify_of_active_roles
-
+        notify_start(start_initiator)
         status
         
         @players.values.each do |player|
           notify_player_of_role(player)
         end 
       end
+    end
+
+
+    def notify_start(start_initiator)
+      active_role_string = active_roles.join(', ')
+      changed
+      notify_observers(
+        :action => 'start', 
+        :start_initiator => start_initiator, 
+        :message => "has started the game.  Active roles: [#{active_role_string}]")
     end
 
 
@@ -112,9 +123,11 @@ module Werewolf
 
       ender = @players[name]
 
-      reset
       changed
       notify_observers(:action => 'end_game', :player => ender, :message => 'ended the game')
+
+      print_results
+      reset
     end
 
 
@@ -125,9 +138,8 @@ module Werewolf
 
 
     def notify_of_active_roles
-      changed
       role_string = active_roles.join(', ')
-      notify_observers(:action => 'tell_all', :message => "active roles:  [#{role_string}]")
+      notify_all("active roles:  [#{role_string}]")
     end
 
 
@@ -175,10 +187,7 @@ module Werewolf
 
     def lynch
       if @vote_tally.empty?
-        changed
-        notify_observers(
-          :action =>"tell_all", 
-          :message => "No one voted - no one was lynched")
+        notify_all("No one voted - no one was lynched")
       else
         # this gives the voters for the player with the most votes
         lynchee_name, voters = @vote_tally.max_by{|k,v| v.size}
@@ -188,10 +197,7 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
-          changed
-          notify_observers(
-            :action =>"tell_all", 
-            :message => "The townsfolk couldn't decide - no one was lynched")
+          notify_all("The townsfolk couldn't decide - no one was lynched")
         else
           lynch_player @players[lynchee_name]
         end
@@ -276,14 +282,20 @@ MESSAGE
 
 
     def status()
+      message = "#{format_time}"
+
       changed
-      notify_observers(:action => 'status', :message => format_time, :players => players.values)
+      notify_observers(:action => 'status', :message => message, :players => players.values)
     end
 
 
     def format_time
       if active?
-        "It is #{time_period} (day #{day_number})"
+        if time_period == 'night'
+          "It is night (day #{day_number}).  The sun will rise again in #{time_remaining_in_round} seconds."
+        else
+          "It is daylight (day #{day_number}).  The sun will set again in #{time_remaining_in_round} seconds."
+        end
       else
         "No game running"
       end
@@ -328,9 +340,9 @@ MESSAGE
       @time_period, @day_number = @time_period_generator.next
 
       if 'night' == time_period
-        message = "[Dusk], day #{day_number}"
+        message = "[Dusk], day #{day_number}.  The sun will rise again in #{default_time_remaining_in_round} seconds."
       else
-        message = "[Dawn], day #{day_number}"
+        message = "[Dawn], day #{day_number}.  The sun will set again in #{default_time_remaining_in_round} seconds."
       end
 
       changed
@@ -342,9 +354,21 @@ MESSAGE
         process_night_actions
       end
 
+      @time_remaining_in_round = default_time_remaining_in_round
+
       if winner?
-        print_results
+        end_game
       end
+    end
+
+
+    def round_expired?
+      (time_remaining_in_round > 0) ? false : true
+    end
+
+
+    def tick(seconds)
+      @time_remaining_in_round -= seconds
     end
 
 
@@ -381,12 +405,27 @@ MESSAGE
 
 
     def print_results
+      if winner?
+        message = "#{winner?.capitalize} won the game!\n"
+      else
+        message = "No winner, game was ended prematurely"
+      end
+
       changed
       notify_observers(
         :action => 'game_results', 
         :players => players, 
-        :message => "#{winner?.capitalize} won the game!\n" )
+        :message => message)
     end
+
+
+    def notify_all(message)
+      changed
+      notify_observers(
+        :action => 'tell_all', 
+        :message => message)
+    end
+
 
   end
 

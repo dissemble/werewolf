@@ -49,7 +49,7 @@ module Werewolf
 
       slackbot.expects(:update).with(
         :action => 'advance_time', 
-        :message => "[Dawn], day 1")
+        :message => "[Dawn], day 1.  The sun will set again in #{game.default_time_remaining_in_round} seconds.")
 
       game.advance_time
     end
@@ -325,7 +325,7 @@ MESSAGE
       message = "humpty dumpty sat on a wall"
       fake_players = "no peeps"
       slackbot.stubs(:format_players).returns(fake_players)
-      slackbot.expects(:tell_all).once.with("#{message}.  #{fake_players}")
+      slackbot.expects(:tell_all).once.with("#{message}\n#{fake_players}")
       slackbot.handle_status(:message => message, :players => nil)
     end
 
@@ -339,7 +339,7 @@ MESSAGE
         Player.new(:name => 'bill')
         ])
 
-      assert_equal "Dead: [<@seth>]  Living: [<@john>, <@tom>, <@bill>]", slackbot.format_players(players)
+      assert_equal "Survivors: [<@john>, <@tom>, <@bill>]", slackbot.format_players(players)
     end
 
 
@@ -350,7 +350,7 @@ MESSAGE
         Player.new(:name => 'seth', :alive => false),
         ])
 
-      assert_equal "Dead: [<@john>, <@seth>]  Living: []", slackbot.format_players(players)
+      assert_equal "Survivors: []", slackbot.format_players(players)
     end
 
 
@@ -361,7 +361,7 @@ MESSAGE
         Player.new(:name => 'seth'),
         ])
 
-      assert_equal "Dead: []  Living: [<@john>, <@seth>]", slackbot.format_players(players)
+      assert_equal "Survivors: [<@john>, <@seth>]", slackbot.format_players(players)
     end
 
 
@@ -377,8 +377,7 @@ MESSAGE
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
-      # channel = 'G2FQMNAF8'
-      channel = 'C2EP92WF3'
+      channel = slackbot.slackbot_channel
       mock_client.expects(:say).once.with(text: message, channel: channel)
       slackbot.stubs(:client).returns(mock_client)
 
