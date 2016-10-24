@@ -30,6 +30,33 @@ module Werewolf
     end
 
 
+    def handle_view(options = {})
+      tell_player(options[:viewer], "#{slackify(options[:viewee])} #{options[:message]}")
+    end
+
+
+    def handle_behold(options = {})
+      tell_player(options[:beholder], "#{options[:message]} #{slackify(options[:seer])}")
+    end
+
+
+    def handle_tally(options = {})
+      vote_hash = options[:vote_tally]
+
+      if vote_hash.empty?
+        message = "No votes yet"
+      else
+        lines = vote_hash.map do |k, v|
+          voters = v.map{|name| "<@#{name}>"}.join(', ')
+          "Lynch <@#{k}>:  (#{pluralize_votes(v.size)}) - #{voters}"
+        end
+        message = lines.join("\n")
+      end
+
+      tell_all(message)
+    end
+
+
     def handle_start(options = {})
       # TODO:  this should be passing a player and use slackify
       tell_all("<@#{options[:start_initiator]}> #{options[:message]}")
@@ -88,9 +115,23 @@ module Werewolf
     end
 
 
+    def handle_game_results(options = {})
+      message = options[:message]
+      options[:players].each do |name,player|
+        line = player.dead? ? '-' : "+"
+        line.concat " #{name}: #{player.role}\n"
+        message.concat line
+      end
+      tell_all(message)
+    end
+
+
     def tell_all(message)
       puts "tell_all:  #{message}"
-      client.say(text: message, channel: 'G2FQMNAF8')
+
+      werewolf_bot_dev_channel = 'G2FQMNAF8'
+      werewolf_channel = 'C2EP92WF3'
+      client.say(text: message, channel: werewolf_channel)
     end
 
 
@@ -107,19 +148,38 @@ module Werewolf
       if players.empty?
         "Zero players.  Type 'wolfbot join' to join the game."
       else
-        "Players: " + players.to_a.map{|p| "#{slackify(p)}" }.join(", ")
+        dead = players.to_a.find_all{|p| p.dead?}
+        living = players.to_a.find_all{|p| p.alive?}
+
+        dead_string = dead.map{|p| "#{slackify(p)}" }.join(", ")
+        living_string = living.map{|p| "#{slackify(p)}" }.join(", ")
+
+        "Dead: [#{dead_string}]  Living: [#{living_string}]"
       end
     end
-
+    
 
     def slackify(player)
-      if player.bot?
+      if player.nil?
+        ''
+      elsif player.bot?
         player.name
       else
         "<@#{player.name}>"
       end
     end
 
+
+    private
+
+
+    def pluralize_votes(number)
+      if number == 1
+        "1 vote"
+      else
+        "#{number} votes"
+      end
+    end
 
 	end
 end

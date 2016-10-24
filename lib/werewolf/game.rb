@@ -7,7 +7,7 @@ module Werewolf
     include Observable
 
     attr_reader :players, :vote_tally
-    attr_accessor :active_roles, :day_number, :time_period
+    attr_accessor :active_roles, :day_number, :night_actions, :time_period
 
     def initialize()
       reset
@@ -21,6 +21,7 @@ module Werewolf
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
       @vote_tally = {} 
+      @night_actions = {}
     end
 
 
@@ -74,21 +75,36 @@ module Werewolf
         changed
         notify_observers(:action => 'start', :start_initiator => start_initiator, :message => 'has started the game')
 
-        # working around mocking issues
-        notify_active_roles
+        notify_of_active_roles
 
         status
         
-        # 'game start with role' to each player
         @players.values.each do |player|
-          changed
-          notify_observers(
-            :action => 'tell_player', 
-            :player => player, 
-            :message => "Your role is #{player.role}")
-        end
+          notify_player_of_role(player)
+        end 
       end
     end
+
+
+    def notify_player_of_role(player)
+      changed
+      notify_observers(
+        :action => 'tell_player', 
+        :player => player, 
+        :message => "Your role is: #{player.role}")
+
+      if 'beholder' == player.role
+        behold(player)
+      end
+    end
+
+
+    def behold(beholder)
+      seer = @players.values.find{|p| p.role == 'seer'}
+      changed
+      notify_observers(:action => 'behold', :beholder => beholder, :seer => seer, :message => 'The seer is:')
+    end
+
 
 
     def end_game(name='Unknown')
@@ -102,7 +118,13 @@ module Werewolf
     end
 
 
-    def notify_active_roles
+    def print_tally
+      changed
+      notify_observers(:action => 'tally', :vote_tally => vote_tally)
+    end
+
+
+    def notify_of_active_roles
       changed
       role_string = active_roles.join(', ')
       notify_observers(:action => 'tell_all', :message => "active roles:  [#{role_string}]")
@@ -146,6 +168,8 @@ module Werewolf
         :voter => @players[voter_name], 
         :votee => @players[candidate_name],
         :message => "voted for")
+
+      print_tally
     end
 
 
@@ -159,6 +183,10 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
+          changed
+          notify_observers(
+            :action =>"tell_all", 
+            :message => "The townsfolk couldn't decide - no one was lynched")
         else
           lynch_player @players[lynchee_name]
         end
@@ -179,14 +207,66 @@ module Werewolf
     end
 
 
-    def nightkill(name)
-      victim = @players[name]
-      raise RuntimeError.new("no such player as #{name}") unless victim
+    def nightkill(werewolf=name1, victim=name2)
+      wolf_player = @players[werewolf]
+      victim_player = @players[victim]
+      raise RuntimeError.new("no such player as #{victim}") unless victim_player
+      raise RuntimeError.new('Only players may nightkill') unless wolf_player
+      raise RuntimeError.new('Only wolves may nightkill') unless wolf_player.role == 'wolf'
+      raise RuntimeError.new('nightkill may only be used at night') unless time_period == 'night'
+
+      @night_actions['nightkill'] = lambda {
+        victim_player.kill!
+        changed
+        notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+      }
+    end
+
+
+    def view(viewer=name1, viewee=name2)
+      viewing_player = @players[viewer]
+      viewed_player = @players[viewee]
+
+      raise RuntimeError.new('View is only available to players') unless viewing_player
+      raise RuntimeError.new('View is only available to the seer') unless viewing_player.role == 'seer'
+      raise RuntimeError.new('Seer must be alive to view') unless viewing_player.alive?
+      raise RuntimeError.new('You can only view at night') unless time_period == 'night'
+      raise RuntimeError.new('You must view a real player') unless viewed_player
+
+      @night_actions['view'] = lambda {
+        team = viewing_player.view(viewed_player)
+        changed
+        notify_observers(
+          :action => 'view', 
+          :viewer => viewing_player, 
+          :viewee => viewed_player,
+          :message => "is on the side of #{team}")
+      }
+    end
+
+
+    def help(name)
+      player = Player.new(:name => name)
+
+      message = <<MESSAGE
+Commands you can use:
+help:   this command
+join:   join the game (only before the game starts)
+start:  start the game (only after players have joined)
+end:    terminate running game
+status: should probably work...
+tally:  show lynch-vote tally (only during day)
+kill:   as a werewolf, nightkill a player.  (only at night)
+view:   as the seer, reveals the alignment of another player.  (only at night)
+vote:   vote to lynch a player.  (only during day)
+
+MESSAGE
 
       changed
-      notify_observers(:action => 'nightkill', :player => victim, :message => 'was killed during the night')
-
-      @players[name].kill!
+      notify_observers(
+        :action => 'tell_player', 
+        :player => player, 
+        :message => message)
     end
 
 
@@ -207,16 +287,16 @@ module Werewolf
 
     def define_roles
       rolesets = {
-        1 => ['wolf'],
-        2 => ['villager', 'wolf'],
-        3 => ['villager', 'villager', 'wolf'],
+        1 => ['seer'],
+        2 => ['seer', 'wolf'],
+        3 => ['seer', 'villager', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
-        5 => ['seer', 'villager', 'villager', 'wolf', 'wolf'],
-        6 => ['seer', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        7 => ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        8 => ['seer', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
-        9 => ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
-        10 => ['seer', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        5 => ['seer', 'beholder', 'villager', 'wolf', 'wolf'],
+        6 => ['seer', 'beholder', 'villager', 'villager', 'wolf', 'wolf'],
+        7 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
+        8 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        9 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        10 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
       }
 
       available_roles = rolesets[@players.size]
@@ -253,6 +333,12 @@ module Werewolf
 
       if 'night' == time_period
         lynch
+      else
+        process_night_actions
+      end
+
+      if winner?
+        print_results
       end
     end
 
@@ -270,15 +356,31 @@ module Werewolf
     end
 
 
-    def winner
+    def process_night_actions
+      # TODO:  define processing order
+      @night_actions.each do |action_name, action_lambda|
+        action_lambda[]
+        @night_actions.delete action_name
+      end
+
+      @night_actions.clear
+    end
+
+
+    def winner?
       the_living = players.find_all{|k,v| v.alive?}
       remaining_sides = the_living.map{|k,v| v.team}.uniq
 
-      if remaining_sides.size == 1
-        remaining_sides.first
-      else
-        nil
-      end
+      (remaining_sides.size == 1) ? remaining_sides.first : false
+    end
+
+
+    def print_results
+      changed
+      notify_observers(
+        :action => 'game_results', 
+        :players => players, 
+        :message => "#{winner?.capitalize} won the game!\n" )
     end
 
   end

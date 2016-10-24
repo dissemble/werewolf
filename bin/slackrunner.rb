@@ -17,6 +17,6 @@ game.add_observer(slackbot)
 slackbot.start_async
 
 loop do
-  sleep 30
+  sleep 120
   game.advance_time if game.active?
 end

@@ -4,8 +4,8 @@ module Werewolf
     attr_accessor :name, :role
 
     def initialize(args)
-      args.each { |k,v| instance_variable_set("@#{k}", v) }
       @alive = true
+      args.each { |k,v| instance_variable_set("@#{k}", v) }
     end
 
     def alive?
@@ -29,7 +29,7 @@ module Werewolf
       role == 'wolf' ? 'evil' : 'good'
     end
 
-    def see(other_player)
+    def view(other_player)
       raise RuntimeError.new("only seer may see") unless role == 'seer'
       other_player.team
     end

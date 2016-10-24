@@ -138,6 +138,63 @@ module Werewolf
     end
 
 
+    def test_handle_view_notifies_viewer
+      slackbot = Werewolf::SlackBot.new
+      viewer = Player.new(:name => 'seth')
+      viewee = Player.new(:name => 'tom')
+      message = "lorem ipsum dolor"
+
+      slackbot.expects(:tell_player).once.with(viewer, "<@tom> #{message}")
+
+      slackbot.handle_view(
+        :action => 'view', 
+        :viewer => viewer, 
+        :viewee => viewee,
+        :message => message
+      )
+    end
+
+
+    def test_handle_behold_notifies_beholder
+      slackbot = Werewolf::SlackBot.new
+      beholder = Player.new(:name => 'seth')
+      seer = Player.new(:name => 'tom')
+      message = "da seer be"
+
+      slackbot.expects(:tell_player).once.with(beholder, "#{message} <@tom>")
+
+      slackbot.handle_behold(
+        :action => 'view', 
+        :beholder => beholder, 
+        :seer => seer,
+        :message => message
+      )
+    end
+
+
+    def test_handle_game_results_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      game = Game.new
+      game.join(Player.new(:name => 'bill', :role => 'villager', :alive => false))
+      game.join(Player.new(:name => 'tom', :role => 'seer', :alive => false))
+      game.join(Player.new(:name => 'seth', :role => 'beholder', :alive => false))
+      game.join(Player.new(:name => 'john', :role => 'wolf'))
+
+      expected = <<MESSAGE
+Evil won the game!
+- bill: villager
+- tom: seer
+- seth: beholder
++ john: wolf
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_game_results(
+        :action => 'game_results', 
+        :players => game.players,
+        :message => "Evil won the game!\n"
+      )
+    end
 
 
     def test_handle_start_broadcasts_to_room
@@ -213,6 +270,33 @@ module Werewolf
     end
 
 
+    def test_handle_tally
+      slackbot = Werewolf::SlackBot.new
+      expected = 
+        "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
+        "Lynch <@bill>:  (1 vote) - <@tom>"
+
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_tally( {
+        :vote_tally => {
+          'tom' => Set.new(['seth', 'bill']), 
+          'bill' => Set.new(['tom'])
+        }
+      } )
+    end
+
+
+    def test_handle_tally_when_empty
+      slackbot = Werewolf::SlackBot.new
+      expected = "No votes yet"
+
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_tally({ :vote_tally => {} })
+    end
+
+
     def test_handler_join_error_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
@@ -250,12 +334,34 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       players = Set.new([
         Player.new(:name => 'john'),
-        Player.new(:name => 'seth'),
+        Player.new(:name => 'seth', :alive => false),
         Player.new(:name => 'tom'),
         Player.new(:name => 'bill')
         ])
 
-      assert_equal "Players: <@john>, <@seth>, <@tom>, <@bill>", slackbot.format_players(players)
+      assert_equal "Dead: [<@seth>]  Living: [<@john>, <@tom>, <@bill>]", slackbot.format_players(players)
+    end
+
+
+    def test_format_player_all_dead
+      slackbot = Werewolf::SlackBot.new
+      players = Set.new([
+        Player.new(:name => 'john', :alive => false),
+        Player.new(:name => 'seth', :alive => false),
+        ])
+
+      assert_equal "Dead: [<@john>, <@seth>]  Living: []", slackbot.format_players(players)
+    end
+
+
+    def test_format_player_all_alive
+      slackbot = Werewolf::SlackBot.new
+      players = Set.new([
+        Player.new(:name => 'john'),
+        Player.new(:name => 'seth'),
+        ])
+
+      assert_equal "Dead: []  Living: [<@john>, <@seth>]", slackbot.format_players(players)
     end
 
 
@@ -271,7 +377,9 @@ module Werewolf
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
-      mock_client.expects(:say).once.with(text: message, channel: 'G2FQMNAF8')
+      # channel = 'G2FQMNAF8'
+      channel = 'C2EP92WF3'
+      mock_client.expects(:say).once.with(text: message, channel: channel)
       slackbot.stubs(:client).returns(mock_client)
 
       slackbot.tell_all(message)
@@ -287,6 +395,12 @@ module Werewolf
     def test_slackify_with_bot
       slackbot = Werewolf::SlackBot.new
       assert_equal 'foo', slackbot.slackify(Player.new(:name => 'foo', :bot => true))
+    end
+
+
+    def test_slackify_with_nil
+      slackbot = Werewolf::SlackBot.new
+      assert_equal '', slackbot.slackify(nil)
     end
 
   end
