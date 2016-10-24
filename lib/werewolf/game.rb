@@ -174,7 +174,12 @@ module Werewolf
 
 
     def lynch
-      unless @vote_tally.empty?
+      if @vote_tally.empty?
+        changed
+        notify_observers(
+          :action =>"tell_all", 
+          :message => "No one voted - no one was lynched")
+      else
         # this gives the voters for the player with the most votes
         lynchee_name, voters = @vote_tally.max_by{|k,v| v.size}
 
