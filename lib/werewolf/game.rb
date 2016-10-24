@@ -115,6 +115,8 @@ module Werewolf
       reset
       changed
       notify_observers(:action => 'end_game', :player => ender, :message => 'ended the game')
+
+      print_results
     end
 
 

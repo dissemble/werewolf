@@ -579,6 +579,14 @@ module Werewolf
       game = Game.new
       game.stubs(:active?).returns(true)
       game.expects(:reset).once
+      game.stubs(:print_results)
+      game.end_game
+    end
+
+    def test_end_calls_print_results
+      game = Game.new
+      game.stubs(:active?).returns(true)
+      game.expects(:print_results).once
       game.end_game
     end
 
@@ -595,6 +603,8 @@ module Werewolf
         :player => player1, 
         :message => "ended the game")
       game.add_observer(mock_observer)
+
+      game.stubs(:print_results)
 
       game.end_game('seth')
     end
@@ -1210,7 +1220,6 @@ module Werewolf
     end
 
 
-
     def test_print_results
       game = Game.new
       game.join(Player.new(:name => 'bill', :role => 'villager', :alive => false))
@@ -1226,6 +1235,9 @@ module Werewolf
 
       game.print_results
     end
+
+
+
 
   end
 
