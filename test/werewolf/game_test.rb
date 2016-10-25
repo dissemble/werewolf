@@ -839,6 +839,17 @@ module Werewolf
     end
 
 
+    def test_vote_notifies_if_voting_finished_early
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(true)
+      game.stubs(:advance_time).once
+
+      game.expects(:notify_all).with("All votes have been cast - lynch will happen early.")
+      game.vote('seth', 'seth')
+    end
+
 
     def test_voting_finished_when_all_votes_are_in
       game = Game.new

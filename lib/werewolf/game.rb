@@ -176,7 +176,10 @@ module Werewolf
 
       print_tally
       
-      advance_time if voting_finished?
+      if voting_finished?
+        notify_all "All votes have been cast - lynch will happen early."
+        advance_time 
+      end
     end
 
 
@@ -361,6 +364,12 @@ MESSAGE
       @time_period, @day_number = @time_period_generator.next
 
       if 'night' == time_period
+        lynch
+      else
+        process_night_actions
+      end
+
+      if 'night' == time_period
         message = "[Dusk], day #{day_number}.  The sun will rise again in #{default_time_remaining_in_round} seconds."
       else
         message = "[Dawn], day #{day_number}.  The sun will set again in #{default_time_remaining_in_round} seconds."
@@ -368,12 +377,6 @@ MESSAGE
 
       changed
       notify_observers(:action => 'advance_time', :message => message)
-
-      if 'night' == time_period
-        lynch
-      else
-        process_night_actions
-      end
 
       if winner?
         end_game

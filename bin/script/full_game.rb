@@ -57,6 +57,8 @@ game.status
 
 # Day 2
 game.advance_time
+game.players['monty'].dead?
+
 game.vote(voter_name='bill', 'tom')
 game.vote(voter_name='tom', 'bill')
 game.vote(voter_name='seth', 'tom')
