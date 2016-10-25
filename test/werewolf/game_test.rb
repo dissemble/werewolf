@@ -777,15 +777,19 @@ module Werewolf
 
     def test_can_only_vote_during_day
       game = Game.new
-      game.add_username_to_game('seth')
+      player1 = Player.new(:name => 'seth')
+      game.join(player1)
 
       game.start
       assert_equal 'night', game.time_period
 
+      game.stubs(:time_remaining_in_round).returns(19)
+      game.expects(:notify_all).once.with('You may not vote at night.  Night ends in 19 seconds')
+
       err = assert_raises(RuntimeError) {
         game.vote('seth', 'seth')
       }
-      assert_match /you may not vote at night/, err.message
+      assert_match /You may not vote at night/, err.message
     end
 
 
@@ -1082,19 +1086,34 @@ module Werewolf
     end
 
 
-    def test_nightkill_notifies_room
+    def test_nightkill_action_is_acknowledged_immediately
+      game = Game.new
+      villager = Player.new(:name => 'seth', :role => 'villager')
+      wolf = Player.new(:name => 'tom', :role => 'wolf')
+      game.join(villager)
+      game.join(wolf)
+
+      game.expects(:notify_player).once.with(
+        wolf, "Nightkill order acknowledged.  It will take affect at dawn.")
+
+      game.nightkill(werewolf='tom', victim='seth')
+    end
+
+
+    def test_nightkill_notifies_room_after_process_night_actions
       game = Game.new
       player1 = Player.new(:name => 'seth', :role => 'wolf')
       game.join(player1)
 
+      game.nightkill(werewolf='seth', victim='seth')
+
       mock_observer = mock('observer')
-      mock_observer.expects(:update).once.with(
+      mock_observer.expects(:update).with(
         :action => 'nightkill', 
         :player => player1, 
         :message => "was killed during the night")
       game.add_observer(mock_observer)
-
-      game.nightkill(werewolf='seth', victim='seth')
+     
       game.process_night_actions
     end
 
@@ -1176,8 +1195,23 @@ module Werewolf
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       assert game.night_actions.empty?
       
-      game.view(viewer='seth', viewer='tom')
+      game.view(viewer='seth', viewee='tom')
       assert game.night_actions['view']
+    end
+
+
+    def test_view_is_acknowledged_immediately
+      game = Game.new
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      game.join(seer)
+      game.join(villager)
+      
+      game.expects(:notify_player).once.with(
+        seer, 
+        "View order acknowledged.  It will take affect at dawn.")
+
+      game.view(viewer='seth', viewee='tom')
     end
 
 
@@ -1342,6 +1376,23 @@ module Werewolf
       game.add_observer(mock_observer)
 
       game.notify_all(message)
+    end
+
+
+    def test_notify_player
+      game = Game.new
+
+      player = 'charybdis'
+      message = "hushabye, don't you cry"
+      
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_player', 
+        :player => player,
+        :message => message)
+      game.add_observer(mock_observer)
+
+      game.notify_player(player, message)
     end
   end
 

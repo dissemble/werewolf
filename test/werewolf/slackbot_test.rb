@@ -118,9 +118,9 @@ module Werewolf
 
     def test_handle_nightkill_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
-      player = Player.new(:name => 'seth')
+      player = Player.new(:name => 'seth', :role => 'musketeer')
       message = "i see the moon, and the moon sees me"
-      slackbot.expects(:tell_all).once.with("***** <@seth> #{message}")
+      slackbot.expects(:tell_all).once.with("***** <@seth> (musketeer) #{message}")
       slackbot.handle_nightkill(
         :player => player,
         :message => message)
@@ -244,10 +244,10 @@ MESSAGE
 
     def test_handle_lynch_player
       slackbot = Werewolf::SlackBot.new
-      player = Player.new(:name => 'seth')
+      player = Player.new(:name => 'seth', :role => 'musketeer')
       message = 'and with its head, he went galumphing back'
 
-      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}>")
+      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}> (musketeer)")
 
       slackbot.handle_lynch_player(
         :player => player,

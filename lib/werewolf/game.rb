@@ -144,7 +144,7 @@ module Werewolf
 
 
     def vote(voter_name=name1, candidate_name=name2)
-     unless @players.has_key? voter_name
+      unless @players.has_key? voter_name
         raise RuntimeError.new("'#{voter_name}' is not a player.  Only players may vote")
       end
 
@@ -157,7 +157,9 @@ module Werewolf
       end
 
       unless 'day' == time_period
-        raise RuntimeError.new('you may not vote at night')
+        message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
+        notify_all(message)
+        raise RuntimeError.new(message)
       end
 
       # remove any previous vote
@@ -231,6 +233,9 @@ module Werewolf
         changed
         notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
       }
+
+      # acknowledge nightkill command
+      notify_player(wolf_player, 'Nightkill order acknowledged.  It will take affect at dawn.')
     end
 
 
@@ -253,6 +258,8 @@ module Werewolf
           :viewee => viewed_player,
           :message => "is on the side of #{team}")
       }
+
+      notify_player(viewing_player, "View order acknowledged.  It will take affect at dawn.")
     end
 
 
@@ -425,6 +432,15 @@ MESSAGE
         :action => 'tell_all', 
         :message => message)
     end
+
+
+    def notify_player(player, message)
+      changed
+      notify_observers(
+        :action => 'tell_player', 
+        :player => player,
+        :message => message)
+    end   
 
 
   end

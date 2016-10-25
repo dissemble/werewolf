@@ -4,8 +4,8 @@ module Werewolf
   class SlackBot < SlackRubyBot::Server
 
     def slackbot_channel
-      # werewolf_bot_dev_channel = 'G2FQMNAF8'
-      werewolf_channel = 'C2EP92WF3'
+      werewolf_bot_dev_channel = 'G2FQMNAF8'
+      # werewolf_channel = 'C2EP92WF3'
     end
 
     # This receives notifications from a Game instance upon changes.
@@ -69,7 +69,8 @@ module Werewolf
 
 
     def handle_nightkill(options = {})
-      tell_all("***** #{slackify(options[:player])} #{options[:message]}")
+      player = options[:player]
+      tell_all("***** #{slackify(player)} (#{player.role}) #{options[:message]}")
     end
 
 
@@ -116,7 +117,7 @@ module Werewolf
 
 
     def handle_lynch_player(options = {})
-      tell_all("***** #{options[:message]} #{slackify(options[:player])}")
+      tell_all("***** #{options[:message]} #{slackify(options[:player])} (#{options[:player].role})")
     end
 
 
