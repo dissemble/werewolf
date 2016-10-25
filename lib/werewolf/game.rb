@@ -175,6 +175,28 @@ module Werewolf
         :message => "voted for")
 
       print_tally
+      
+      advance_time if voting_finished?
+    end
+
+
+    def voting_finished?
+      (living_players.size == vote_count)
+    end
+
+
+    def detect_voting_finished?
+      (living_players.size == vote_count)
+    end
+
+
+    def vote_count
+      @vote_tally.values.reduce(0) {|count, s| count += s.size}
+    end
+
+
+    def living_players
+      players.values.find_all{|p| p.alive?}
     end
 
 
@@ -335,6 +357,7 @@ MESSAGE
 
 
     def advance_time
+      @time_remaining_in_round = default_time_remaining_in_round
       @time_period, @day_number = @time_period_generator.next
 
       if 'night' == time_period
@@ -351,8 +374,6 @@ MESSAGE
       else
         process_night_actions
       end
-
-      @time_remaining_in_round = default_time_remaining_in_round
 
       if winner?
         end_game
@@ -395,10 +416,8 @@ MESSAGE
 
 
     def winner?
-      the_living = players.find_all{|k,v| v.alive?}
-      remaining_sides = the_living.map{|k,v| v.team}.uniq
-
-      (remaining_sides.size == 1) ? remaining_sides.first : false
+      remaining_teams = living_players.map{|p| p.team}.uniq
+      (remaining_teams.size == 1) ? remaining_teams.first : false
     end
 
 

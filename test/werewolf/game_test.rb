@@ -52,11 +52,14 @@ module Werewolf
       # Day 2
       game.vote(voter_name='seer', 'wolf')
       game.vote(voter_name='wolf', 'seer')
+
+      # Game over once last vote is cast
+      game.expects(:end_game)
       game.vote(voter_name='villager1', 'wolf')
 
-      # Game over
-      game.expects(:end_game)
-      game.advance_time
+      
+      
+      # game.advance_time
       assert game.players['wolf'].dead?
       assert_equal 'good', game.winner?
     end
@@ -748,6 +751,7 @@ module Werewolf
       game = Game.new
       game.add_username_to_game('seth')
       game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'seth')
     end
 
@@ -783,6 +787,7 @@ module Werewolf
       game.start
       assert_equal 'night', game.time_period
 
+      game.stubs(:voting_finished?).returns(false)
       game.stubs(:time_remaining_in_round).returns(19)
       game.expects(:notify_all).once.with('You may not vote at night.  Night ends in 19 seconds')
 
@@ -808,7 +813,127 @@ module Werewolf
       game.add_username_to_game('seth')
       game.stubs(:time_period).returns('day')
       game.expects(:print_tally).once
+      game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'seth')
+    end
+
+
+    def test_vote_calls_advance_time_if_voting_finished
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(true)
+      game.expects(:advance_time).once
+      game.vote('seth', 'seth')
+    end
+
+
+    def test_vote_does_not_advance_time_when_voting_unfinished
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(true)
+      game.expects(:advance_time).once
+      game.vote('seth', 'seth')
+    end
+
+
+
+    def test_voting_finished_when_all_votes_are_in
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.add_username_to_game('bill')
+      game.stubs(:time_period).returns('day')
+      game.stubs(:advance_time).returns(false)
+      game.vote('seth', 'seth')
+      game.vote('tom', 'seth')
+      game.vote('bill', 'seth')
+      assert game.voting_finished?
+    end
+
+
+    def test_voting_finished_when_votes_are_missing
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.add_username_to_game('bill')
+      game.stubs(:time_period).returns('day')
+      game.vote('seth', 'seth')
+      game.vote('tom', 'seth')
+      assert !game.voting_finished?
+    end
+
+
+    def test_voting_finished_when_no_votes
+      game = Game.new
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.add_username_to_game('bill')
+      game.stubs(:time_period).returns('day')
+      assert !game.voting_finished?
+    end
+
+
+    def test_vote_count_with_one_candidate
+      game = Game.new
+      game.vote_tally = {'a' => Set.new(['a', 'b', 'c', 'd'])}
+      assert_equal 4, game.vote_count
+    end
+
+
+    def test_vote_count_with_no_candidates
+      game = Game.new
+      game.vote_tally = {}
+      assert_equal 0, game.vote_count
+    end
+
+
+    def test_vote_count_with_3_candidates
+      game = Game.new
+      game.vote_tally = {
+        'a' => Set.new(['a', 'b', 'c', 'd']),
+        'b' => Set.new(['e', 'f', 'g']),
+        'c' => Set.new(['h'])
+      }
+      assert_equal 8, game.vote_count
+    end
+
+
+    def test_living_players_all_alive
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => true)
+      player2 = Player.new(:name => 'b', :alive => true)
+      player3 = Player.new(:name => 'c', :alive => true)
+      game.join(player1)
+      game.join(player2)
+      game.join(player3)
+      assert_equal [player1, player2, player3], game.living_players
+    end
+
+
+    def test_living_players_all_dead
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => false)
+      player2 = Player.new(:name => 'b', :alive => false)
+      player3 = Player.new(:name => 'c', :alive => false)
+      game.join(player1)
+      game.join(player2)
+      game.join(player3)
+      assert_equal [], game.living_players
+    end
+
+
+    def test_living_players_some_dead_some_alive
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => false)
+      player2 = Player.new(:name => 'b', :alive => true)
+      player3 = Player.new(:name => 'c', :alive => false)
+      game.join(player1)
+      game.join(player2)
+      game.join(player3)
+      assert_equal [player2], game.living_players
     end
 
 
@@ -824,6 +949,7 @@ module Werewolf
       game.add_username_to_game('tom')
       game.add_username_to_game('bill')
       game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'tom')
       game.vote('tom', 'bill')
       game.vote('bill', 'tom')
@@ -893,6 +1019,7 @@ module Werewolf
       game.join player1
       game.join player2
       game.advance_time
+      game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'tom')
       game.vote('tom', 'seth')
       
@@ -948,6 +1075,7 @@ module Werewolf
       game.join(player2)
 
       game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'seth')
       game.vote('john', 'seth')
       assert player1.alive?
@@ -965,6 +1093,7 @@ module Werewolf
       game.join(player2)
 
       game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'john')
       game.vote('john', 'seth')
 
@@ -978,6 +1107,7 @@ module Werewolf
       game = Game.new
       game.add_username_to_game('seth')
       game.stubs(:time_period).returns('day')
+      game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'seth')
       assert_equal 1, game.vote_tally.size
 
