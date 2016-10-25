@@ -49,17 +49,12 @@ module Werewolf
 
     def join(player)
       if active?
+        message = "game is active, joining is not allowed"
         changed
-        notify_observers(
-          :action => 'join_error', 
-          :player => player, 
-          :message => "game is active, joining is not allowed")
+        notify_observers(:action => 'join_error', :player => player, :message => message)
       elsif @players.has_key? player.name
         changed
-        notify_observers(
-          :action => 'join_error', 
-          :player => player,
-          :message => 'you already joined!')
+        notify_observers(:action => 'join_error', :player => player, :message => 'you already joined!')
       else
         @players[player.name] = player
         changed
@@ -89,20 +84,16 @@ module Werewolf
 
     def notify_start(start_initiator)
       active_role_string = active_roles.join(', ')
+      message = "has started the game.  Active roles: [#{active_role_string}]"
       changed
-      notify_observers(
-        :action => 'start', 
-        :start_initiator => start_initiator, 
-        :message => "has started the game.  Active roles: [#{active_role_string}]")
+      notify_observers(:action => 'start', :start_initiator => start_initiator, :message => message)
     end
 
 
     def notify_player_of_role(player)
+      message = "Your role is: #{player.role}"
       changed
-      notify_observers(
-        :action => 'tell_player', 
-        :player => player, 
-        :message => "Your role is: #{player.role}")
+      notify_observers(:action => 'tell_player', :player => player, :message => message)
 
       if 'beholder' == player.role
         behold(player)
