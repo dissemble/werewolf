@@ -56,14 +56,11 @@ module Werewolf
       # Game over once last vote is cast
       game.expects(:end_game)
       game.vote(voter_name='villager1', 'wolf')
-
-      
       
       # game.advance_time
       assert game.players['wolf'].dead?
       assert_equal 'good', game.winner?
     end
-
 
 
     def test_new_game_is_inactive
@@ -90,9 +87,9 @@ module Werewolf
       game = Game.new
       player1 = Player.new(:name => 'seth')
       player2 = Player.new(:name => 'wesley')
-
-      game.join(player1)
-      game.join(player2)
+      
+      game.join player1
+      game.join player2
 
       expected = {player1.name => player1, player2.name =>player2}
       assert_equal expected, game.players
@@ -104,8 +101,8 @@ module Werewolf
       player1 = Player.new(:name => 'seth')
       player2 = Player.new(:name => 'seth')
 
-      game.join(player1)
-      game.join(player2)
+      game.join player1
+      game.join player2
 
       expected = {player1.name => player1}
       assert_equal expected, game.players
@@ -114,21 +111,21 @@ module Werewolf
 
     def test_game_can_be_started
       game = Game.new
-      game.join(Player.new(:name => 'seth'))
+      game.join Player.new(:name => 'seth')
       game.start
     end
 
 
     def test_game_cannot_be_started_twice
       game = Game.new
-      game.join(Player.new(:name => 'seth'))
+      game.join Player.new(:name => 'seth')
       game.start
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'tell_all', 
         :message => 'Game is already active')
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
       game.expects(:assign_roles).never
 
       game.start
@@ -142,7 +139,7 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'tell_all', 
         :message => "Game can't start until there is at least 1 player")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
       game.expects(:assign_roles).never
 
       game.start
@@ -166,7 +163,7 @@ module Werewolf
 
     def test_roles_are_assigned_at_game_start
       game = Game.new
-      game.join(Player.new(:name => 'seth'))
+      game.join Player.new(:name => 'seth')
       game.expects(:assign_roles).once
       game.stubs(:notify_start)
       game.start
@@ -175,7 +172,7 @@ module Werewolf
 
     def test_assign_roles_defines_the_active_roles
       game = Game.new
-      game.join(Player.new(:name => 'seth'))
+      game.join Player.new(:name => 'seth')
       fake_roles = [:foo]
       game.expects(:define_roles).once.returns(fake_roles)
       game.assign_roles
@@ -188,10 +185,10 @@ module Werewolf
       game = Game.new
       roles = [:a, :b, :c, :d]
 
-      game.add_username_to_game('john')
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
-      game.add_username_to_game('bill')
+      game.add_username_to_game 'john'
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
+      game.add_username_to_game 'bill'
       game.expects(:define_roles).once.returns(roles)
       game.assign_roles
 
@@ -208,9 +205,9 @@ module Werewolf
 
     def test_define_roles_3_player_game
       game = Game.new
-      game.add_username_to_game('john')
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
+      game.add_username_to_game 'john'
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
       expected = ['seer', 'villager', 'wolf']
       assert_equal expected, game.define_roles
     end
@@ -280,11 +277,12 @@ module Werewolf
       assert_match /no rolesets/, err.message
     end
 
+
     def test_all_players_have_roles_once_game_starts
       game = Game.new
-      game.join(Player.new(:name => 'seth'))
-      game.join(Player.new(:name => 'tom'))
-      game.join(Player.new(:name => 'bill'))
+      game.join Player.new(:name => 'seth')
+      game.join Player.new(:name => 'tom')
+      game.join Player.new(:name => 'bill')
       game.start
 
       game.players.values.each do |player|
@@ -344,7 +342,7 @@ module Werewolf
         :action => 'status',
         :message => "#{fake_format_time}",
         :players => [2, 4])
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.status
     end
@@ -452,7 +450,7 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'advance_time',
         :message => "[Dawn], day 1.  The sun will set again in 17 seconds.")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.stubs(:default_time_remaining_in_round).returns(17)
 
@@ -468,7 +466,7 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'advance_time',
         :message => "[Dusk], day 1.  The sun will rise again in 17 seconds.")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.stubs(:default_time_remaining_in_round).returns(17)
       game.expects(:lynch)
@@ -483,7 +481,7 @@ module Werewolf
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(:action => 'join', :player => player, :message => 'has joined the game')
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.join player
     end
@@ -499,7 +497,7 @@ module Werewolf
         :action => 'join_error', 
         :player => player,
         :message => "you already joined!")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.join(player)
     end
@@ -515,7 +513,7 @@ module Werewolf
         :action => 'join_error', 
         :player => player,
         :message => "game is active, joining is not allowed")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.join(player)
     end
@@ -525,7 +523,7 @@ module Werewolf
       game = Game.new
       game.add_username_to_game('seth')
       game.expects(:notify_start)
-      game.start()
+      game.start
     end
 
 
@@ -533,8 +531,8 @@ module Werewolf
       game = Game.new
       player1 = Player.new(:name => 'seth')
       player2 = Player.new(:name => 'tom')
-      game.join(player1)
-      game.join(player2)
+      game.join player1
+      game.join player2
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -545,7 +543,7 @@ module Werewolf
 
       game.stubs(:active_roles).returns(['foo', 'bar', 'baz'])
 
-      game.notify_start(player1.name)
+      game.notify_start player1.name
     end
 
 
@@ -553,17 +551,17 @@ module Werewolf
       game = Game.new
       player1 = Player.new(:name => 'seth')
       player2 = Player.new(:name => 'tom')
-      game.join(player1)
-      game.join(player2)
+      game.join player1
+      game.join player2
 
-      game.expects(:notify_player_of_role).once.with(player1)
-      game.expects(:notify_player_of_role).once.with(player2)
+      game.expects(:notify_of_role).once.with(player1)
+      game.expects(:notify_of_role).once.with(player2)
 
       game.start
     end
 
 
-    def test_notify_player_of_role
+    def test_notify_of_role
       game = Game.new
       player1 = Player.new(:name => 'seth')
 
@@ -572,16 +570,16 @@ module Werewolf
         :action => 'tell_player', 
         :player => player1, 
         :message => "Your role is: #{player1.role}")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
-      game.notify_player_of_role(player1)
+      game.notify_of_role player1
     end
 
     def test_beholder_is_told_of_seer
       game = Game.new
       beholder = Player.new(:name => 'bill', :role => 'beholder')
-      game.expects(:behold).once.with(beholder)
-      game.notify_player_of_role(beholder)
+      game.expects(:reveal_seer_to).once.with(beholder)
+      game.notify_of_role beholder
     end
 
 
@@ -598,9 +596,9 @@ module Werewolf
         :beholder => beholder,
         :seer => seer, 
         :message => "The seer is:")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
-      game.behold(beholder)
+      game.reveal_seer_to beholder
     end
 
 
@@ -608,7 +606,7 @@ module Werewolf
       game = Game.new
       cultist = Player.new(:name => 'bill', :role => 'cultist')
       game.expects(:reveal_wolves_to).once.with(cultist)
-      game.notify_player_of_role(cultist)
+      game.notify_of_role cultist
     end
 
 
@@ -626,9 +624,9 @@ module Werewolf
         :player => cultist,
         :wolves => game.wolf_players
         )
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
-      game.reveal_wolves_to(cultist)
+      game.reveal_wolves_to cultist
     end
 
 
@@ -663,7 +661,7 @@ module Werewolf
     def test_end_game_notifies_room
       game = Game.new
       player1 = Player.new(:name => 'seth')
-      game.join(player1)
+      game.join player1
       game.start
 
       mock_observer = mock('observer')
@@ -671,11 +669,11 @@ module Werewolf
         :action => 'end_game', 
         :player => player1, 
         :message => "ended the game")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.stubs(:print_results)
 
-      game.end_game('seth')
+      game.end_game 'seth'
     end
 
 
@@ -771,18 +769,18 @@ module Werewolf
 
     def test_vote
       game = Game.new
-      game.add_username_to_game('seth')
+      game.add_username_to_game 'seth'
       game.stubs(:time_period).returns('day')
       game.stubs(:voting_finished?).returns(false)
-      game.vote('seth', 'seth')
+      game.vote 'seth', 'seth'
     end
 
 
     def test_can_only_vote_for_real_players
       game = Game.new
-      game.add_username_to_game('seth')
+      game.add_username_to_game 'seth'
       err = assert_raises(RuntimeError) {
-        game.vote('seth', 'babar')
+        game.vote 'seth', 'babar'
       }
       assert_match /is not a player/, err.message
     end
@@ -790,12 +788,12 @@ module Werewolf
 
     def test_can_only_vote_for_living_players
       game = Game.new
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
       game.players['tom'].kill!
       game.stubs(:time_period).returns('day')
       err = assert_raises(RuntimeError) {
-        game.vote('seth', 'tom')
+        game.vote 'seth', 'tom'
       }
       assert_match /is not alive/, err.message
     end
@@ -814,7 +812,7 @@ module Werewolf
       game.expects(:notify_all).once.with('You may not vote at night.  Night ends in 19 seconds')
 
       err = assert_raises(RuntimeError) {
-        game.vote('seth', 'seth')
+        game.vote 'seth', 'seth'
       }
       assert_match /You may not vote at night/, err.message
     end
@@ -822,9 +820,9 @@ module Werewolf
 
     def test_only_real_players_can_vote
       game = Game.new
-      game.add_username_to_game('seth')
+      game.add_username_to_game 'seth'
       err = assert_raises(RuntimeError) {
-        game.vote('babar', 'seth')
+        game.vote 'babar', 'seth'
       }
       assert_match /Only players may vote/, err.message
     end
@@ -832,78 +830,78 @@ module Werewolf
 
     def test_vote_calls_print_tally
       game = Game.new
-      game.add_username_to_game('seth')
+      game.add_username_to_game 'seth'
       game.stubs(:time_period).returns('day')
       game.expects(:print_tally).once
       game.stubs(:voting_finished?).returns(false)
-      game.vote('seth', 'seth')
+      game.vote 'seth', 'seth'
     end
 
 
     def test_vote_calls_advance_time_if_voting_finished
       game = Game.new
-      game.add_username_to_game('seth')
+      game.add_username_to_game 'seth'
       game.stubs(:time_period).returns('day')
       game.stubs(:voting_finished?).returns(true)
       game.expects(:advance_time).once
-      game.vote('seth', 'seth')
+      game.vote 'seth', 'seth'
     end
 
 
     def test_vote_does_not_advance_time_when_voting_unfinished
       game = Game.new
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
       game.stubs(:time_period).returns('day')
       game.stubs(:voting_finished?).returns(true)
       game.expects(:advance_time).once
-      game.vote('seth', 'seth')
+      game.vote 'seth', 'seth'
     end
 
 
     def test_vote_notifies_if_voting_finished_early
       game = Game.new
-      game.add_username_to_game('seth')
+      game.add_username_to_game 'seth'
       game.stubs(:time_period).returns('day')
       game.stubs(:voting_finished?).returns(true)
       game.stubs(:advance_time).once
 
       game.expects(:notify_all).with("All votes have been cast - lynch will happen early.")
-      game.vote('seth', 'seth')
+      game.vote 'seth', 'seth'
     end
 
 
     def test_voting_finished_when_all_votes_are_in
       game = Game.new
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
-      game.add_username_to_game('bill')
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
+      game.add_username_to_game 'bill'
       game.stubs(:time_period).returns('day')
       game.stubs(:advance_time).returns(false)
-      game.vote('seth', 'seth')
-      game.vote('tom', 'seth')
-      game.vote('bill', 'seth')
+      game.vote 'seth', 'seth'
+      game.vote 'tom', 'seth'
+      game.vote 'bill', 'seth'
       assert game.voting_finished?
     end
 
 
     def test_voting_finished_when_votes_are_missing
       game = Game.new
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
-      game.add_username_to_game('bill')
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
+      game.add_username_to_game 'bill'
       game.stubs(:time_period).returns('day')
-      game.vote('seth', 'seth')
-      game.vote('tom', 'seth')
+      game.vote 'seth', 'seth'
+      game.vote 'tom', 'seth'
       assert !game.voting_finished?
     end
 
 
     def test_voting_finished_when_no_votes
       game = Game.new
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
-      game.add_username_to_game('bill')
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
+      game.add_username_to_game 'bill'
       game.stubs(:time_period).returns('day')
       assert !game.voting_finished?
     end
@@ -939,9 +937,8 @@ module Werewolf
       player1 = Player.new(:name => 'a', :alive => true)
       player2 = Player.new(:name => 'b', :alive => true)
       player3 = Player.new(:name => 'c', :alive => true)
-      game.join(player1)
-      game.join(player2)
-      game.join(player3)
+
+      [player1, player2, player3].each {|p| game.join(p)}
       assert_equal [player1, player2, player3], game.living_players
     end
 
@@ -951,9 +948,8 @@ module Werewolf
       player1 = Player.new(:name => 'a', :alive => false)
       player2 = Player.new(:name => 'b', :alive => false)
       player3 = Player.new(:name => 'c', :alive => false)
-      game.join(player1)
-      game.join(player2)
-      game.join(player3)
+
+      [player1, player2, player3].each {|p| game.join(p)}
       assert_equal [], game.living_players
     end
 
@@ -963,9 +959,8 @@ module Werewolf
       player1 = Player.new(:name => 'a', :alive => false)
       player2 = Player.new(:name => 'b', :alive => true)
       player3 = Player.new(:name => 'c', :alive => false)
-      game.join(player1)
-      game.join(player2)
-      game.join(player3)
+      
+      [player1, player2, player3].each {|p| game.join(p)}
       assert_equal [player2], game.living_players
     end
 
@@ -978,14 +973,14 @@ module Werewolf
 
     def test_tally_after_voting
       game = Game.new
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
-      game.add_username_to_game('bill')
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
+      game.add_username_to_game 'bill'
       game.stubs(:time_period).returns('day')
       game.stubs(:voting_finished?).returns(false)
-      game.vote('seth', 'tom')
-      game.vote('tom', 'bill')
-      game.vote('bill', 'tom')
+      game.vote 'seth', 'tom'
+      game.vote 'tom', 'bill'
+      game.vote 'bill', 'tom'
 
       expected = {
         'tom' => Set.new(['seth', 'bill']), 
@@ -997,8 +992,8 @@ module Werewolf
 
     def test_can_only_vote_once
       game = Game.new
-      game.add_username_to_game('seth')
-      game.add_username_to_game('tom')
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
       
       game.stubs(:time_period).returns('day')
       game.vote(voter_name='seth', candidate_name='seth')
@@ -1053,14 +1048,14 @@ module Werewolf
       game.join player2
       game.advance_time
       game.stubs(:voting_finished?).returns(false)
-      game.vote('seth', 'tom')
-      game.vote('tom', 'seth')
+      game.vote 'seth', 'tom'
+      game.vote 'tom', 'seth'
       
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'tell_all',
         :message => "The townsfolk couldn't decide - no one was lynched")
-      game.add_observer(mock_observer)
+      game.add_observer mock_observer
 
       game.lynch
     end

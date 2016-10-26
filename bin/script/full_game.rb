@@ -32,7 +32,7 @@ seer.role = 'seer'
 wolf.role = 'wolf'
 beholder.role = 'beholder'
 villager2.role = 'villager'
-villager3.role = 'villager'
+villager3.role = 'cultist'
 
 # Night 0
 seer.view(beholder)

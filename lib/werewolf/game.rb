@@ -43,7 +43,7 @@ module Werewolf
 
 
     def add_username_to_game(name)
-      join(Player.new(:name => name))
+      join Player.new(:name => name)
     end
 
 
@@ -65,18 +65,18 @@ module Werewolf
 
     def start(start_initiator='Unknown')
       if active?
-        notify_all("Game is already active")
+        notify_all "Game is already active"
       elsif @players.empty?
-        notify_all("Game can't start until there is at least 1 player")
+        notify_all "Game can't start until there is at least 1 player"
       else
         assign_roles
         @active = true
 
-        notify_start(start_initiator)
+        notify_start start_initiator
         status
         
         @players.values.each do |player|
-          notify_player_of_role(player)
+          notify_of_role player
         end 
       end
     end
@@ -90,20 +90,20 @@ module Werewolf
     end
 
 
-    def notify_player_of_role(player)
+    def notify_of_role(player)
       message = "Your role is: #{player.role}"
       changed
       notify_observers(:action => 'tell_player', :player => player, :message => message)
 
       if 'beholder' == player.role
-        behold(player)
+        reveal_seer_to player
       elsif 'cultist' == player.role
         reveal_wolves_to player
       end
     end
 
 
-    def behold(beholder)
+    def reveal_seer_to(beholder)
       seer = @players.values.find{|p| p.role == 'seer'}
       changed
       notify_observers(:action => 'behold', :beholder => beholder, :seer => seer, :message => 'The seer is:')
@@ -137,7 +137,7 @@ module Werewolf
 
     def notify_of_active_roles
       role_string = active_roles.join(', ')
-      notify_all("active roles:  [#{role_string}]")
+      notify_all "active roles:  [#{role_string}]"
     end
 
 
@@ -156,7 +156,7 @@ module Werewolf
 
       unless 'day' == time_period
         message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
-        notify_all(message)
+        notify_all message
         raise RuntimeError.new(message)
       end
 
@@ -217,7 +217,7 @@ module Werewolf
 
     def lynch
       if @vote_tally.empty?
-        notify_all("No one voted - no one was lynched")
+        notify_all "No one voted - no one was lynched"
       else
         # this gives the voters for the player with the most votes
         lynchee_name, voters = @vote_tally.max_by{|k,v| v.size}
@@ -227,7 +227,7 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
-          notify_all("The townsfolk couldn't decide - no one was lynched")
+          notify_all "The townsfolk couldn't decide - no one was lynched"
         else
           lynch_player @players[lynchee_name]
         end
@@ -253,8 +253,8 @@ module Werewolf
       victim_player = @players[victim]
       raise RuntimeError.new("no such player as #{victim}") unless victim_player
       raise RuntimeError.new('Only players may nightkill') unless wolf_player
-      raise RuntimeError.new('Only wolves may nightkill') unless wolf_player.role == 'wolf'
-      raise RuntimeError.new('nightkill may only be used at night') unless time_period == 'night'
+      raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
+      raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
       raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
 
       @night_actions['nightkill'] = lambda {
@@ -264,7 +264,7 @@ module Werewolf
       }
 
       # acknowledge nightkill command
-      notify_player(wolf_player, 'Nightkill order acknowledged.  It will take affect at dawn.')
+      notify_player wolf_player, 'Nightkill order acknowledged.  It will take affect at dawn.'
     end
 
 
@@ -279,7 +279,7 @@ module Werewolf
       raise RuntimeError.new('You must view a real player') unless viewed_player
 
       @night_actions['view'] = lambda {
-        team = viewing_player.view(viewed_player)
+        team = viewing_player.view viewed_player
         changed
         notify_observers(
           :action => 'view', 
@@ -288,7 +288,7 @@ module Werewolf
           :message => "is on the side of #{team}")
       }
 
-      notify_player(viewing_player, "View order acknowledged.  It will take affect at dawn.")
+      notify_player viewing_player, "View order acknowledged.  It will take affect at dawn."
     end
 
 

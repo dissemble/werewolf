@@ -16,32 +16,32 @@ module Werewolf
 
 
     def handle_advance_time(options = {})
-      tell_all(options[:message])
+      tell_all options[:message]
     end
 
 
     def handle_join(options = {})
-      tell_all("#{slackify(options[:player])} #{options[:message]}")
+      tell_all "#{slackify(options[:player])} #{options[:message]}"
     end
 
 
     def handle_join_error(options = {})
-      tell_all("#{slackify(options[:player])} #{options[:message]}")
+      tell_all "#{slackify(options[:player])} #{options[:message]}"
     end
 
 
     def handle_status(options = {})
-      tell_all("#{options[:message]}\n#{format_players(options[:players])}")
+      tell_all "#{options[:message]}\n#{format_players(options[:players])}"
     end
 
 
     def handle_view(options = {})
-      tell_player(options[:viewer], "#{slackify(options[:viewee])} #{options[:message]}")
+      tell_player options[:viewer], "#{slackify(options[:viewee])} #{options[:message]}"
     end
 
 
     def handle_behold(options = {})
-      tell_player(options[:beholder], "#{options[:message]} #{slackify(options[:seer])}")
+      tell_player options[:beholder], "#{options[:message]} #{slackify(options[:seer])}"
     end
 
 
@@ -58,7 +58,7 @@ module Werewolf
         message = lines.join("\n")
       end
 
-      tell_all(message)
+      tell_all message
     end
 
 
@@ -66,39 +66,39 @@ module Werewolf
       wolves = options[:wolves]
       grammar = (wolves.size == 1) ? 'wolf is' : 'wolves are'
       slackified_wolves = wolves.map{|p| slackify(p)}.join(" and ")
-      tell_player(options[:player], "The #{grammar} #{slackified_wolves}")
+      tell_player options[:player], "The #{grammar} #{slackified_wolves}"
     end
 
 
     def handle_start(options = {})
       # TODO:  this should be passing a player and use slackify
-      tell_all("<@#{options[:start_initiator]}> #{options[:message]}")
+      tell_all "<@#{options[:start_initiator]}> #{options[:message]}"
     end
 
 
     def handle_nightkill(options = {})
       player = options[:player]
-      tell_all("***** #{slackify(player)} (#{player.role}) #{options[:message]}")
+      tell_all "***** #{slackify(player)} (#{player.role}) #{options[:message]}"
     end
 
 
     def handle_end_game(options = {})
-      tell_all("***** #{slackify(options[:player])} #{options[:message]}")
+      tell_all "***** #{slackify(options[:player])} #{options[:message]}"
     end
 
 
     def handle_tell_player(options = {})
-      tell_player(options[:player], options[:message])
+      tell_player options[:player], options[:message]
     end
 
 
     def handle_tell_all(options = {})
-      tell_all(options[:message])
+      tell_all options[:message]
     end
 
 
     def handle_vote(options = {})
-      tell_all("#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}")
+      tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
     end
 
 
@@ -110,22 +110,22 @@ module Werewolf
 
     def tell_player(player, message)
       puts "tell_player:  #{player.name}, #{message}"
-      tell_player(options[:player], options[:message])
+      tell_player options[:player], options[:message]
     end
 
 
     def handle_tell_all(options = {})
-      tell_all(options[:message])
+      tell_all options[:message]
     end
 
 
     def handle_vote(options = {})
-      tell_all("#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}")
+      tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
     end
 
 
     def handle_lynch_player(options = {})
-      tell_all("***** #{options[:message]} #{slackify(options[:player])} (#{options[:player].role})")
+      tell_all "***** #{options[:message]} #{slackify(options[:player])} (#{options[:player].role})"
     end
 
 
@@ -136,7 +136,7 @@ module Werewolf
         line.concat " #{slackify(player)}: #{player.role}\n"
         message.concat line
       end
-      tell_all(message)
+      tell_all message
     end
 
 
