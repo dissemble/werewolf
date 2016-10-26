@@ -38,6 +38,10 @@ module Werewolf
       @bot
     end
 
+    def to_s
+      "#<Player name=#{name}>"
+    end
+
   end
   
 end

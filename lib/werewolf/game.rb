@@ -24,6 +24,7 @@ module Werewolf
       @vote_tally = {} 
       @night_actions = {}
       @time_remaining_in_round = default_time_remaining_in_round
+      @claims = {}
     end
 
 
@@ -206,12 +207,17 @@ module Werewolf
 
 
     def living_players
-      players.values.find_all{|p| p.alive?}
+      @players.values.find_all{|p| p.alive?}
     end
 
 
     def wolf_players
-      players.values.find_all{|p| p.role == 'wolf'}
+      @players.values.find_all{|p| p.role == 'wolf'}
+    end
+
+
+    def all_players
+      @players.values
     end
 
 
@@ -468,6 +474,21 @@ MESSAGE
         :message => message)
     end   
 
+
+    def claims
+      # TODO:  there is a better way
+      all_players.each do |p| 
+        unless(@claims.has_key? p)
+          @claims[p] = nil
+        end
+      end
+      @claims
+    end
+
+
+    def claim(player, text)
+      @claims[player] = text
+    end
 
   end
 

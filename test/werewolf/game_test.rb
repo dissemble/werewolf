@@ -4,7 +4,7 @@ module Werewolf
 
   class GameTest < Minitest::Test
 
-    def test_aspirations
+    def test_aspirations_1
       game = Game.new
       seer = Player.new(:name => 'seer')
       wolf = Player.new(:name => 'wolf')
@@ -60,6 +60,64 @@ module Werewolf
       # game.advance_time
       assert game.players['wolf'].dead?
       assert_equal 'good', game.winner?
+    end
+
+
+    def test_aspirations_2
+      game = Game.new
+
+      bill = Werewolf::Player.new(:name => 'bill', :bot => true)
+      tom = Werewolf::Player.new(:name => 'tom', :bot => true)
+      seth = Werewolf::Player.new(:name => 'seth', :bot => true)
+      john = Werewolf::Player.new(:name => 'john', :bot => true)
+      monty = Werewolf::Player.new(:name => 'monty', :bot => true)
+      [bill, tom, seth, john, monty].each {|p| game.join(p)}
+
+      # start 5 player game
+      game.start
+
+      seer = game.players.values.find {|p| 'seer' == p.role}
+      wolf = game.players.values.find {|p| 'wolf' == p.role}
+      beholder = game.players.values.find {|p| 'beholder' == p.role}
+      villager = game.players.values.find {|p| 'villager' == p.role}
+      cultist = game.players.values.find {|p| 'cultist' == p.role}
+
+      # Night 0
+      seer.view(beholder)
+      game.advance_time
+
+      # Day 1
+      game.vote(voter_name=seer.name, villager.name)
+      game.vote(voter_name=wolf.name, villager.name)
+      game.vote(voter_name=beholder.name, wolf.name)
+      game.vote(voter_name=villager.name, seer.name)
+      #cultist doesn't vote
+      game.vote_tally
+      game.status
+
+      # # Night 1
+      # game.advance_time
+      # game.players['john'].dead?
+      # seer.view(wolf)
+      # game.nightkill('tom', 'monty')
+      # game.players['monty'].dead?
+      # game.status
+
+      # # Day 2
+      # game.advance_time
+      # game.players['monty'].dead?
+
+      # game.vote(voter_name='bill', 'tom')
+      # game.vote(voter_name='tom', 'bill')
+      # game.vote(voter_name='seth', 'tom')
+      # game.vote_tally
+      # game.status
+
+      # # Game over
+      # game.advance_time
+      # game.status
+      # game.players['tom'].dead?
+      # # game.winner
     end
 
 
@@ -932,6 +990,18 @@ module Werewolf
     end
 
 
+    def test_all_players
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => false)
+      player2 = Player.new(:name => 'b', :alive => true)
+      player3 = Player.new(:name => 'c', :alive => false)
+      [player1, player2, player3].each {|p| game.join(p)}
+
+      expected = [player1, player2, player3]
+      assert_equal expected, game.all_players
+    end
+
+
     def test_living_players_all_alive
       game = Game.new
       player1 = Player.new(:name => 'a', :alive => true)
@@ -1580,6 +1650,96 @@ module Werewolf
 
       game.notify_player(player, message)
     end
+
+
+    def test_claims_with_no_players
+      game = Game.new
+
+      expected = {}
+      assert_equal expected, game.claims
+    end
+
+
+    def test_claims_initial_state
+      game = Game.new
+
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom')
+      seth = Werewolf::Player.new(:name => 'seth')
+      [bill, tom, seth].each {|p| game.join(p)}
+
+      expected = {bill => nil, tom => nil, seth => nil}
+      assert_equal expected, game.claims
+    end
+
+
+    # don't like this?
+    # def test_claims_only_returns_living_players
+    #   game = Game.new
+
+    #   bill = Werewolf::Player.new(:name => 'bill')
+    #   tom = Werewolf::Player.new(:name => 'tom')
+    #   seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+    #   [bill, tom, seth].each {|p| game.join(p)}
+
+    #   expected = {bill => nil, tom => nil}
+    #   assert_equal expected, game.claims
+    # end
+
+
+    def test_claims_when_everyone_has_not_claimed
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom')
+      seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+      [bill, tom, seth].each {|p| game.join(p)}
+
+      game.claim bill, 'i am the walrus'
+      game.claim tom, 'i am the eggman'
+      # no claim for seth
+
+      expected = {bill => 'i am the walrus', tom => 'i am the eggman', seth => nil}
+      assert_equal expected, game.claims
+    end
+
+
+    def test_claim_overwrites_previous_claim
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      game.join(bill)
+
+      expected = {bill => nil}
+      assert_equal expected, game.claims
+
+      game.claim bill, 'i am the walrus'
+      expected = {bill => 'i am the walrus'}
+      assert_equal expected, game.claims
+
+      game.claim bill, 'i am the eggman'
+      expected = {bill => 'i am the eggman'}
+      assert_equal expected, game.claims
+    end
+
+
+    def test_claims_are_reset
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      game.join(bill)
+
+      game.claim bill, 'i am the walrus'
+      expected = {bill => 'i am the walrus'}
+      assert_equal expected, game.claims
+
+      game.reset
+      expected = {}
+      assert_equal expected, game.claims
+    end
+
+
+
+
+
+
   end
 
 end

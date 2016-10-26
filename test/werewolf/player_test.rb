@@ -93,6 +93,12 @@ module Werewolf
       assert player.dead?
     end
 
+    def test_to_s
+      player = Player.new(:name => 'seth', :alive => false, :role => 'villager', :bot => false)
+      assert_equal "#<Player name=seth>", player.to_s
+    end
+
+
   end
 
 end
