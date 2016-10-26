@@ -97,6 +97,8 @@ module Werewolf
 
       if 'beholder' == player.role
         behold(player)
+      elsif 'cultist' == player.role
+        reveal_wolves_to player
       end
     end
 
@@ -107,6 +109,11 @@ module Werewolf
       notify_observers(:action => 'behold', :beholder => beholder, :seer => seer, :message => 'The seer is:')
     end
 
+
+    def reveal_wolves_to(cultist)
+      changed
+      notify_observers(:action => 'reveal_wolves', :player => cultist, :wolves => wolf_players)
+    end
 
 
     def end_game(name='Unknown')
@@ -203,6 +210,11 @@ module Werewolf
     end
 
 
+    def wolf_players
+      players.values.find_all{|p| p.role == 'wolf'}
+    end
+
+
     def lynch
       if @vote_tally.empty?
         notify_all("No one voted - no one was lynched")
@@ -243,6 +255,7 @@ module Werewolf
       raise RuntimeError.new('Only players may nightkill') unless wolf_player
       raise RuntimeError.new('Only wolves may nightkill') unless wolf_player.role == 'wolf'
       raise RuntimeError.new('nightkill may only be used at night') unless time_period == 'night'
+      raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
 
       @night_actions['nightkill'] = lambda {
         victim_player.kill!
@@ -330,11 +343,11 @@ MESSAGE
         1 => ['seer'],
         2 => ['seer', 'wolf'],
         3 => ['seer', 'villager', 'wolf'],
-        4 => ['seer', 'villager', 'villager', 'wolf'],
-        5 => ['seer', 'beholder', 'villager', 'wolf', 'wolf'],
-        6 => ['seer', 'beholder', 'villager', 'villager', 'wolf', 'wolf'],
-        7 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        8 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        4 => ['seer', 'beholder', 'cultist', 'wolf'],
+        5 => ['seer', 'beholder', 'villager', 'cultist', 'wolf'],
+        6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
+        7 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        8 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         9 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
         10 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
       }

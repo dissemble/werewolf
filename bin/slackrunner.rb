@@ -24,7 +24,7 @@ loop do
 
   if game.active?
     if game.round_expired?
-      game.advance_time 
+      game.advance_time
     else
       game.tick time_increment
     end

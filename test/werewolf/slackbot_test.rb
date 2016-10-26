@@ -127,6 +127,32 @@ module Werewolf
     end
 
 
+    def test_handle_reveal_wolves_with_one_wolf
+      slackbot = Werewolf::SlackBot.new
+      cultist = Player.new(:name => 'tom', :role => 'cultist')
+      wolf1 = Player.new(:name => 'seth', :role => 'wolf')
+
+      slackbot.expects(:tell_player).once.with(cultist, "The wolf is <@seth>")
+      slackbot.handle_reveal_wolves(
+        :player => cultist,
+        :wolves => [wolf1])
+    end
+
+
+    def test_handle_reveal_wolves_with_multiple
+      slackbot = Werewolf::SlackBot.new
+      cultist = Player.new(:name => 'tom', :role => 'cultist')
+      wolf1 = Player.new(:name => 'bill', :role => 'wolf')
+      wolf2 = Player.new(:name => 'seth', :role => 'wolf')
+      wolf3 = Player.new(:name => 'john', :role => 'wolf')
+
+      slackbot.expects(:tell_player).once.with(cultist, "The wolves are <@bill> and <@seth> and <@john>")
+      slackbot.handle_reveal_wolves(
+        :player => cultist,
+        :wolves => [wolf1, wolf2, wolf3])
+    end
+
+
     def test_handle_end_game_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')

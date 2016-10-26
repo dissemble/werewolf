@@ -10,13 +10,13 @@ module Werewolf
       wolf = Player.new(:name => 'wolf')
       villager1 = Player.new(:name => 'villager1')
       villager2 = Player.new(:name => 'villager2')
-      villager3 = Player.new(:name => 'villager3')
+      cultist = Player.new(:name => 'cultist')
 
       game.join(seer)
       game.join(wolf)
       game.join(villager1)
       game.join(villager2)
-      game.join(villager3)
+      game.join(cultist)
 
       # start 5 player game
       game.start
@@ -26,7 +26,7 @@ module Werewolf
       wolf.role = 'wolf'
       villager1.role = 'villager'
       villager2.role = 'villager'
-      villager3.role = 'villager'
+      cultist.role = 'cultist'
 
       # Night 0
       assert_equal 'good', seer.view(villager1)
@@ -37,17 +37,17 @@ module Werewolf
       game.vote(voter_name='wolf', 'villager2')
       game.vote(voter_name='villager1', 'seer')
       game.vote(voter_name='villager2', 'wolf')
-      #villager3 doesn't vote
+      #cultist doesn't vote
 
       # Night 1
       game.advance_time
       assert game.players['villager2'].dead?
       assert_equal 'evil', seer.view(wolf)
-      game.nightkill(werewolf='wolf', victim='villager3')
+      game.nightkill(werewolf='wolf', victim='cultist')
       
       # Process night actions
       game.advance_time
-      assert game.players['villager3'].dead?
+      assert game.players['cultist'].dead?
 
       # Day 2
       game.vote(voter_name='seer', 'wolf')
@@ -206,23 +206,6 @@ module Werewolf
     end
 
 
-    # def test_define_roles_1_player_game
-    #   game = Game.new
-    #   game.add_username_to_game('seth')
-    #   expected = ['seer']
-    #   assert_equal expected, game.define_roles
-    # end
-
-
-    # def test_define_roles_2_player_game
-    #   game = Game.new
-    #   game.add_username_to_game('john')
-    #   game.add_username_to_game('seth')
-    #   expected = ['villager', 'wolf']
-    #   assert_equal expected, game.define_roles
-    # end
-
-
     def test_define_roles_3_player_game
       game = Game.new
       game.add_username_to_game('john')
@@ -236,7 +219,7 @@ module Werewolf
     def test_define_roles_4_player_game
       game = Game.new
       1.upto(4) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'wolf']
+      expected = ['seer', 'beholder', 'cultist', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -244,7 +227,7 @@ module Werewolf
     def test_define_roles_5_player_game
       game = Game.new
       1.upto(5) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'cultist', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -252,7 +235,7 @@ module Werewolf
     def test_define_roles_6_player_game
       game = Game.new
       1.upto(6) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -260,7 +243,7 @@ module Werewolf
     def test_define_roles_7_player_game
       game = Game.new
       1.upto(7) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -268,7 +251,7 @@ module Werewolf
     def test_define_roles_8_player_game
       game = Game.new
       1.upto(8) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
+      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf']
       assert_equal expected, game.define_roles
     end
 
@@ -594,8 +577,7 @@ module Werewolf
       game.notify_player_of_role(player1)
     end
 
-
-    def test_notify_player_calls_behold
+    def test_beholder_is_told_of_seer
       game = Game.new
       beholder = Player.new(:name => 'bill', :role => 'beholder')
       game.expects(:behold).once.with(beholder)
@@ -619,6 +601,46 @@ module Werewolf
       game.add_observer(mock_observer)
 
       game.behold(beholder)
+    end
+
+
+    def test_cultist_is_told_of_wolves
+      game = Game.new
+      cultist = Player.new(:name => 'bill', :role => 'cultist')
+      game.expects(:reveal_wolves_to).once.with(cultist)
+      game.notify_player_of_role(cultist)
+    end
+
+
+    def test_reveal_wolves_to_notifies_player_of_wolves
+      game = Game.new
+      cultist = Player.new(:name => 'tom', :role => 'cultist')
+      villager = Player.new(:name => 'john', :role => 'villager')
+      wolf1 = Player.new(:name => 'bill', :role => 'wolf')
+      wolf2 = Player.new(:name => 'seth', :role => 'wolf')
+      [cultist, wolf1, villager, wolf2].each{|p| game.join(p)}
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'reveal_wolves', 
+        :player => cultist,
+        :wolves => game.wolf_players
+        )
+      game.add_observer(mock_observer)
+
+      game.reveal_wolves_to(cultist)
+    end
+
+
+    def test_wolf_players
+      game = Game.new
+      cultist = Player.new(:name => 'tom', :role => 'cultist')
+      wolf1 = Player.new(:name => 'bill', :role => 'wolf')
+      villager = Player.new(:name => 'john', :role => 'villager')
+      wolf2 = Player.new(:name => 'seth', :role => 'wolf')
+      [cultist, wolf1, villager, wolf2].each{|p| game.join(p)}
+
+      assert_equal [wolf1, wolf2], game.wolf_players
     end
 
 
@@ -1162,6 +1184,7 @@ module Werewolf
       game = Game.new
       game.join Player.new(:name => 'seth', :role => 'wolf')
       game.join Player.new(:name => 'tom', :role => 'villager')
+      game.stubs(:day_number).returns(1)
       game.nightkill(werewolf='seth', victim='tom')
     end
 
@@ -1193,6 +1216,7 @@ module Werewolf
       game.join(player1)
       player1.kill!
 
+      game.stubs(:day_number).returns(1)
       err = assert_raises(RuntimeError) {
         game.nightkill(werewolf='seth', victim='seth')
         game.process_night_actions
@@ -1222,8 +1246,31 @@ module Werewolf
     end
 
 
+    def test_nightkill_does_not_work_on_night_0
+      game = Game.new
+      game.join Player.new(:name => 'seth', :role => 'wolf')
+      game.join Player.new(:name => 'tom', :role => 'villager')
+
+      err = assert_raises(RuntimeError) {
+        game.nightkill(werewolf='seth', victim='tom')
+      }
+      assert_match /no nightkill on night 0/, err.message
+    end
+
+
     def test_only_one_nightkill_per_night
-      #TODO
+      game = Game.new
+      game.join Player.new(:name => 'seth', :role => 'wolf')
+      game.join Player.new(:name => 'tom', :role => 'villager')
+      game.join Player.new(:name => 'bill', :role => 'villager')
+
+      game.stubs(:day_number).returns(1)
+      game.nightkill(werewolf='seth', victim='tom')
+      game.nightkill(werewolf='seth', victim='bill')
+      game.process_night_actions
+
+      assert game.players['tom'].alive?
+      assert game.players['bill'].dead?
     end
 
 
@@ -1234,6 +1281,7 @@ module Werewolf
       game.join(villager)
       game.join(wolf)
 
+      game.stubs(:day_number).returns(1)
       game.expects(:notify_player).once.with(
         wolf, "Nightkill order acknowledged.  It will take affect at dawn.")
 
@@ -1246,6 +1294,7 @@ module Werewolf
       player1 = Player.new(:name => 'seth', :role => 'wolf')
       game.join(player1)
 
+      game.stubs(:day_number).returns(1)
       game.nightkill(werewolf='seth', victim='seth')
 
       mock_observer = mock('observer')
@@ -1264,6 +1313,7 @@ module Werewolf
       game.join Player.new(:name => 'seth', :role => 'wolf')
       assert game.night_actions.empty?
 
+      game.stubs(:day_number).returns(1)
       game.nightkill(werewolf='seth', victim='seth')
       assert !game.night_actions.empty?
     end
