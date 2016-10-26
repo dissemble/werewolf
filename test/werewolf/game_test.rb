@@ -1673,20 +1673,6 @@ module Werewolf
     end
 
 
-    # don't like this?
-    # def test_claims_only_returns_living_players
-    #   game = Game.new
-
-    #   bill = Werewolf::Player.new(:name => 'bill')
-    #   tom = Werewolf::Player.new(:name => 'tom')
-    #   seth = Werewolf::Player.new(:name => 'seth', :alive => false)
-    #   [bill, tom, seth].each {|p| game.join(p)}
-
-    #   expected = {bill => nil, tom => nil}
-    #   assert_equal expected, game.claims
-    # end
-
-
     def test_claims_when_everyone_has_not_claimed
       game = Game.new
       bill = Werewolf::Player.new(:name => 'bill')
@@ -1694,8 +1680,8 @@ module Werewolf
       seth = Werewolf::Player.new(:name => 'seth', :alive => false)
       [bill, tom, seth].each {|p| game.join(p)}
 
-      game.claim bill, 'i am the walrus'
-      game.claim tom, 'i am the eggman'
+      game.claim 'bill', 'i am the walrus'
+      game.claim 'tom', 'i am the eggman'
       # no claim for seth
 
       expected = {bill => 'i am the walrus', tom => 'i am the eggman', seth => nil}
@@ -1711,13 +1697,33 @@ module Werewolf
       expected = {bill => nil}
       assert_equal expected, game.claims
 
-      game.claim bill, 'i am the walrus'
+      game.claim 'bill', 'i am the walrus'
       expected = {bill => 'i am the walrus'}
       assert_equal expected, game.claims
 
-      game.claim bill, 'i am the eggman'
+      game.claim 'bill', 'i am the eggman'
       expected = {bill => 'i am the eggman'}
       assert_equal expected, game.claims
+    end
+
+
+    def test_claim_calls_print_claim
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      game.join(bill)
+
+      game.expects(:print_claims).once
+
+      game.claim 'bill', 'i am the walrus'
+    end
+
+
+    def test_claim_can_only_be_made_by_real_players
+      game = Game.new
+      err = assert_raises(RuntimeError) do
+        game.claim 'bill', 'i am the walrus'
+      end
+      assert_match /claim is only available to players/, err.message
     end
 
 
@@ -1726,7 +1732,7 @@ module Werewolf
       bill = Werewolf::Player.new(:name => 'bill')
       game.join(bill)
 
-      game.claim bill, 'i am the walrus'
+      game.claim 'bill', 'i am the walrus'
       expected = {bill => 'i am the walrus'}
       assert_equal expected, game.claims
 
@@ -1737,7 +1743,19 @@ module Werewolf
 
 
 
+    def test_print_claims
+      game = Game.new
+      fake_claims = "foo bar baz"
+      game.stubs(:claims).returns(fake_claims)
 
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'claims', 
+        :claims => fake_claims)
+      game.add_observer(mock_observer)
+
+      game.print_claims
+    end
 
 
   end

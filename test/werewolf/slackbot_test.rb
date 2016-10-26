@@ -153,6 +153,31 @@ module Werewolf
     end
 
 
+    def test_handle_claims
+      slackbot = Werewolf::SlackBot.new
+
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom')
+      seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+      [bill, tom, seth].each {|p| game.join(p)}
+      game.claim bill, 'i am the walrus'
+      game.claim tom, 'i am the eggman'
+
+      expected = <<MESSAGE
+Claims:
+<@bill>:  i am the walrus
+<@tom>:  i am the eggman
+<@seth>:  -
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_claims(
+        :claims => game.claims
+        )
+    end
+
+
     def test_handle_end_game_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')

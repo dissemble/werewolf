@@ -303,15 +303,17 @@ module Werewolf
 
       message = <<MESSAGE
 Commands you can use:
-help:   this command
-join:   join the game (only before the game starts)
-start:  start the game (only after players have joined)
-end:    terminate running game
-status: should probably work...
-tally:  show lynch-vote tally (only during day)
-kill:   as a werewolf, nightkill a player.  (only at night)
-view:   as the seer, reveals the alignment of another player.  (only at night)
-vote:   vote to lynch a player.  (only during day)
+help:     this command
+join:     join the game (only before the game starts)
+start:    start the game (only after players have joined)
+end:      terminate running game
+status:   should probably work...
+tally:    show lynch-vote tally (only during day)
+kill:     as a werewolf, nightkill a player.  (only at night)
+view:     as the seer, reveals the alignment of another player.  (only at night)
+vote:     vote to lynch a player.  (only during day)
+claim:    register a claim
+claims:   view all claims
 
 MESSAGE
 
@@ -458,6 +460,33 @@ MESSAGE
     end
 
 
+    def claim(name, text)
+      player = @players[name]
+      raise RuntimeError.new("claim is only available to players") unless player
+      
+      @claims[player] = text
+      print_claims
+    end
+
+
+    # TODO: claims/claim are too confusing
+    def claims
+      # TODO:  there is a better way
+      all_players.each do |p| 
+        unless(@claims.has_key? p)
+          @claims[p] = nil
+        end
+      end
+      @claims
+    end
+
+
+    def print_claims
+      changed
+      notify_observers(:action => 'claims', :claims => claims)
+    end
+
+
     def notify_all(message)
       changed
       notify_observers(
@@ -475,20 +504,6 @@ MESSAGE
     end   
 
 
-    def claims
-      # TODO:  there is a better way
-      all_players.each do |p| 
-        unless(@claims.has_key? p)
-          @claims[p] = nil
-        end
-      end
-      @claims
-    end
-
-
-    def claim(player, text)
-      @claims[player] = text
-    end
 
   end
 

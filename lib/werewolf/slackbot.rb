@@ -4,8 +4,8 @@ module Werewolf
   class SlackBot < SlackRubyBot::Server
 
     def slackbot_channel
-      # werewolf_bot_dev_channel = 'G2FQMNAF8'
-      werewolf_channel = 'C2EP92WF3'
+      werewolf_bot_dev_channel = 'G2FQMNAF8'
+      # werewolf_channel = 'C2EP92WF3'
     end
 
     # This receives notifications from a Game instance upon changes.
@@ -136,6 +136,19 @@ module Werewolf
         line.concat " #{slackify(player)}: #{player.role}\n"
         message.concat line
       end
+      tell_all message
+    end
+
+
+    def handle_claims(options = {})
+      puts options[:claims]
+      message = "Claims:\n"
+      options[:claims].each do |player, claim|
+        formatted_player = slackify(player)
+        formatted_claim = claim || '-'
+        message.concat "#{formatted_player}:  #{formatted_claim}\n"
+      end
+
       tell_all message
     end
 
