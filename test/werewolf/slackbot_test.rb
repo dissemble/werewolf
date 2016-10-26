@@ -161,8 +161,8 @@ module Werewolf
       tom = Werewolf::Player.new(:name => 'tom')
       seth = Werewolf::Player.new(:name => 'seth', :alive => false)
       [bill, tom, seth].each {|p| game.join(p)}
-      game.claim bill, 'i am the walrus'
-      game.claim tom, 'i am the eggman'
+      game.claim 'bill', 'i am the walrus'
+      game.claim 'tom', 'i am the eggman'
 
       expected = <<MESSAGE
 Claims:
