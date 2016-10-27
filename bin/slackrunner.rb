@@ -11,7 +11,7 @@ end
 SlackRubyBot::Client.logger.level = Logger::INFO
 game = Werewolf::Game.instance
 
-slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['fangbot'])
+slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['!', 'w'])
 game.add_observer(slackbot)
 
 slackbot.start_async
