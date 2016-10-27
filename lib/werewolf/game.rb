@@ -64,6 +64,18 @@ module Werewolf
     end
 
 
+    def leave(name)
+      player = @players[name]
+      raise RuntimeError.new("must be player to leave game") unless player
+      raise RuntimeError.new("can't leave an active game") if active?
+
+      @players.delete name
+
+      changed
+      notify_observers(:action => 'leave', :player => player)
+    end
+
+
     def start(start_initiator='Unknown')
       if active?
         notify_all "Game is already active"
@@ -296,27 +308,10 @@ module Werewolf
     def help(name)
       player = Player.new(:name => name)
 
-      message = <<MESSAGE
-Commands you can use:
-help:     this command
-join:     join the game (only before the game starts)
-start:    start the game (only after players have joined)
-end:      terminate running game
-status:   should probably work...
-tally:    show lynch-vote tally (only during day)
-kill:     as a werewolf, nightkill a player.  (only at night)
-view:     as the seer, reveals the alignment of another player.  (only at night)
-vote:     vote to lynch a player.  (only during day)
-claim:    register a claim
-claims:   view all claims
-
-MESSAGE
-
       changed
       notify_observers(
-        :action => 'tell_player', 
-        :player => player, 
-        :message => message)
+        :action => 'help', 
+        :player => player)
     end
 
 

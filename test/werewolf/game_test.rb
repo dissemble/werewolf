@@ -167,6 +167,53 @@ module Werewolf
     end
 
 
+    def test_leave_leaves_game
+      game = Game.new
+      player = Player.new(:name => 'seth')
+
+      game.join player
+      assert game.players.values.include?(player)
+
+      game.leave player.name
+      assert !game.players.values.include?(player)
+    end
+
+
+    def test_must_be_player_to_leave
+      game = Game.new
+      err = assert_raises(RuntimeError) do
+        game.leave 'tintin'
+      end
+      assert_match /must be player to leave game/, err.message
+    end
+
+
+    def test_cant_leave_if_game_is_active
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join player
+      game.start
+      err = assert_raises(RuntimeError) do
+        game.leave player.name
+      end
+      assert_match /can't leave an active game/, err.message
+    end
+
+
+    def test_leave_notifies_room
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join player
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(:action => 'leave', :player => player)
+      game.add_observer mock_observer
+      game.expects(:assign_roles).never
+
+      game.leave player.name
+    end
+
+
     def test_game_can_be_started
       game = Game.new
       game.join Player.new(:name => 'seth')

@@ -116,6 +116,25 @@ module Werewolf
     end
 
 
+    def test_handle_leave_broadcast_to_room
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+
+      slackbot.expects(:tell_all).once.with("<@#{player.name}> has left the game")
+      slackbot.handle_leave(:player => player)
+    end
+
+
+    def test_handle_help
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+
+      # TODO:  needs love
+      slackbot.expects(:tell_player).once
+      slackbot.handle_help(:player => player)
+    end
+
+
     def test_handle_nightkill_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth', :role => 'musketeer')

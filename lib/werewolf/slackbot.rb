@@ -30,6 +30,11 @@ module Werewolf
     end
 
 
+    def handle_leave(options = {})
+      tell_all "#{slackify(options[:player])} has left the game"
+    end
+
+
     def handle_status(options = {})
       tell_all "#{options[:message]}\n#{format_players(options[:players])}"
     end
@@ -126,6 +131,30 @@ module Werewolf
 
     def handle_lynch_player(options = {})
       tell_all "***** #{options[:message]} #{slackify(options[:player])} (#{options[:player].role})"
+    end
+
+
+    def handle_help(options = {})
+      message = <<MESSAGE
+Commands you can use:
+```
+help:     this command.  'wolfbot help'
+join:     join the game.  'wolfbot join' (only before the game starts)
+leave:    leave the game.  'wolfbot leave' (only before the game starts)
+start:    start the game.  'wolfbot start' (only after players have joined)
+end:      terminate the running game.  'wolfbot end'
+status:   should probably work...  'wolfbot status'
+tally:    show lynch-vote tally (only during day)
+kill:     as a werewolf, nightkill a player.  'wolfbot kill @name' (only at night).  
+see:      as the seer, reveals the alignment of another player.  'wolfbot see @name' (only at night).  
+vote:     vote to lynch a player.  'wolfbot vote @name' (only during day)
+claim:    register a claim.  'wolfbot claim i am the walrus'
+claims:   view all claims.  'wolfbot claims'
+```
+MESSAGE
+
+      tell_player options[:player], message
+
     end
 
 
