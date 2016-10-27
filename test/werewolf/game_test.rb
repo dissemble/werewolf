@@ -642,8 +642,8 @@ module Werewolf
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'start', 
-        :start_initiator => 'seth', 
-        :message => 'has started the game.  Active roles: [foo, bar, baz]')
+        :start_initiator => 'seth',
+        :active_roles => ['foo', 'bar', 'baz'])
       game.add_observer(mock_observer)
 
       game.stubs(:active_roles).returns(['foo', 'bar', 'baz'])

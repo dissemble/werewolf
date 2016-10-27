@@ -78,6 +78,11 @@ module Werewolf
       assert_equal 'evil', villager.team
     end
 
+    def test_team_is_evil_for_cultist
+      villager = Player.new(:name => 'seth', :role => 'cultist')
+      assert_equal 'evil', villager.team
+    end
+
     def test_normal_players_are_not_bots
       player = Player.new(:name => 'seth')
       assert !player.bot?

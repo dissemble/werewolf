@@ -76,8 +76,17 @@ module Werewolf
 
 
     def handle_start(options = {})
+      formatted_roles = options[:active_roles].join(', ')
+
       # TODO:  this should be passing a player and use slackify
-      tell_all "<@#{options[:start_initiator]}> #{options[:message]}"
+      tell_all "<@#{options[:start_initiator]}> has started the game.  Active roles: [#{formatted_roles}]\n" \
+        "```" \
+        "beholder:  team good.  knows the identity of the seer.\n" \
+        "cultist:   team evil.  knows the identity of the wolves.\n" \
+        "seer:      team good.  views the alignment of one player each night.\n" \
+        "villager:  team good.  no special powers.\n" \
+        "wolf:      team evil.  kills people at night.\n" \
+        "```"
     end
 
 

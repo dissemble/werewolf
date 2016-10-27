@@ -96,10 +96,11 @@ module Werewolf
 
 
     def notify_start(start_initiator)
-      active_role_string = active_roles.join(', ')
-      message = "has started the game.  Active roles: [#{active_role_string}]"
       changed
-      notify_observers(:action => 'start', :start_initiator => start_initiator, :message => message)
+      notify_observers(
+        :action => 'start', 
+        :start_initiator => start_initiator, 
+        :active_roles => active_roles)
     end
 
 

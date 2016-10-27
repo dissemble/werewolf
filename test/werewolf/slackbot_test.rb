@@ -271,10 +271,19 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
       message = "is exceptional"
-      slackbot.expects(:tell_all).once.with("<@#{initiator}> #{message}")
+      slackbot.expects(:tell_all).once.with(
+        "<@#{initiator}> has started the game.  Active roles: [villager, cultist, beholder]\n" \
+        "```" \
+        "beholder:  team good.  knows the identity of the seer.\n" \
+        "cultist:   team evil.  knows the identity of the wolves.\n" \
+        "seer:      team good.  views the alignment of one player each night.\n" \
+        "villager:  team good.  no special powers.\n" \
+        "wolf:      team evil.  kills people at night.\n" \
+        "```"
+        )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :message => message)
+        :active_roles => ['villager', 'cultist', 'beholder'])
     end
 
 

@@ -1,7 +1,7 @@
 module Werewolf
   module Commands
     class Start < SlackRubyBot::Commands::Base
-      command 'see' do |client, data, match|
+      command 'view' do |client, data, match|
         # #TODO copy paste debug
         # puts '**** start ****'
         # puts "client: #{client}"
