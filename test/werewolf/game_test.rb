@@ -57,7 +57,7 @@ module Werewolf
       game.expects(:end_game)
       game.vote(voter_name='villager1', 'wolf')
       
-      # game.advance_time
+      game.advance_time
       assert game.players['wolf'].dead?
       assert_equal 'good', game.winner?
     end
@@ -896,37 +896,37 @@ module Werewolf
     end
 
 
-    def test_vote_calls_advance_time_if_voting_finished
-      game = Game.new
-      game.add_username_to_game 'seth'
-      game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(true)
-      game.expects(:advance_time).once
-      game.vote 'seth', 'seth'
-    end
+    # def test_vote_calls_advance_time_if_voting_finished
+    #   game = Game.new
+    #   game.add_username_to_game 'seth'
+    #   game.stubs(:time_period).returns('day')
+    #   game.stubs(:voting_finished?).returns(true)
+    #   game.expects(:advance_time).once
+    #   game.vote 'seth', 'seth'
+    # end
 
 
-    def test_vote_does_not_advance_time_when_voting_unfinished
-      game = Game.new
-      game.add_username_to_game 'seth'
-      game.add_username_to_game 'tom'
-      game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(true)
-      game.expects(:advance_time).once
-      game.vote 'seth', 'seth'
-    end
+    # def test_vote_does_not_advance_time_when_voting_unfinished
+    #   game = Game.new
+    #   game.add_username_to_game 'seth'
+    #   game.add_username_to_game 'tom'
+    #   game.stubs(:time_period).returns('day')
+    #   game.stubs(:voting_finished?).returns(true)
+    #   game.expects(:advance_time).once
+    #   game.vote 'seth', 'seth'
+    # end
 
 
-    def test_vote_notifies_if_voting_finished_early
-      game = Game.new
-      game.add_username_to_game 'seth'
-      game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(true)
-      game.stubs(:advance_time).once
+    # def test_vote_notifies_if_voting_finished_early
+    #   game = Game.new
+    #   game.add_username_to_game 'seth'
+    #   game.stubs(:time_period).returns('day')
+    #   game.stubs(:voting_finished?).returns(true)
+    #   game.stubs(:advance_time).once
 
-      game.expects(:notify_all).with("All votes have been cast - lynch will happen early.")
-      game.vote 'seth', 'seth'
-    end
+    #   game.expects(:notify_all).with("All votes have been cast - lynch will happen early.")
+    #   game.vote 'seth', 'seth'
+    # end
 
 
     def test_voting_finished_when_all_votes_are_in

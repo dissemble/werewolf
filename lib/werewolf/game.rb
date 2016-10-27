@@ -183,11 +183,6 @@ module Werewolf
         :message => "voted for")
 
       print_tally
-      
-      if voting_finished?
-        notify_all "All votes have been cast - lynch will happen early."
-        advance_time 
-      end
     end
 
 
