@@ -4,142 +4,30 @@ module Werewolf
 
   class GameTest < Minitest::Test
 
-    def test_aspirations_1
-      game = Game.new
-      seer = Player.new(:name => 'seer')
-      wolf = Player.new(:name => 'wolf')
-      villager1 = Player.new(:name => 'villager1')
-      villager2 = Player.new(:name => 'villager2')
-      cultist = Player.new(:name => 'cultist')
-
-      game.join(seer)
-      game.join(wolf)
-      game.join(villager1)
-      game.join(villager2)
-      game.join(cultist)
-
-      # start 5 player game
-      game.start
-
-      # reassign roles
-      seer.role = 'seer'
-      wolf.role = 'wolf'
-      villager1.role = 'villager'
-      villager2.role = 'villager'
-      cultist.role = 'cultist'
-
-      # Night 0
-      assert_equal 'good', seer.view(villager1)
-      game.advance_time
-
-      # Day 1
-      game.vote(voter_name='seer', 'villager2')
-      game.vote(voter_name='wolf', 'villager2')
-      game.vote(voter_name='villager1', 'seer')
-      game.vote(voter_name='villager2', 'wolf')
-      #cultist doesn't vote
-
-      # Night 1
-      game.advance_time
-      assert game.players['villager2'].dead?
-      assert_equal 'evil', seer.view(wolf)
-      game.nightkill(werewolf='wolf', victim='cultist')
-      
-      # Process night actions
-      game.advance_time
-      assert game.players['cultist'].dead?
-
-      # Day 2
-      game.vote(voter_name='seer', 'wolf')
-      game.vote(voter_name='wolf', 'seer')
-
-      # Game over once last vote is cast
-      game.expects(:end_game)
-      game.vote(voter_name='villager1', 'wolf')
-      
-      game.advance_time
-      assert game.players['wolf'].dead?
-      assert_equal 'good', game.winner?
-    end
-
-
-    def test_aspirations_2
-      game = Game.new
-
-      bill = Werewolf::Player.new(:name => 'bill', :bot => true)
-      tom = Werewolf::Player.new(:name => 'tom', :bot => true)
-      seth = Werewolf::Player.new(:name => 'seth', :bot => true)
-      john = Werewolf::Player.new(:name => 'john', :bot => true)
-      monty = Werewolf::Player.new(:name => 'monty', :bot => true)
-      [bill, tom, seth, john, monty].each {|p| game.join(p)}
-
-      # start 5 player game
-      game.start
-
-      seer = game.players.values.find {|p| 'seer' == p.role}
-      wolf = game.players.values.find {|p| 'wolf' == p.role}
-      beholder = game.players.values.find {|p| 'beholder' == p.role}
-      villager = game.players.values.find {|p| 'villager' == p.role}
-      cultist = game.players.values.find {|p| 'cultist' == p.role}
-
-      # Night 0
-      seer.view(beholder)
-      game.advance_time
-
-      # Day 1
-      game.vote(voter_name=seer.name, villager.name)
-      game.vote(voter_name=wolf.name, villager.name)
-      game.vote(voter_name=beholder.name, wolf.name)
-      game.vote(voter_name=villager.name, seer.name)
-      #cultist doesn't vote
-      game.vote_tally
-      game.status
-
-      # # Night 1
-      # game.advance_time
-      # game.players['john'].dead?
-      # seer.view(wolf)
-      # game.nightkill('tom', 'monty')
-      # game.players['monty'].dead?
-      # game.status
-
-      # # Day 2
-      # game.advance_time
-      # game.players['monty'].dead?
-
-      # game.vote(voter_name='bill', 'tom')
-      # game.vote(voter_name='tom', 'bill')
-      # game.vote(voter_name='seth', 'tom')
-      # game.vote_tally
-      # game.status
-
-      # # Game over
-      # game.advance_time
-      # game.status
-      # game.players['tom'].dead?
-      # # game.winner
-    end
-
-
     def test_new_game_is_inactive
       assert !Game.new.active?
     end
+
 
     def test_new_game_has_no_players
       assert Game.new.players.empty?
     end
 
+
     def test_new_game_has_nil_active_roles
       assert Game.new.active_roles.nil?
     end
+
 
     def test_new_game_is_on_day_0
       assert_equal 0, Game.new.day_number
     end
 
+
     def test_new_game_time_period_is_night
       assert_equal 'night', Game.new.time_period
     end
+
 
     def test_join_add_to_players
       game = Game.new
@@ -1861,7 +1749,6 @@ module Werewolf
     end
 
 
-
     def test_print_claims
       game = Game.new
       fake_claims = "foo bar baz"
@@ -1876,6 +1763,122 @@ module Werewolf
       game.print_claims
     end
 
+
+    def test_aspirations_1
+      game = Game.new
+      seer = Player.new(:name => 'seer')
+      wolf = Player.new(:name => 'wolf')
+      villager1 = Player.new(:name => 'villager1')
+      villager2 = Player.new(:name => 'villager2')
+      cultist = Player.new(:name => 'cultist')
+
+      game.join(seer)
+      game.join(wolf)
+      game.join(villager1)
+      game.join(villager2)
+      game.join(cultist)
+
+      # start 5 player game
+      game.start
+
+      # reassign roles
+      seer.role = 'seer'
+      wolf.role = 'wolf'
+      villager1.role = 'villager'
+      villager2.role = 'villager'
+      cultist.role = 'cultist'
+
+      # Night 0
+      assert_equal 'good', seer.view(villager1)
+      game.advance_time
+
+      # Day 1
+      game.vote(voter_name='seer', 'villager2')
+      game.vote(voter_name='wolf', 'villager2')
+      game.vote(voter_name='villager1', 'seer')
+      game.vote(voter_name='villager2', 'wolf')
+      #cultist doesn't vote
+
+      # Night 1
+      game.advance_time
+      assert game.players['villager2'].dead?
+      assert_equal 'evil', seer.view(wolf)
+      game.nightkill(werewolf='wolf', victim='cultist')
+      
+      # Process night actions
+      game.advance_time
+      assert game.players['cultist'].dead?
+
+      # Day 2
+      game.vote(voter_name='seer', 'wolf')
+      game.vote(voter_name='wolf', 'seer')
+
+      # Game over once last vote is cast
+      game.expects(:end_game)
+      game.vote(voter_name='villager1', 'wolf')
+      
+      game.advance_time
+      assert game.players['wolf'].dead?
+      assert_equal 'good', game.winner?
+    end
+
+
+    def test_aspirations_2
+      game = Game.new
+
+      bill = Werewolf::Player.new(:name => 'bill', :bot => true)
+      tom = Werewolf::Player.new(:name => 'tom', :bot => true)
+      seth = Werewolf::Player.new(:name => 'seth', :bot => true)
+      john = Werewolf::Player.new(:name => 'john', :bot => true)
+      monty = Werewolf::Player.new(:name => 'monty', :bot => true)
+      [bill, tom, seth, john, monty].each {|p| game.join(p)}
+
+      # start 5 player game
+      game.start
+
+      seer = game.players.values.find {|p| 'seer' == p.role}
+      wolf = game.players.values.find {|p| 'wolf' == p.role}
+      beholder = game.players.values.find {|p| 'beholder' == p.role}
+      villager = game.players.values.find {|p| 'villager' == p.role}
+      cultist = game.players.values.find {|p| 'cultist' == p.role}
+
+      # Night 0
+      seer.view(beholder)
+      game.advance_time
+
+      # Day 1
+      game.vote(voter_name=seer.name, villager.name)
+      game.vote(voter_name=wolf.name, villager.name)
+      game.vote(voter_name=beholder.name, wolf.name)
+      game.vote(voter_name=villager.name, seer.name)
+      #cultist doesn't vote
+      game.vote_tally
+      game.status
+
+      # # Night 1
+      # game.advance_time
+      # game.players['john'].dead?
+      # seer.view(wolf)
+      # game.nightkill('tom', 'monty')
+      # game.players['monty'].dead?
+      # game.status
+
+      # # Day 2
+      # game.advance_time
+      # game.players['monty'].dead?
+
+      # game.vote(voter_name='bill', 'tom')
+      # game.vote(voter_name='tom', 'bill')
+      # game.vote(voter_name='seth', 'tom')
+      # game.vote_tally
+      # game.status
+
+      # # Game over
+      # game.advance_time
+      # game.status
+      # game.players['tom'].dead?
+      # # game.winner
+    end
 
   end
 

@@ -98,30 +98,6 @@ module Werewolf
     end
 
 
-    def notify_start(start_initiator)
-      changed
-      notify_observers(
-        :action => 'start', 
-        :start_initiator => start_initiator, 
-        :active_roles => active_roles)
-    end
-
-
-    def notify_of_role(player)
-      message = "Your role is: #{player.role}"
-      changed
-      notify_observers(:action => 'tell_player', :player => player, :message => message)
-
-      if 'beholder' == player.role
-        reveal_seer_to player
-      elsif 'cultist' == player.role
-        reveal_wolves_to player
-      elsif 'wolf' == player.role
-        reveal_wolves_to player
-      end
-    end
-
-
     def reveal_seer_to(beholder)
       seer = @players.values.find{|p| p.role == 'seer'}
       changed
@@ -129,9 +105,9 @@ module Werewolf
     end
 
 
-    def reveal_wolves_to(cultist)
+    def reveal_wolves_to(player)
       changed
-      notify_observers(:action => 'reveal_wolves', :player => cultist, :wolves => wolf_players)
+      notify_observers(:action => 'reveal_wolves', :player => player, :wolves => wolf_players)
     end
 
 
@@ -145,18 +121,6 @@ module Werewolf
 
       print_results
       reset
-    end
-
-
-    def print_tally
-      changed
-      notify_observers(:action => 'tally', :vote_tally => vote_tally)
-    end
-
-
-    def notify_of_active_roles
-      role_string = active_roles.join(', ')
-      notify_all "active roles:  [#{role_string}]"
     end
 
 
@@ -297,7 +261,6 @@ module Werewolf
 
 
     def view(viewer=name1, viewee=name2)
-      puts viewer, viewee
       viewing_player = @players[viewer]
       viewed_player = @players[viewee]
 
@@ -451,21 +414,6 @@ module Werewolf
     end
 
 
-    def print_results
-      if winner?
-        message = "#{winner?.capitalize} won the game!\n"
-      else
-        message = "No winner, game was ended prematurely"
-      end
-
-      changed
-      notify_observers(
-        :action => 'game_results', 
-        :players => players, 
-        :message => message)
-    end
-
-
     def claim(name, text)
       player = @players[name]
       raise RuntimeError.new("claim is only available to players") unless player
@@ -493,6 +441,27 @@ module Werewolf
     end
 
 
+    def print_tally
+      changed
+      notify_observers(:action => 'tally', :vote_tally => vote_tally)
+    end
+
+
+    def print_results
+      if winner?
+        message = "#{winner?.capitalize} won the game!\n"
+      else
+        message = "No winner, game was ended prematurely"
+      end
+
+      changed
+      notify_observers(
+        :action => 'game_results', 
+        :players => players, 
+        :message => message)
+    end
+
+
     def notify_all(message)
       changed
       notify_observers(
@@ -509,6 +478,35 @@ module Werewolf
         :message => message)
     end   
 
+
+    def notify_start(start_initiator)
+      changed
+      notify_observers(
+        :action => 'start', 
+        :start_initiator => start_initiator, 
+        :active_roles => active_roles)
+    end
+
+
+    def notify_of_role(player)
+      message = "Your role is: #{player.role}"
+      changed
+      notify_observers(:action => 'tell_player', :player => player, :message => message)
+
+      if 'beholder' == player.role
+        reveal_seer_to player
+      elsif 'cultist' == player.role
+        reveal_wolves_to player
+      elsif 'wolf' == player.role
+        reveal_wolves_to player
+      end
+    end
+
+
+    def notify_of_active_roles
+      role_string = active_roles.join(', ')
+      notify_all "active roles:  [#{role_string}]"
+    end
 
 
   end
