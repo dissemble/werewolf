@@ -94,6 +94,20 @@ module Werewolf
         @players.values.each do |player|
           notify_of_role player
         end 
+
+        # Give seer a random N0 view
+        seer = @players.values.find {|p| 'seer' == p.role}
+        if(seer)
+          non_seers = @players.values - [seer]
+          unless non_seers.empty?
+            view(viewer=seer.name, viewee=non_seers.shuffle!.first.name)
+          end
+        else
+          puts 'no seer'
+        end
+
+        # Give wolves a no-op nightkill to fake out 'night_finished?'
+        @night_actions['nightkill'] = lambda {}
       end
     end
 
@@ -489,7 +503,13 @@ module Werewolf
 
 
     def notify_of_role(player)
-      message = "Your role is: #{player.role}"
+      if('evil' == player.team)
+        exhortation = "Go kill some villagers!"
+      elsif('good' == player.team)
+        exhortation = "Go hunt some wolves!"
+      end
+
+      message = "Your role is: #{player.role}.  #{exhortation}"
       changed
       notify_observers(:action => 'tell_player', :player => player, :message => message)
 

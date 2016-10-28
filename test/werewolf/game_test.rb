@@ -554,19 +554,40 @@ module Werewolf
     end
 
 
-    def test_notify_of_role
+    def test_notify_of_role_for_good
       game = Game.new
       player1 = Player.new(:name => 'seth')
+
+      expected_message = "Your role is: #{player1.role}.  Go hunt some wolves!"
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'tell_player', 
+        :player => player1, 
+        :message => expected_message)
+      game.add_observer mock_observer
+      player1.stubs(:team).returns('good')
+
+      game.notify_of_role player1
+    end
+
+
+    def test_notify_of_role_for_evil
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+
+      expected_message = "Your role is: #{player1.role}.  Go kill some villagers!"
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'tell_player', 
         :player => player1, 
-        :message => "Your role is: #{player1.role}")
+        :message => expected_message)
       game.add_observer mock_observer
+      player1.stubs(:team).returns('evil')
 
       game.notify_of_role player1
     end
+
 
     def test_beholder_is_told_of_seer
       game = Game.new
@@ -1501,6 +1522,31 @@ module Werewolf
     end
 
 
+    def test_seer_gets_n0_view
+      game = Game.new
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      [seer, villager].each { |p| game.join(p) }
+
+      game.stubs(:assign_roles)
+      game.expects(:view).once.with(seer.name, villager.name)
+      game.start
+    end
+
+
+    def test_n0_will_advance_automatically
+      game = Game.new
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      [seer, wolf, villager].each { |p| game.join(p) }
+
+      game.stubs(:assign_roles)
+      game.start
+      assert game.night_finished?
+    end
+
+
     def test_help_notifies_player
       game = Game.new
 
@@ -1764,63 +1810,63 @@ module Werewolf
     end
 
 
-    def test_aspirations_1
-      game = Game.new
-      seer = Player.new(:name => 'seer')
-      wolf = Player.new(:name => 'wolf')
-      villager1 = Player.new(:name => 'villager1')
-      villager2 = Player.new(:name => 'villager2')
-      cultist = Player.new(:name => 'cultist')
+    # def test_aspirations_1
+    #   game = Game.new
+    #   seer = Player.new(:name => 'seer')
+    #   wolf = Player.new(:name => 'wolf')
+    #   villager1 = Player.new(:name => 'villager1')
+    #   villager2 = Player.new(:name => 'villager2')
+    #   cultist = Player.new(:name => 'cultist')
 
-      game.join(seer)
-      game.join(wolf)
-      game.join(villager1)
-      game.join(villager2)
-      game.join(cultist)
+    #   game.join(seer)
+    #   game.join(wolf)
+    #   game.join(villager1)
+    #   game.join(villager2)
+    #   game.join(cultist)
 
-      # start 5 player game
-      game.start
+    #   # start 5 player game
+    #   game.start
 
-      # reassign roles
-      seer.role = 'seer'
-      wolf.role = 'wolf'
-      villager1.role = 'villager'
-      villager2.role = 'villager'
-      cultist.role = 'cultist'
+    #   # reassign roles
+    #   seer.role = 'seer'
+    #   wolf.role = 'wolf'
+    #   villager1.role = 'villager'
+    #   villager2.role = 'villager'
+    #   cultist.role = 'cultist'
 
-      # Night 0
-      assert_equal 'good', seer.view(villager1)
-      game.advance_time
+    #   # Night 0
+    #   assert_equal 'good', seer.view(villager1)
+    #   game.advance_time
 
-      # Day 1
-      game.vote(voter_name='seer', 'villager2')
-      game.vote(voter_name='wolf', 'villager2')
-      game.vote(voter_name='villager1', 'seer')
-      game.vote(voter_name='villager2', 'wolf')
-      #cultist doesn't vote
+    #   # Day 1
+    #   game.vote(voter_name='seer', 'villager2')
+    #   game.vote(voter_name='wolf', 'villager2')
+    #   game.vote(voter_name='villager1', 'seer')
+    #   game.vote(voter_name='villager2', 'wolf')
+    #   #cultist doesn't vote
 
-      # Night 1
-      game.advance_time
-      assert game.players['villager2'].dead?
-      assert_equal 'evil', seer.view(wolf)
-      game.nightkill(werewolf='wolf', victim='cultist')
+    #   # Night 1
+    #   game.advance_time
+    #   assert game.players['villager2'].dead?
+    #   assert_equal 'evil', seer.view(wolf)
+    #   game.nightkill(werewolf='wolf', victim='cultist')
       
-      # Process night actions
-      game.advance_time
-      assert game.players['cultist'].dead?
+    #   # Process night actions
+    #   game.advance_time
+    #   assert game.players['cultist'].dead?
 
-      # Day 2
-      game.vote(voter_name='seer', 'wolf')
-      game.vote(voter_name='wolf', 'seer')
+    #   # Day 2
+    #   game.vote(voter_name='seer', 'wolf')
+    #   game.vote(voter_name='wolf', 'seer')
 
-      # Game over once last vote is cast
-      game.expects(:end_game)
-      game.vote(voter_name='villager1', 'wolf')
+    #   # Game over once last vote is cast
+    #   game.expects(:end_game)
+    #   game.vote(voter_name='villager1', 'wolf')
       
-      game.advance_time
-      assert game.players['wolf'].dead?
-      assert_equal 'good', game.winner?
-    end
+    #   game.advance_time
+    #   assert game.players['wolf'].dead?
+    #   assert_equal 'good', game.winner?
+    # end
 
 
     def test_aspirations_2
@@ -1842,9 +1888,9 @@ module Werewolf
       villager = game.players.values.find {|p| 'villager' == p.role}
       cultist = game.players.values.find {|p| 'cultist' == p.role}
 
-      # Night 0
-      seer.view(beholder)
-      game.advance_time
+      # Dawn - game should be able to auto-advance
+      assert game.night_finished?
+      game.advance_time 
 
       # Day 1
       game.vote(voter_name=seer.name, villager.name)
@@ -1852,32 +1898,45 @@ module Werewolf
       game.vote(voter_name=beholder.name, wolf.name)
       game.vote(voter_name=villager.name, seer.name)
       #cultist doesn't vote
+      assert !game.night_finished?
+
       game.vote_tally
       game.status
 
-      # # Night 1
-      # game.advance_time
-      # game.players['john'].dead?
-      # seer.view(wolf)
-      # game.nightkill('tom', 'monty')
-      # game.players['monty'].dead?
-      # game.status
+      # Dusk
+      game.advance_time
+      assert villager.dead?
 
-      # # Day 2
-      # game.advance_time
-      # game.players['monty'].dead?
+      # Night 1
+      game.view(seer.name, wolf.name)
+      game.nightkill(wolf.name, beholder.name)
 
-      # game.vote(voter_name='bill', 'tom')
-      # game.vote(voter_name='tom', 'bill')
-      # game.vote(voter_name='seth', 'tom')
-      # game.vote_tally
-      # game.status
+      # Dawn - is able to auto advance b/c all night actions are in
+      assert game.night_finished?
+      game.advance_time 
+      assert beholder.dead?
 
-      # # Game over
-      # game.advance_time
-      # game.status
-      # game.players['tom'].dead?
-      # # game.winner
+      # Day 2
+      game.vote(voter_name=seer.name, cultist.name)
+      game.vote(voter_name=wolf.name, cultist.name)
+      game.vote(voter_name=cultist.name, seer.name)
+      assert_equal 2, game.vote_tally.size
+      game.status
+
+      # Dusk
+      assert game.voting_finished?
+      game.advance_time
+
+      # Night 3
+      game.view(seer.name, wolf.name)
+      assert !game.night_finished?
+      game.nightkill(wolf.name, seer.name)
+      
+      # Dawn - Game over
+      assert game.night_finished?
+      game.expects(:end_game)
+      game.advance_time
+      assert seer.dead?
     end
 
   end
