@@ -6,6 +6,9 @@ module Werewolf
   class Game
     include Observable
 
+    cattr_accessor :roles_with_night_actions
+    @@roles_with_night_actions = {'wolf' => 'nightkill', 'seer' => 'view'}
+
     attr_reader :players
     attr_accessor :active_roles, :day_number, :night_actions, :time_period
     attr_accessor :time_remaining_in_round, :vote_tally
@@ -22,7 +25,7 @@ module Werewolf
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
       @vote_tally = {} 
-      @night_actions = {}
+      @night_actions = {}   # {'action_name' => lambda}
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
     end
@@ -113,6 +116,8 @@ module Werewolf
         reveal_seer_to player
       elsif 'cultist' == player.role
         reveal_wolves_to player
+      elsif 'wolf' == player.role
+        reveal_wolves_to player
       end
     end
 
@@ -156,17 +161,13 @@ module Werewolf
 
 
     def vote(voter_name=name1, candidate_name=name2)
-      unless @players.has_key? voter_name
-        raise RuntimeError.new("'#{voter_name}' is not a player.  Only players may vote")
-      end
-
-      unless @players.has_key? candidate_name
-        raise RuntimeError.new("'#{candidate_name}' is not a player.  You may only vote for players")
-      end
-
-      unless @players[candidate_name].alive?
-        raise RuntimeError.new("'#{candidate_name}' is not alive.  You may only vote for living players")
-      end
+      voter = @players[voter_name]
+      candidate = @players[candidate_name]
+  
+      raise RuntimeError.new("'#{voter_name}' may not vote") unless voter
+      raise RuntimeError.new("'#{candidate_name}' is not a player") unless candidate
+      raise RuntimeError.new("'#{candidate_name}' is already dead.") unless candidate.alive?
+      raise RuntimeError.new("'#{voter_name}' may not vote when dead") unless voter.alive?
 
       unless 'day' == time_period
         message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
@@ -201,6 +202,18 @@ module Werewolf
 
     def voting_finished?
       (living_players.size == vote_count)
+    end
+
+
+    def night_finished?
+      # find the roles of the living players
+      living_roles = Set.new(living_players.map {|p| p.role})
+
+      # filter all possible night_actions to only those which might be performed
+      expected_actions = roles_with_night_actions.select {|r,a| living_roles.include? r}.values
+
+      # compare queued night actions to expected actions
+      (@night_actions.keys.uniq.sort == expected_actions.uniq.sort)
     end
 
 
@@ -270,6 +283,7 @@ module Werewolf
       raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
       raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
       raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
+      raise RuntimeError.new('Dead werewolves may not kill') unless wolf_player.alive?
 
       @night_actions['nightkill'] = lambda {
         victim_player.kill!
@@ -283,6 +297,7 @@ module Werewolf
 
 
     def view(viewer=name1, viewee=name2)
+      puts viewer, viewee
       viewing_player = @players[viewer]
       viewed_player = @players[viewee]
 

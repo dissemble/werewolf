@@ -26,7 +26,10 @@ loop do
     if game.round_expired?
       game.advance_time
     elsif game.voting_finished?
-      game.notify_all "All votes have been cast - lynch will happen early."
+      game.notify_all "All votes have been cast; dusk will come early."
+      game.advance_time 
+    elsif game.night_finished?
+      game.notify_all "All night actions are complete; dawn will come early."
       game.advance_time 
     else
       game.tick time_increment
