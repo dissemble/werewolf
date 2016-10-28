@@ -32,7 +32,7 @@ module Werewolf
 
 
     def default_time_remaining_in_round
-      120
+      300
     end
 
 
@@ -94,6 +94,20 @@ module Werewolf
         @players.values.each do |player|
           notify_of_role player
         end 
+
+        # Give seer a random N0 view
+        seer = @players.values.find {|p| 'seer' == p.role}
+        if(seer)
+          non_seers = @players.values - [seer]
+          unless non_seers.empty?
+            view(seer=seer.name, target=non_seers.shuffle!.first.name)
+          end
+        else
+          puts 'no seer'
+        end
+
+        # Give wolves a no-op nightkill to fake out 'night_finished?'
+        @night_actions['nightkill'] = lambda {}
       end
     end
 
@@ -260,27 +274,30 @@ module Werewolf
     end
 
 
-    def view(viewer=name1, viewee=name2)
-      viewing_player = @players[viewer]
-      viewed_player = @players[viewee]
+    def view(seer_name=name1, target=name2)
+      seer = @players[seer_name]
+      target = @players[target]
 
-      raise RuntimeError.new('View is only available to players') unless viewing_player
-      raise RuntimeError.new('View is only available to the seer') unless viewing_player.role == 'seer'
-      raise RuntimeError.new('Seer must be alive to view') unless viewing_player.alive?
+      raise RuntimeError.new('View is only available to players') unless seer
+      raise RuntimeError.new('View is only available to the seer') unless seer.role == 'seer'
+      raise RuntimeError.new('Seer must be alive to view') unless seer.alive?
       raise RuntimeError.new('You can only view at night') unless time_period == 'night'
-      raise RuntimeError.new('You must view a real player') unless viewed_player
+      raise RuntimeError.new('You must view a real player') unless target
 
       @night_actions['view'] = lambda {
-        team = viewing_player.view viewed_player
-        changed
-        notify_observers(
-          :action => 'view', 
-          :viewer => viewing_player, 
-          :viewee => viewed_player,
-          :message => "is on the side of #{team}")
+        # seer may be nightkilled after calling view, but before his night action is processed
+        if seer.alive?
+          team = seer.view target
+          changed
+          notify_observers(
+            :action => 'view', 
+            :seer => seer, 
+            :target => target,
+            :message => "is on the side of #{team}")
+        end
       }
 
-      notify_player viewing_player, "View order acknowledged.  It will take affect at dawn."
+      notify_player seer, "View order acknowledged.  It will take affect at dawn."
     end
 
 
@@ -398,10 +415,12 @@ module Werewolf
 
 
     def process_night_actions
-      # TODO:  define processing order
-      @night_actions.each do |action_name, action_lambda|
-        action_lambda[]
-        @night_actions.delete action_name
+      ['nightkill', 'view'].each do |action_name|
+        action_lambda = @night_actions[action_name]
+        if action_lambda
+          action_lambda[]
+          @night_actions.delete action_name
+        end
       end
 
       @night_actions.clear
@@ -489,7 +508,13 @@ module Werewolf
 
 
     def notify_of_role(player)
-      message = "Your role is: #{player.role}"
+      if('evil' == player.team)
+        exhortation = "Go kill some villagers!"
+      elsif('good' == player.team)
+        exhortation = "Go hunt some wolves!"
+      end
+
+      message = "Your role is: #{player.role}.  #{exhortation}"
       changed
       notify_observers(:action => 'tell_player', :player => player, :message => message)
 
