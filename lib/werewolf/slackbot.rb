@@ -155,7 +155,7 @@ end:      terminate the running game.  'wolfbot end'
 status:   should probably work...  'wolfbot status'
 tally:    show lynch-vote tally (only during day)
 kill:     as a werewolf, nightkill a player.  'wolfbot kill @name' (only at night).  
-see:      as the seer, reveals the alignment of another player.  'wolfbot see @name' (only at night).  
+view:     as the seer, reveals the alignment of another player.  'wolfbot see @name' (only at night).  
 vote:     vote to lynch a player.  'wolfbot vote @name' (only during day)
 claim:    register a claim.  'wolfbot claim i am the walrus'
 claims:   view all claims.  'wolfbot claims'

@@ -715,6 +715,15 @@ module Werewolf
     end
 
 
+    def test_wolf_is_told_of_wolves
+      game = Game.new
+      player1 = Player.new(:name => 'bill', :role => 'wolf')
+      player2 = Player.new(:name => 'tom', :role => 'wolf')
+      game.expects(:reveal_wolves_to).once.with(player1)
+      game.notify_of_role player1
+    end
+
+
     def test_reveal_wolves_to_notifies_player_of_wolves
       game = Game.new
       cultist = Player.new(:name => 'tom', :role => 'cultist')
@@ -876,7 +885,7 @@ module Werewolf
       game = Game.new
       game.add_username_to_game 'seth'
       game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.vote 'seth', 'seth'
     end
 
@@ -900,7 +909,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.vote 'seth', 'tom'
       }
-      assert_match /is not alive/, err.message
+      assert_match /is already dead/, err.message
     end
 
 
@@ -912,7 +921,7 @@ module Werewolf
       game.start
       assert_equal 'night', game.time_period
 
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.stubs(:time_remaining_in_round).returns(19)
       game.expects(:notify_all).once.with('You may not vote at night.  Night ends in 19 seconds')
 
@@ -929,7 +938,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.vote 'babar', 'seth'
       }
-      assert_match /Only players may vote/, err.message
+      assert_match /may not vote/, err.message
     end
 
 
@@ -938,7 +947,7 @@ module Werewolf
       game.add_username_to_game 'seth'
       game.stubs(:time_period).returns('day')
       game.expects(:print_tally).once
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.vote 'seth', 'seth'
     end
 
@@ -1009,6 +1018,42 @@ module Werewolf
       game.add_username_to_game 'bill'
       game.stubs(:time_period).returns('day')
       assert !game.voting_finished?
+    end
+
+
+    def test_night_finished_when_no_action
+      game = Game.new
+      game.join Werewolf::Player.new(:name => 'seth', :role => 'seer')
+      assert !game.night_finished?
+    end
+
+
+    def test_night_finished_when_all_night_actions_queued
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill', :role => 'villager')
+      tom = Werewolf::Player.new(:name => 'tom', :role => 'seer')
+      seth = Werewolf::Player.new(:name => 'seth', :role => 'wolf')
+      [bill, tom, seth].each {|p| game.join(p)}
+      
+      game.stubs(:time_period).returns('night')
+      game.stubs(:day_number).returns(1)
+
+      # no actions queued
+      assert !game.night_finished?
+
+      # some actions queued
+      game.nightkill 'seth', 'bill'
+      assert !game.night_finished?
+
+      # add actions queued
+      game.view 'tom', 'bill'
+      assert game.night_finished?
+    end
+
+
+    def test_roles_with_night_actions
+      expected = {'wolf' => 'nightkill', 'seer' => 'view'}
+      assert_equal expected, Game.roles_with_night_actions 
     end
 
 
@@ -1094,7 +1139,7 @@ module Werewolf
       game.add_username_to_game 'tom'
       game.add_username_to_game 'bill'
       game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.vote 'seth', 'tom'
       game.vote 'tom', 'bill'
       game.vote 'bill', 'tom'
@@ -1120,6 +1165,19 @@ module Werewolf
       game.vote(voter_name='seth', candidate_name='tom')
       expected_tally = {'tom' => Set.new(['seth'])}
       assert_equal expected_tally, game.vote_tally
+    end
+
+
+    def test_may_not_vote_when_dead
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :alive => false))
+      game.join(Player.new(:name => 'tom'))
+      game.stubs(:time_period).returns('day')
+
+      err = assert_raises(RuntimeError) do
+        game.vote(voter_name='seth', candidate_name='tom')
+      end
+      assert_match /may not vote when dead/, err.message
     end
 
 
@@ -1164,7 +1222,7 @@ module Werewolf
       game.join player1
       game.join player2
       game.advance_time
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.vote 'seth', 'tom'
       game.vote 'tom', 'seth'
       
@@ -1220,7 +1278,7 @@ module Werewolf
       game.join(player2)
 
       game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'seth')
       game.vote('john', 'seth')
       assert player1.alive?
@@ -1238,7 +1296,7 @@ module Werewolf
       game.join(player2)
 
       game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'john')
       game.vote('john', 'seth')
 
@@ -1252,7 +1310,7 @@ module Werewolf
       game = Game.new
       game.add_username_to_game('seth')
       game.stubs(:time_period).returns('day')
-      game.stubs(:voting_finished?).returns(false)
+      # game.stubs(:voting_finished?).returns(false)
       game.vote('seth', 'seth')
       assert_equal 1, game.vote_tally.size
 
@@ -1301,6 +1359,19 @@ module Werewolf
     end
 
 
+    def test_nightkill_only_works_for_living_wolves
+      game = Game.new
+      game.join Player.new(:name => 'seth', :role => 'wolf', :alive => false)
+      game.join Player.new(:name => 'tom', :role => 'villager')
+      game.stubs(:day_number).returns(1)
+      
+      err = assert_raises(RuntimeError) {
+        game.nightkill(werewolf='seth', victim='tom')
+      }
+      assert_match /Dead werewolves may not kill/, err.message
+    end
+
+
     def test_nightkill_is_not_available_to_nonplayers
       game = Game.new
       game.join Player.new(:name => 'tom', :role => 'villager')
@@ -1325,12 +1396,13 @@ module Werewolf
     def test_can_only_nightkill_living_players
       game = Game.new
       player1 = Player.new(:name => 'seth', :role => 'wolf')
+      player2 = Player.new(:name => 'bill', :role => 'villager', :alive => false)
       game.join(player1)
-      player1.kill!
+      game.join(player2)
 
       game.stubs(:day_number).returns(1)
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf='seth', victim='seth')
+        game.nightkill(werewolf='seth', victim='bill')
         game.process_night_actions
       }
       assert_match /already dead/, err.message
