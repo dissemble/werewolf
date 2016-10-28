@@ -11,7 +11,7 @@ end
 SlackRubyBot::Client.logger.level = Logger::INFO
 game = Werewolf::Game.instance
 
-slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['fangbot'])
+slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['!', 'w'])
 game.add_observer(slackbot)
 
 slackbot.start_async
@@ -24,6 +24,9 @@ loop do
 
   if game.active?
     if game.round_expired?
+      game.advance_time
+    elsif game.voting_finished?
+      game.notify_all "All votes have been cast - lynch will happen early."
       game.advance_time 
     else
       game.tick time_increment

@@ -26,7 +26,7 @@ module Werewolf
     end
 
     def team
-      role == 'wolf' ? 'evil' : 'good'
+      ['wolf', 'cultist'].include?(role) ? 'evil' : 'good'
     end
 
     def view(other_player)
@@ -36,6 +36,10 @@ module Werewolf
     
     def bot?
       @bot
+    end
+
+    def to_s
+      "#<Player name=#{name}>"
     end
 
   end

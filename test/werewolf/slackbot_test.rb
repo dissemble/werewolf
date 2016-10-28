@@ -116,14 +116,84 @@ module Werewolf
     end
 
 
-    def test_handle_nightkill_broadcasts_to_room
+    def test_handle_leave_broadcast_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
+
+      slackbot.expects(:tell_all).once.with("<@#{player.name}> has left the game")
+      slackbot.handle_leave(:player => player)
+    end
+
+
+    def test_handle_help
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+
+      # TODO:  needs love
+      slackbot.expects(:tell_player).once
+      slackbot.handle_help(:player => player)
+    end
+
+
+    def test_handle_nightkill_broadcasts_to_room
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth', :role => 'musketeer')
       message = "i see the moon, and the moon sees me"
-      slackbot.expects(:tell_all).once.with("***** <@seth> #{message}")
+      slackbot.expects(:tell_all).once.with("***** <@seth> (musketeer) #{message}")
       slackbot.handle_nightkill(
         :player => player,
         :message => message)
+    end
+
+
+    def test_handle_reveal_wolves_with_one_wolf
+      slackbot = Werewolf::SlackBot.new
+      cultist = Player.new(:name => 'tom', :role => 'cultist')
+      wolf1 = Player.new(:name => 'seth', :role => 'wolf')
+
+      slackbot.expects(:tell_player).once.with(cultist, "The wolf is <@seth>")
+      slackbot.handle_reveal_wolves(
+        :player => cultist,
+        :wolves => [wolf1])
+    end
+
+
+    def test_handle_reveal_wolves_with_multiple
+      slackbot = Werewolf::SlackBot.new
+      cultist = Player.new(:name => 'tom', :role => 'cultist')
+      wolf1 = Player.new(:name => 'bill', :role => 'wolf')
+      wolf2 = Player.new(:name => 'seth', :role => 'wolf')
+      wolf3 = Player.new(:name => 'john', :role => 'wolf')
+
+      slackbot.expects(:tell_player).once.with(cultist, "The wolves are <@bill> and <@seth> and <@john>")
+      slackbot.handle_reveal_wolves(
+        :player => cultist,
+        :wolves => [wolf1, wolf2, wolf3])
+    end
+
+
+    def test_handle_claims
+      slackbot = Werewolf::SlackBot.new
+
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom')
+      seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+      [bill, tom, seth].each {|p| game.join(p)}
+      game.claim 'bill', 'i am the walrus'
+      game.claim 'tom', 'i am the eggman'
+
+      expected = <<MESSAGE
+Claims:
+<@bill>:  i am the walrus
+<@tom>:  i am the eggman
+<@seth>:  -
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_claims(
+        :claims => game.claims
+        )
     end
 
 
@@ -201,10 +271,19 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
       message = "is exceptional"
-      slackbot.expects(:tell_all).once.with("<@#{initiator}> #{message}")
+      slackbot.expects(:tell_all).once.with(
+        "<@#{initiator}> has started the game.  Active roles: [villager, cultist, beholder]\n" \
+        "```" \
+        "beholder:  team good.  knows the identity of the seer.\n" \
+        "cultist:   team evil.  knows the identity of the wolves.\n" \
+        "seer:      team good.  views the alignment of one player each night.\n" \
+        "villager:  team good.  no special powers.\n" \
+        "wolf:      team evil.  kills people at night.\n" \
+        "```"
+        )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :message => message)
+        :active_roles => ['villager', 'cultist', 'beholder'])
     end
 
 
@@ -244,10 +323,10 @@ MESSAGE
 
     def test_handle_lynch_player
       slackbot = Werewolf::SlackBot.new
-      player = Player.new(:name => 'seth')
+      player = Player.new(:name => 'seth', :role => 'musketeer')
       message = 'and with its head, he went galumphing back'
 
-      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}>")
+      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}> (musketeer)")
 
       slackbot.handle_lynch_player(
         :player => player,

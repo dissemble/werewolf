@@ -24,6 +24,7 @@ module Werewolf
       @vote_tally = {} 
       @night_actions = {}
       @time_remaining_in_round = default_time_remaining_in_round
+      @claims = {}
     end
 
 
@@ -43,23 +44,18 @@ module Werewolf
 
 
     def add_username_to_game(name)
-      join(Player.new(:name => name))
+      join Player.new(:name => name)
     end
 
 
     def join(player)
       if active?
+        message = "game is active, joining is not allowed"
         changed
-        notify_observers(
-          :action => 'join_error', 
-          :player => player, 
-          :message => "game is active, joining is not allowed")
+        notify_observers(:action => 'join_error', :player => player, :message => message)
       elsif @players.has_key? player.name
         changed
-        notify_observers(
-          :action => 'join_error', 
-          :player => player,
-          :message => 'you already joined!')
+        notify_observers(:action => 'join_error', :player => player, :message => 'you already joined!')
       else
         @players[player.name] = player
         changed
@@ -68,54 +64,70 @@ module Werewolf
     end
 
 
+    def leave(name)
+      player = @players[name]
+      raise RuntimeError.new("must be player to leave game") unless player
+      raise RuntimeError.new("can't leave an active game") if active?
+
+      @players.delete name
+
+      changed
+      notify_observers(:action => 'leave', :player => player)
+    end
+
+
     def start(start_initiator='Unknown')
       if active?
-        notify_all("Game is already active")
+        notify_all "Game is already active"
       elsif @players.empty?
-        notify_all("Game can't start until there is at least 1 player")
+        notify_all "Game can't start until there is at least 1 player"
       else
         assign_roles
         @active = true
 
-        notify_start(start_initiator)
+        notify_start start_initiator
         status
         
         @players.values.each do |player|
-          notify_player_of_role(player)
+          notify_of_role player
         end 
       end
     end
 
 
     def notify_start(start_initiator)
-      active_role_string = active_roles.join(', ')
       changed
       notify_observers(
         :action => 'start', 
         :start_initiator => start_initiator, 
-        :message => "has started the game.  Active roles: [#{active_role_string}]")
+        :active_roles => active_roles)
     end
 
 
-    def notify_player_of_role(player)
+    def notify_of_role(player)
+      message = "Your role is: #{player.role}"
       changed
-      notify_observers(
-        :action => 'tell_player', 
-        :player => player, 
-        :message => "Your role is: #{player.role}")
+      notify_observers(:action => 'tell_player', :player => player, :message => message)
 
       if 'beholder' == player.role
-        behold(player)
+        reveal_seer_to player
+      elsif 'cultist' == player.role
+        reveal_wolves_to player
       end
     end
 
 
-    def behold(beholder)
+    def reveal_seer_to(beholder)
       seer = @players.values.find{|p| p.role == 'seer'}
       changed
       notify_observers(:action => 'behold', :beholder => beholder, :seer => seer, :message => 'The seer is:')
     end
 
+
+    def reveal_wolves_to(cultist)
+      changed
+      notify_observers(:action => 'reveal_wolves', :player => cultist, :wolves => wolf_players)
+    end
 
 
     def end_game(name='Unknown')
@@ -139,12 +151,12 @@ module Werewolf
 
     def notify_of_active_roles
       role_string = active_roles.join(', ')
-      notify_all("active roles:  [#{role_string}]")
+      notify_all "active roles:  [#{role_string}]"
     end
 
 
     def vote(voter_name=name1, candidate_name=name2)
-     unless @players.has_key? voter_name
+      unless @players.has_key? voter_name
         raise RuntimeError.new("'#{voter_name}' is not a player.  Only players may vote")
       end
 
@@ -157,7 +169,9 @@ module Werewolf
       end
 
       unless 'day' == time_period
-        raise RuntimeError.new('you may not vote at night')
+        message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
+        notify_all message
+        raise RuntimeError.new(message)
       end
 
       # remove any previous vote
@@ -185,9 +199,39 @@ module Werewolf
     end
 
 
+    def voting_finished?
+      (living_players.size == vote_count)
+    end
+
+
+    def detect_voting_finished?
+      (living_players.size == vote_count)
+    end
+
+
+    def vote_count
+      @vote_tally.values.reduce(0) {|count, s| count += s.size}
+    end
+
+
+    def living_players
+      @players.values.find_all{|p| p.alive?}
+    end
+
+
+    def wolf_players
+      @players.values.find_all{|p| p.role == 'wolf'}
+    end
+
+
+    def all_players
+      @players.values
+    end
+
+
     def lynch
       if @vote_tally.empty?
-        notify_all("No one voted - no one was lynched")
+        notify_all "No one voted - no one was lynched"
       else
         # this gives the voters for the player with the most votes
         lynchee_name, voters = @vote_tally.max_by{|k,v| v.size}
@@ -197,7 +241,7 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
-          notify_all("The townsfolk couldn't decide - no one was lynched")
+          notify_all "The townsfolk couldn't decide - no one was lynched"
         else
           lynch_player @players[lynchee_name]
         end
@@ -223,14 +267,18 @@ module Werewolf
       victim_player = @players[victim]
       raise RuntimeError.new("no such player as #{victim}") unless victim_player
       raise RuntimeError.new('Only players may nightkill') unless wolf_player
-      raise RuntimeError.new('Only wolves may nightkill') unless wolf_player.role == 'wolf'
-      raise RuntimeError.new('nightkill may only be used at night') unless time_period == 'night'
+      raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
+      raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
+      raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
 
       @night_actions['nightkill'] = lambda {
         victim_player.kill!
         changed
         notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
       }
+
+      # acknowledge nightkill command
+      notify_player wolf_player, 'Nightkill order acknowledged.  It will take affect at dawn.'
     end
 
 
@@ -245,7 +293,7 @@ module Werewolf
       raise RuntimeError.new('You must view a real player') unless viewed_player
 
       @night_actions['view'] = lambda {
-        team = viewing_player.view(viewed_player)
+        team = viewing_player.view viewed_player
         changed
         notify_observers(
           :action => 'view', 
@@ -253,31 +301,18 @@ module Werewolf
           :viewee => viewed_player,
           :message => "is on the side of #{team}")
       }
+
+      notify_player viewing_player, "View order acknowledged.  It will take affect at dawn."
     end
 
 
     def help(name)
       player = Player.new(:name => name)
 
-      message = <<MESSAGE
-Commands you can use:
-help:   this command
-join:   join the game (only before the game starts)
-start:  start the game (only after players have joined)
-end:    terminate running game
-status: should probably work...
-tally:  show lynch-vote tally (only during day)
-kill:   as a werewolf, nightkill a player.  (only at night)
-view:   as the seer, reveals the alignment of another player.  (only at night)
-vote:   vote to lynch a player.  (only during day)
-
-MESSAGE
-
       changed
       notify_observers(
-        :action => 'tell_player', 
-        :player => player, 
-        :message => message)
+        :action => 'help', 
+        :player => player)
     end
 
 
@@ -307,11 +342,11 @@ MESSAGE
         1 => ['seer'],
         2 => ['seer', 'wolf'],
         3 => ['seer', 'villager', 'wolf'],
-        4 => ['seer', 'villager', 'villager', 'wolf'],
-        5 => ['seer', 'beholder', 'villager', 'wolf', 'wolf'],
-        6 => ['seer', 'beholder', 'villager', 'villager', 'wolf', 'wolf'],
-        7 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        8 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        4 => ['seer', 'beholder', 'cultist', 'wolf'],
+        5 => ['seer', 'beholder', 'villager', 'cultist', 'wolf'],
+        6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
+        7 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        8 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         9 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
         10 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
       }
@@ -337,7 +372,14 @@ MESSAGE
 
 
     def advance_time
+      @time_remaining_in_round = default_time_remaining_in_round
       @time_period, @day_number = @time_period_generator.next
+
+      if 'night' == time_period
+        lynch
+      else
+        process_night_actions
+      end
 
       if 'night' == time_period
         message = "[Dusk], day #{day_number}.  The sun will rise again in #{default_time_remaining_in_round} seconds."
@@ -347,14 +389,6 @@ MESSAGE
 
       changed
       notify_observers(:action => 'advance_time', :message => message)
-
-      if 'night' == time_period
-        lynch
-      else
-        process_night_actions
-      end
-
-      @time_remaining_in_round = default_time_remaining_in_round
 
       if winner?
         end_game
@@ -397,10 +431,8 @@ MESSAGE
 
 
     def winner?
-      the_living = players.find_all{|k,v| v.alive?}
-      remaining_sides = the_living.map{|k,v| v.team}.uniq
-
-      (remaining_sides.size == 1) ? remaining_sides.first : false
+      remaining_teams = living_players.map{|p| p.team}.uniq
+      (remaining_teams.size == 1) ? remaining_teams.first : false
     end
 
 
@@ -419,12 +451,49 @@ MESSAGE
     end
 
 
+    def claim(name, text)
+      player = @players[name]
+      raise RuntimeError.new("claim is only available to players") unless player
+      
+      @claims[player] = text
+      print_claims
+    end
+
+
+    # TODO: claims/claim are too confusing
+    def claims
+      # TODO:  there is a better way
+      all_players.each do |p| 
+        unless(@claims.has_key? p)
+          @claims[p] = nil
+        end
+      end
+      @claims
+    end
+
+
+    def print_claims
+      changed
+      notify_observers(:action => 'claims', :claims => claims)
+    end
+
+
     def notify_all(message)
       changed
       notify_observers(
         :action => 'tell_all', 
         :message => message)
     end
+
+
+    def notify_player(player, message)
+      changed
+      notify_observers(
+        :action => 'tell_player', 
+        :player => player,
+        :message => message)
+    end   
+
 
 
   end
