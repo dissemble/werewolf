@@ -404,7 +404,7 @@ module Werewolf
       game = Game.new
       x = 10
       game.night_actions['nightkill'] = lambda {x *= 2}
-      game.night_actions['see'] = lambda {x += 5}
+      game.night_actions['view'] = lambda {x += 5}
 
       game.process_night_actions
       assert_equal 25, x
@@ -415,11 +415,37 @@ module Werewolf
       game = Game.new
       x = 10
       game.night_actions['nightkill'] = lambda {x *= 2}
-      game.night_actions['see'] = lambda {x += 5}
+      game.night_actions['view'] = lambda {x += 5}
       assert !game.night_actions.empty?
 
       game.process_night_actions
       assert game.night_actions.empty?
+    end
+
+
+    def test_process_night_actions_does_not_apply_unknown_actions
+      game = Game.new
+      x = 10
+      game.night_actions['nightkill'] = lambda {x *= 2}
+      game.night_actions['runningman'] = lambda {x += 5}
+
+      game.process_night_actions
+      assert_equal 20, x
+    end
+
+
+    def test_seers_gets_no_view_if_nightkilled_first
+      game = Game.new
+      seer = Player.new(:name => 'tom', :role => 'seer')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      [seer, wolf].each {|p| game.join(p)}
+
+      game.stubs(:day_number).returns(1)
+      game.view(seer.name, wolf.name)
+      game.nightkill(wolf.name, seer.name)
+
+      seer.expects(:view).never
+      game.process_night_actions
     end
 
 
@@ -1416,7 +1442,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
       game.join(Player.new(:name => 'tom', :role => 'villager'))
-      game.view(viewer='seth', viewee='tom')
+      game.view(seer_name='seth', target='tom')
     end
 
 
@@ -1424,7 +1450,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       err = assert_raises(RuntimeError) do
-        game.view(viewer='bartelby', viewee='tom')
+        game.view(seer_name='bartelby', target='tom')
       end
       assert_match /View is only available to players/, err.message
     end
@@ -1435,7 +1461,7 @@ module Werewolf
       game.join(Player.new(:name => 'seth', :role => 'villager'))
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       err = assert_raises(RuntimeError) do
-        game.view(viewer='seth', viewee='tom')
+        game.view(seer_name='seth', target='tom')
       end
       assert_match /View is only available to the seer/, err.message
     end
@@ -1445,7 +1471,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
       err = assert_raises(RuntimeError) do
-        game.view(viewer='seth', viewee='hercules')
+        game.view(seer_name='seth', target='hercules')
       end
       assert_match /You must view a real player/, err.message
     end
@@ -1457,7 +1483,7 @@ module Werewolf
       game.stubs(:time_period).returns('day')
 
       err = assert_raises(RuntimeError) do
-        game.view(viewer='seth', viewee='seth')
+        game.view(seer_name='seth', target='seth')
       end
       assert_match /You can only view at night/, err.message
     end
@@ -1467,7 +1493,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer', :alive => false))
       err = assert_raises(RuntimeError) do
-        game.view(viewer='seth', viewee='seth')
+        game.view(seer_name='seth', target='seth')
       end
       assert_match /Seer must be alive to view/, err.message
     end
@@ -1479,7 +1505,7 @@ module Werewolf
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       assert game.night_actions.empty?
       
-      game.view(viewer='seth', viewee='tom')
+      game.view(seer_name='seth', target='tom')
       assert game.night_actions['view']
     end
 
@@ -1495,7 +1521,7 @@ module Werewolf
         seer, 
         "View order acknowledged.  It will take affect at dawn.")
 
-      game.view(viewer='seth', viewee='tom')
+      game.view(seer_name='seth', target='tom')
     end
 
 
@@ -1503,20 +1529,17 @@ module Werewolf
       game = Game.new
       seer = Player.new(:name => 'seth', :role => 'seer')
       villager = Player.new(:name => 'tom', :role => 'villager')
-      game.join(seer)
-      game.join(villager)
+      [seer, villager].each {|p| game.join(p)}
 
-      game.view(viewer='seth', viewee='tom')
+      game.view(seer_name='seth', target='tom')
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'view', 
-        :viewer => seer,
-        :viewee => villager,
+        :seer => seer,
+        :target => villager,
         :message => "is on the side of #{villager.team}")
       game.add_observer(mock_observer)
-      game.expects(:assign_roles).never
-
 
       game.process_night_actions
     end
@@ -1931,7 +1954,7 @@ module Werewolf
       game.view(seer.name, wolf.name)
       assert !game.night_finished?
       game.nightkill(wolf.name, seer.name)
-      
+
       # Dawn - Game over
       assert game.night_finished?
       game.expects(:end_game)

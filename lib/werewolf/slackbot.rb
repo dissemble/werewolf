@@ -41,7 +41,7 @@ module Werewolf
 
 
     def handle_view(options = {})
-      tell_player options[:viewer], "#{slackify(options[:viewee])} #{options[:message]}"
+      tell_player options[:seer], "#{slackify(options[:target])} #{options[:message]}"
     end
 
 
