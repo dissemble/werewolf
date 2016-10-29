@@ -478,8 +478,23 @@ MESSAGE
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
+      mock_web_client = mock("mock_web_client")
       channel = slackbot.slackbot_channel
-      mock_client.expects(:web_client).returns(mock("mock_web_client").expects(:chat_postMessage).once.with(text: message, channel: channel))
+      mock_client.stubs(:web_client).returns(mock_web_client)
+      mock_web_client.expects(:chat_postMessage).once.with(
+        :channel => channel,
+        :as_user => true,
+        :attachments => [
+          {
+            :fallback => message,
+            :color => nil,
+            :title => nil,
+            :text => message,
+            :fields => nil,
+            :mrkdwn_in => ['text', 'fields']
+          }
+        ]
+      )
       slackbot.stubs(:client).returns(mock_client)
 
       slackbot.tell_all(message)
