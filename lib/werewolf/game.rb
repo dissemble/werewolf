@@ -322,12 +322,12 @@ module Werewolf
     def format_time
       if active?
         if time_period == 'night'
-          "It is night (day #{day_number}).  The sun will rise again in #{time_remaining_in_round} seconds."
+          ":night_with_stars: It is night (day #{day_number}).  The sun will rise again in #{time_remaining_in_round} seconds. :hourglass:"
         else
-          "It is daylight (day #{day_number}).  The sun will set again in #{time_remaining_in_round} seconds."
+          ":sunrise: It is daylight (day #{day_number}).  The sun will set again in #{time_remaining_in_round} seconds. :hourglass:"
         end
       else
-        "No game running"
+        ":no_entry: No game running"
       end
     end
 
@@ -377,13 +377,15 @@ module Werewolf
       end
 
       if 'night' == time_period
-        message = "[Dusk], day #{day_number}.  The sun will rise again in #{default_time_remaining_in_round} seconds."
+        title = "[:night_with_stars: Dusk], day #{day_number}"
+        message = "The sun will rise again in #{default_time_remaining_in_round} seconds :hourglass:."
       else
-        message = "[Dawn], day #{day_number}.  The sun will set again in #{default_time_remaining_in_round} seconds."
+        title = "[:sunrise: Dawn], day #{day_number}"
+        message = "The sun will set again in #{default_time_remaining_in_round} seconds :hourglass:."
       end
 
       changed
-      notify_observers(:action => 'advance_time', :message => message)
+      notify_observers(:action => 'advance_time', :title=> title, :message => message)
     end
 
 

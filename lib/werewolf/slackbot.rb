@@ -16,37 +16,37 @@ module Werewolf
 
 
     def handle_advance_time(options = {})
-      tell_all options[:message]
+      tell_all options[:message], title: options[:title]
     end
 
 
     def handle_join(options = {})
-      tell_all "#{slackify(options[:player])} #{options[:message]}"
+      tell_all ":white_check_mark: #{slackify(options[:player])} #{options[:message]}", color: "good"
     end
 
 
     def handle_join_error(options = {})
-      tell_all "#{slackify(options[:player])} #{options[:message]}"
+      tell_all ":no_entry: #{slackify(options[:player])} #{options[:message]}", color: "danger"
     end
 
 
     def handle_leave(options = {})
-      tell_all "#{slackify(options[:player])} has left the game"
+      tell_all ":homerhide: #{slackify(options[:player])} has left the game", color: "warning"
     end
 
 
     def handle_status(options = {})
-      tell_all "#{options[:message]}\n#{format_players(options[:players])}"
+      tell_all("#{options[:message]}\n#{format_players(options[:players])}", title: "Game Status :wolf:")
     end
 
 
     def handle_view(options = {})
-      tell_player options[:seer], "#{slackify(options[:target])} #{options[:message]}"
+      tell_player options[:seer], ":crystal_ball: #{slackify(options[:target])} #{options[:message]}"
     end
 
 
     def handle_behold(options = {})
-      tell_player options[:beholder], "#{options[:message]} #{slackify(options[:seer])}"
+      tell_player options[:beholder], "#{options[:message]} #{slackify(options[:seer])} :crystal_ball:"
     end
 
 
@@ -54,7 +54,7 @@ module Werewolf
       vote_hash = options[:vote_tally]
 
       if vote_hash.empty?
-        message = "No votes yet"
+        message = "No votes yet :zero:"
       else
         lines = vote_hash.map do |k, v|
           voters = v.map{|name| "<@#{name}>"}.join(', ')
@@ -71,7 +71,7 @@ module Werewolf
       wolves = options[:wolves]
       grammar = (wolves.size == 1) ? 'wolf is' : 'wolves are'
       slackified_wolves = wolves.map{|p| slackify(p)}.join(" and ")
-      tell_player options[:player], "The #{grammar} #{slackified_wolves}"
+      tell_player options[:player], ":wolf: The #{grammar} #{slackified_wolves}"
     end
 
 
@@ -79,20 +79,44 @@ module Werewolf
       formatted_roles = options[:active_roles].join(', ')
 
       # TODO:  this should be passing a player and use slackify
-      tell_all "<@#{options[:start_initiator]}> has started the game.  Active roles: [#{formatted_roles}]\n" \
-        "```" \
-        "beholder:  team good.  knows the identity of the seer.\n" \
-        "cultist:   team evil.  knows the identity of the wolves.\n" \
-        "seer:      team good.  views the alignment of one player each night.\n" \
-        "villager:  team good.  no special powers.\n" \
-        "wolf:      team evil.  kills people at night.\n" \
-        "```"
+      tell_all(
+        "Active roles: [#{formatted_roles}]",
+        title: "<@#{options[:start_initiator]}> has started the game. :partyparrot:",
+        color: "good",
+        fields: [
+          {
+            title: ":eyes: beholder",
+            value: "team good. knows the identity of the seer.",
+            short: true
+          },
+          {
+            title: ":dagger_knife: cultist",
+            value: "team evil. knows the identity of the wolves.",
+            short: true
+          },
+          {
+            title: ":crystal_ball: seer",
+            value: "team good.  views the alignment of one player each night.",
+            short: true
+          },
+          {
+            title: ":bust_in_silhouette: villager",
+            value: "team good.  no special powers.",
+            short: true
+          },
+          {
+            title: ":wolf: wolf",
+            value: "team evil.  kills people at night.",
+            short: true
+          }
+        ]
+      )
     end
 
 
     def handle_nightkill(options = {})
       player = options[:player]
-      tell_all "***** #{slackify(player)} (#{player.role}) #{options[:message]}"
+      tell_all ":skull_and_crossbones: #{slackify(player)} (#{player.role}) #{options[:message]}", title: "Murder!", color: "danger"
     end
 
 
@@ -114,24 +138,6 @@ module Werewolf
     def handle_vote(options = {})
       tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
     end
-
-
-    def tell_all(message)
-      puts "tell_all:  #{message}"
-      client.say(text: message, channel: 'G2FQMNAF8')
-    end
-
-
-    def tell_player(player, message)
-      puts "tell_player:  #{player.name}, #{message}"
-      tell_player options[:player], options[:message]
-    end
-
-
-    def handle_tell_all(options = {})
-      tell_all options[:message]
-    end
-
 
     def handle_vote(options = {})
       tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
@@ -170,7 +176,7 @@ MESSAGE
     def handle_game_results(options = {})
       message = options[:message]
       options[:players].each do |name,player|
-        line = player.dead? ? '-' : "+"
+        line = player.dead? ? '- :ghost:' : "+"
         line.concat " #{slackify(player)}: #{player.role}\n"
         message.concat line
       end
@@ -180,21 +186,35 @@ MESSAGE
 
     def handle_claims(options = {})
       puts options[:claims]
-      message = "Claims:\n"
+      message = ""
       options[:claims].each do |player, claim|
         formatted_player = slackify(player)
         formatted_claim = claim || '-'
         message.concat "#{formatted_player}:  #{formatted_claim}\n"
       end
 
-      tell_all message
+      tell_all message, title: "Claims :thinking_face:"
     end
 
 
-    def tell_all(message)
-      puts "tell_all:  #{message}"
+    def tell_all(message, title: nil, color: nil, fields: nil)
+      puts "tell_all:  #{message}, #{title}, #{color}"
 
-      client.say(text: message, channel: slackbot_channel)
+      # client.say(text: message, channel: slackbot_channel)
+      client.web_client.chat_postMessage(
+        channel: slackbot_channel,
+        as_user: true,
+        attachments: [
+          {
+            fallback: message,
+            color: color,
+            title: title,
+            text: message,
+            fields: fields,
+            mrkdwn_in: ["text", "fields"]
+          }
+        ]
+      )
     end
 
 
@@ -202,14 +222,14 @@ MESSAGE
       puts "tell_player:  #{player.name}, #{message}"
       unless player.bot?
         im = client.web_client.im_open(:user => "#{player.name}")
-        client.say(text: message, channel: "#{im.channel.id}")
+        client.say(text: message, channel: "#{im.channel.id}", mrkdwn: true)
       end
     end
 
 
     def format_players(players)
       if players.empty?
-        "Zero players.  Type 'wolfbot join' to join the game."
+        "Zero players.  Type `wolfbot join` to join the game."
       else
         # dead = players.to_a.find_all{|p| p.dead?}
         living = players.to_a.find_all{|p| p.alive?}
@@ -245,5 +265,5 @@ MESSAGE
       end
     end
 
-	end
+  end
 end
