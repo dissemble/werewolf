@@ -48,8 +48,9 @@ module Werewolf
       game.add_observer(slackbot)
 
       slackbot.expects(:update).with(
-        :action => 'advance_time', 
-        :message => "[Dawn], day 1.  The sun will set again in #{game.default_time_remaining_in_round} seconds.")
+        :action => 'advance_time',
+        :title => "[:sunrise: Dawn], day 1",
+        :message => "The sun will set again in #{game.default_time_remaining_in_round} seconds :hourglass:.")
 
       game.advance_time
     end
@@ -69,7 +70,7 @@ module Werewolf
     def test_advance_time_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       message = "i see the moon, and the moon sees me."
-      slackbot.expects(:tell_all).once.with(message)
+      slackbot.expects(:tell_all).once.with(message, {:title => nil})
       slackbot.handle_advance_time(:message => message)
     end
 
@@ -108,7 +109,7 @@ module Werewolf
       player = Player.new(:name => 'seth')
       message = "ride a cock-horse to banbury cross"
 
-      slackbot.expects(:tell_all).once.with("<@#{player.name}> #{message}")
+      slackbot.expects(:tell_all).once.with(":white_check_mark: <@#{player.name}> #{message}", {:color => "good"})
 
       slackbot.handle_join(
         :message => message, 
@@ -120,7 +121,7 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
 
-      slackbot.expects(:tell_all).once.with("<@#{player.name}> has left the game")
+      slackbot.expects(:tell_all).once.with(":homerhide: <@#{player.name}> has left the game", {:color => "warning"})
       slackbot.handle_leave(:player => player)
     end
 
@@ -139,7 +140,7 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth', :role => 'musketeer')
       message = "i see the moon, and the moon sees me"
-      slackbot.expects(:tell_all).once.with("***** <@seth> (musketeer) #{message}")
+      slackbot.expects(:tell_all).once.with(":skull_and_crossbones: <@seth> (musketeer) #{message}", {:title => "Murder!", :color => "danger"})
       slackbot.handle_nightkill(
         :player => player,
         :message => message)
@@ -151,7 +152,7 @@ module Werewolf
       cultist = Player.new(:name => 'tom', :role => 'cultist')
       wolf1 = Player.new(:name => 'seth', :role => 'wolf')
 
-      slackbot.expects(:tell_player).once.with(cultist, "The wolf is <@seth>")
+      slackbot.expects(:tell_player).once.with(cultist, ":wolf: The wolf is <@seth>")
       slackbot.handle_reveal_wolves(
         :player => cultist,
         :wolves => [wolf1])
@@ -165,7 +166,7 @@ module Werewolf
       wolf2 = Player.new(:name => 'seth', :role => 'wolf')
       wolf3 = Player.new(:name => 'john', :role => 'wolf')
 
-      slackbot.expects(:tell_player).once.with(cultist, "The wolves are <@bill> and <@seth> and <@john>")
+      slackbot.expects(:tell_player).once.with(cultist, ":wolf: The wolves are <@bill> and <@seth> and <@john>")
       slackbot.handle_reveal_wolves(
         :player => cultist,
         :wolves => [wolf1, wolf2, wolf3])
@@ -184,12 +185,11 @@ module Werewolf
       game.claim 'tom', 'i am the eggman'
 
       expected = <<MESSAGE
-Claims:
 <@bill>:  i am the walrus
 <@tom>:  i am the eggman
 <@seth>:  -
 MESSAGE
-      slackbot.expects(:tell_all).once.with(expected)
+      slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
 
       slackbot.handle_claims(
         :claims => game.claims
@@ -214,7 +214,7 @@ MESSAGE
       target = Player.new(:name => 'tom')
       message = "lorem ipsum dolor"
 
-      slackbot.expects(:tell_player).once.with(seer, "<@tom> #{message}")
+      slackbot.expects(:tell_player).once.with(seer, ":crystal_ball: <@tom> #{message}")
 
       slackbot.handle_view(
         :action => 'view', 
@@ -231,7 +231,7 @@ MESSAGE
       seer = Player.new(:name => 'tom')
       message = "da seer be"
 
-      slackbot.expects(:tell_player).once.with(beholder, "#{message} <@tom>")
+      slackbot.expects(:tell_player).once.with(beholder, "#{message} <@tom> :crystal_ball:")
 
       slackbot.handle_behold(
         :action => 'view', 
@@ -252,9 +252,9 @@ MESSAGE
 
       expected = <<MESSAGE
 Evil won the game!
-- <@bill>: villager
-- <@tom>: seer
-- <@seth>: beholder
+- :ghost: <@bill>: villager
+- :ghost: <@tom>: seer
+- :ghost: <@seth>: beholder
 + <@john>: wolf
 MESSAGE
       slackbot.expects(:tell_all).once.with(expected)
@@ -270,17 +270,39 @@ MESSAGE
     def test_handle_start_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
-      message = "is exceptional"
       slackbot.expects(:tell_all).once.with(
-        "<@#{initiator}> has started the game.  Active roles: [villager, cultist, beholder]\n" \
-        "```" \
-        "beholder:  team good.  knows the identity of the seer.\n" \
-        "cultist:   team evil.  knows the identity of the wolves.\n" \
-        "seer:      team good.  views the alignment of one player each night.\n" \
-        "villager:  team good.  no special powers.\n" \
-        "wolf:      team evil.  kills people at night.\n" \
-        "```"
-        )
+        "Active roles: [villager, cultist, beholder]", {
+          :title => "<@#{initiator}> has started the game. :partyparrot:",
+          :color => "good",
+          :fields => [
+            {
+              :title => ":eyes: beholder",
+              :value => "team good. knows the identity of the seer.",
+              :short => true
+            },
+            {
+              :title => ":dagger_knife: cultist",
+              :value => "team evil. knows the identity of the wolves.",
+              :short => true
+            },
+            {
+              :title => ":crystal_ball: seer",
+              :value => "team good.  views the alignment of one player each night.",
+              :short => true
+            },
+            {
+              :title => ":bust_in_silhouette: villager",
+              :value => "team good.  no special powers.",
+              :short => true
+            },
+            {
+              :title => ":wolf: wolf",
+              :value => "team evil.  kills people at night.",
+              :short => true
+            }
+          ]
+        },
+      )
       slackbot.handle_start(
         :start_initiator => initiator,
         :active_roles => ['villager', 'cultist', 'beholder'])
@@ -368,7 +390,7 @@ MESSAGE
 
     def test_handle_tally_when_empty
       slackbot = Werewolf::SlackBot.new
-      expected = "No votes yet"
+      expected = "No votes yet :zero:"
 
       slackbot.expects(:tell_all).once.with(expected)
 
@@ -380,7 +402,7 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
       message = "humpty dumpty sat on a wall"
-      slackbot.expects(:tell_all).once.with("<@#{player.name}> #{message}")
+      slackbot.expects(:tell_all).once.with(":no_entry: <@#{player.name}> #{message}", {:color => "danger"})
       slackbot.handle_join_error(:player => player, :message => message)
     end
 
@@ -392,7 +414,7 @@ MESSAGE
 
       game.stubs(:players).returns({:foo => 123})
       slackbot.expects(:handle_status).once.with(
-        :message => "No game running",
+        :message => ":no_entry: No game running",
         :players => [123])
 
       game.status
@@ -404,7 +426,7 @@ MESSAGE
       message = "humpty dumpty sat on a wall"
       fake_players = "no peeps"
       slackbot.stubs(:format_players).returns(fake_players)
-      slackbot.expects(:tell_all).once.with("#{message}\n#{fake_players}")
+      slackbot.expects(:tell_all).once.with("#{message}\n#{fake_players}", {:title => 'Game Status :wolf:'})
       slackbot.handle_status(:message => message, :players => nil)
     end
 
@@ -446,7 +468,7 @@ MESSAGE
 
     def test_format_player_when_no_players
       slackbot = Werewolf::SlackBot.new
-      assert_equal "Zero players.  Type 'wolfbot join' to join the game.", slackbot.format_players(Set.new())
+      assert_equal "Zero players.  Type `wolfbot join` to join the game.", slackbot.format_players(Set.new())
     end
 
 
@@ -456,8 +478,23 @@ MESSAGE
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
+      mock_web_client = mock("mock_web_client")
       channel = slackbot.slackbot_channel
-      mock_client.expects(:say).once.with(text: message, channel: channel)
+      mock_client.stubs(:web_client).returns(mock_web_client)
+      mock_web_client.expects(:chat_postMessage).once.with(
+        :channel => channel,
+        :as_user => true,
+        :attachments => [
+          {
+            :fallback => message,
+            :color => nil,
+            :title => nil,
+            :text => message,
+            :fields => nil,
+            :mrkdwn_in => ['text', 'fields']
+          }
+        ]
+      )
       slackbot.stubs(:client).returns(mock_client)
 
       slackbot.tell_all(message)
