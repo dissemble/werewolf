@@ -300,7 +300,7 @@ module Werewolf
       game.stubs(:time_period).returns('night')
       game.stubs(:day_number).returns(17)
       game.stubs(:time_remaining_in_round).returns(45)
-      expected = "It is night (day 17).  The sun will rise again in 45 seconds."
+      expected = ":night_with_stars: It is night (day 17).  The sun will rise again in 45 seconds. :hourglass:"
       assert_equal expected, game.format_time
     end
 
@@ -311,7 +311,7 @@ module Werewolf
       game.stubs(:time_period).returns('day')
       game.stubs(:day_number).returns(42)
       game.stubs(:time_remaining_in_round).returns(31)
-      expected = "It is daylight (day 42).  The sun will set again in 31 seconds."
+      expected = ":sunrise: It is daylight (day 42).  The sun will set again in 31 seconds. :hourglass:"
       assert_equal expected, game.format_time
     end
 
@@ -319,7 +319,7 @@ module Werewolf
     def test_format_time_when_game_inactive
       game = Game.new
       game.stubs(:active?).returns(false)
-      assert_equal "No game running", game.format_time
+      assert_equal ":no_entry: No game running", game.format_time
     end
 
 
@@ -468,7 +468,8 @@ module Werewolf
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'advance_time',
-        :message => "[Dawn], day 1.  The sun will set again in 17 seconds.")
+        :title => "[:sunrise: Dawn], day 1",
+        :message => "The sun will set again in 17 seconds :hourglass:.")
       game.add_observer mock_observer
 
       game.stubs(:default_time_remaining_in_round).returns(17)
@@ -484,7 +485,8 @@ module Werewolf
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'advance_time',
-        :message => "[Dusk], day 1.  The sun will rise again in 17 seconds.")
+        :title => "[:night_with_stars: Dusk], day 1",
+        :message => "The sun will rise again in 17 seconds :hourglass:.")
       game.add_observer mock_observer
 
       game.stubs(:default_time_remaining_in_round).returns(17)
