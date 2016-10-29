@@ -22,7 +22,7 @@ module Werewolf
       slackbot.stubs(:client).raises(RuntimeError.new("oops"))
       assert_raises(RuntimeError) {
         slackbot.tell_player(Player.new(:name => 'seth'), "amessage")
-      }      
+      }
     end
 
 
@@ -62,7 +62,7 @@ module Werewolf
       slackbot.expects(:handle_advance_time).once.with(:message => "#{message}")
 
       slackbot.update(
-        :action => 'advance_time', 
+        :action => 'advance_time',
         :message => message)
     end
 
@@ -83,8 +83,8 @@ module Werewolf
       player = Player.new(:name => 'seth')
 
       slackbot.expects(:update).with(
-        :action => 'join', 
-        :message => "has joined the game", 
+        :action => 'join',
+        :message => "has joined the game",
         :player => player)
 
       game.join(player)
@@ -98,8 +98,8 @@ module Werewolf
       slackbot.expects(:handle_join).once.with(:player => player, :message => "#{message}")
 
       slackbot.update(
-        :action => 'join', 
-        :message => message, 
+        :action => 'join',
+        :message => message,
         :player => player)
     end
 
@@ -112,7 +112,7 @@ module Werewolf
       slackbot.expects(:tell_all).once.with(":white_check_mark: <@#{player.name}> #{message}", {:color => "good"})
 
       slackbot.handle_join(
-        :message => message, 
+        :message => message,
         :player => player)
     end
 
@@ -217,8 +217,8 @@ MESSAGE
       slackbot.expects(:tell_player).once.with(seer, ":crystal_ball: <@tom> #{message}")
 
       slackbot.handle_view(
-        :action => 'view', 
-        :seer => seer, 
+        :action => 'view',
+        :seer => seer,
         :target => target,
         :message => message
       )
@@ -234,8 +234,8 @@ MESSAGE
       slackbot.expects(:tell_player).once.with(beholder, "#{message} <@tom> :crystal_ball:")
 
       slackbot.handle_behold(
-        :action => 'view', 
-        :beholder => beholder, 
+        :action => 'view',
+        :beholder => beholder,
         :seer => seer,
         :message => message
       )
@@ -260,7 +260,7 @@ MESSAGE
       slackbot.expects(:tell_all).once.with(expected)
 
       slackbot.handle_game_results(
-        :action => 'game_results', 
+        :action => 'game_results',
         :players => game.players,
         :message => "Evil won the game!\n"
       )
@@ -373,7 +373,7 @@ MESSAGE
 
     def test_handle_tally
       slackbot = Werewolf::SlackBot.new
-      expected = 
+      expected =
         "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
         "Lynch <@bill>:  (1 vote) - <@tom>"
 
@@ -381,7 +381,7 @@ MESSAGE
 
       slackbot.handle_tally( {
         :vote_tally => {
-          'tom' => Set.new(['seth', 'bill']), 
+          'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
         }
       } )

@@ -27,10 +27,10 @@ loop do
       game.advance_time
     elsif game.voting_finished?
       game.notify_all "All votes have been cast; dusk will come early."
-      game.advance_time 
+      game.advance_time
     elsif game.night_finished?
       game.notify_all "All night actions are complete; dawn will come early."
-      game.advance_time 
+      game.advance_time
     else
       game.tick time_increment
 
@@ -45,5 +45,5 @@ loop do
     puts "time remaining in round: #{game.time_remaining_in_round}"
   end
 
-  
+
 end
