@@ -7,10 +7,10 @@ module Werewolf
     include Observable
 
     cattr_accessor :roles_with_night_actions
-    @@roles_with_night_actions = {'wolf' => 'nightkill', 'seer' => 'view'}
+    @@roles_with_night_actions = {'bodyguard' => 'guard', 'wolf' => 'nightkill', 'seer' => 'view'}
 
     attr_reader :players
-    attr_accessor :active_roles, :day_number, :night_actions, :time_period
+    attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
     attr_accessor :time_remaining_in_round, :vote_tally
 
     def initialize()
@@ -28,6 +28,7 @@ module Werewolf
       @night_actions = {}   # {'action_name' => lambda}
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
+      @guarded = nil
     end
 
 
@@ -100,14 +101,14 @@ module Werewolf
         if(seer)
           non_seers = @players.values - [seer]
           unless non_seers.empty?
-            view(seer=seer.name, target=non_seers.shuffle!.first.name)
+            view(seer.name, non_seers.shuffle!.first.name)
           end
-        else
-          puts 'no seer'
         end
 
-        # Give wolves a no-op nightkill to fake out 'night_finished?'
+        # TODO: thought - beholder/cultist could be N0 actions for those roles
+        # Provide no-op nightkill to fake out 'night_finished?' so N0 auto advances to D1
         @night_actions['nightkill'] = lambda {}
+        @night_actions['guard'] = lambda {}
       end
     end
 
@@ -142,6 +143,7 @@ module Werewolf
       voter = @players[voter_name]
       candidate = @players[candidate_name]
   
+      raise RuntimeError.new("Game has not started") unless active?
       raise RuntimeError.new("'#{voter_name}' may not vote") unless voter
       raise RuntimeError.new("'#{candidate_name}' is not a player") unless candidate
       raise RuntimeError.new("'#{candidate_name}' is already dead.") unless candidate.alive?
@@ -190,8 +192,7 @@ module Werewolf
       # filter all possible night_actions to only those which might be performed
       expected_actions = roles_with_night_actions.select {|r,a| living_roles.include? r}.values
 
-      # compare queued night actions to expected actions
-      (@night_actions.keys.uniq.sort == expected_actions.uniq.sort)
+      (expected_actions - night_actions.keys).empty?
     end
 
 
@@ -253,7 +254,7 @@ module Werewolf
     end
 
 
-    def nightkill(werewolf=name1, victim=name2)
+    def nightkill(werewolf:, victim:)
       wolf_player = @players[werewolf]
       victim_player = @players[victim]
       raise RuntimeError.new("no such player as #{victim}") unless victim_player
@@ -264,9 +265,11 @@ module Werewolf
       raise RuntimeError.new('Dead werewolves may not kill') unless wolf_player.alive?
 
       @night_actions['nightkill'] = lambda {
-        victim_player.kill!
-        changed
-        notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+        unless @guarded == victim_player
+          victim_player.kill!
+          changed
+          notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+        end
       }
 
       # acknowledge nightkill command
@@ -274,7 +277,22 @@ module Werewolf
     end
 
 
-    def view(seer_name=name1, target=name2)
+    def guard(bodyguard_name:, target_name:)
+      bodyguard_player = @players[bodyguard_name]
+      target_player = @players[target_name]
+
+      raise RuntimeError.new("Only the bodyguard can guard") unless 'bodyguard' == bodyguard_player.role
+      raise RuntimeError.new("Bodyguard must be alive to guard") unless bodyguard_player.alive?
+      raise RuntimeError.new("Must guard a real player") unless target_player
+      raise RuntimeError.new("Can only guard at night") unless time_period == 'night'
+
+      @night_actions['guard'] = lambda {
+        @guarded = target_player
+      }
+    end
+
+
+    def view(seer_name, target)
       seer = @players[seer_name]
       target = @players[target]
 
@@ -417,7 +435,7 @@ module Werewolf
 
 
     def process_night_actions
-      ['nightkill', 'view'].each do |action_name|
+      ['guard', 'nightkill', 'view'].each do |action_name|
         action_lambda = @night_actions[action_name]
         if action_lambda
           action_lambda[]
@@ -425,6 +443,7 @@ module Werewolf
         end
       end
 
+      @guarded = nil
       @night_actions.clear
     end
 
