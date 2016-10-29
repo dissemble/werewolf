@@ -360,6 +360,8 @@ module Werewolf
 
     def test_advance_time
       game = Game.new
+      game.start
+
       assert_equal 'night', game.time_period
       assert_equal 0, game.day_number
 
@@ -380,22 +382,6 @@ module Werewolf
     def test_advance_time_calls_process_night_actions
       game = Game.new
       game.expects(:process_night_actions).once
-      game.advance_time
-    end
-
-
-    def test_advance_time_end_game_if_winner
-      game = Game.new
-      game.stubs(:winner?).once.returns(true)
-      game.expects(:end_game)
-      game.advance_time
-    end
-
-
-    def test_advance_time_does_NOT_prints_results_if_NO_winner
-      game = Game.new
-      game.stubs(:winner?).returns(false)
-      game.expects(:print_results).never
       game.advance_time
     end
 
@@ -462,8 +448,9 @@ module Werewolf
     end
 
 
-    def test_game_notifies_when_time_changes_to_day
+    def test_advance_time_notifies_when_time_changes_to_day
       game = Game.new
+      game.start
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -472,7 +459,6 @@ module Werewolf
       game.add_observer mock_observer
 
       game.stubs(:default_time_remaining_in_round).returns(17)
-
       game.advance_time
     end
 
@@ -1584,7 +1570,7 @@ module Werewolf
 
     def test_winner
       game = Game.new
-      assert !game.winner?
+      assert game.winner?
     end
 
 
@@ -1592,8 +1578,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'villager', :role => 'villager'))
       game.join(Player.new(:name => 'seer', :role => 'seer'))
-      game.join(Player.new(:name => 'wolf', :role => 'wolf'))
-      game.players['wolf'].kill!
+      game.join(Player.new(:name => 'wolf', :role => 'wolf', :alive => false))
       assert game.winner?
       assert_equal 'good', game.winner?
     end
@@ -1619,11 +1604,19 @@ module Werewolf
     end
 
 
-    def test_winner_with_1_of_each_team
+    def test_winner_with_equal_wolves_and_good
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'wolf'))
       game.join(Player.new(:name => 'tom', :role => 'villager'))
-      assert !game.winner?
+      assert game.winner?
+    end
+
+
+    def test_winner_with_only_good_and_cultist
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'cultist'))
+      game.join(Player.new(:name => 'tom', :role => 'villager'))
+      assert_equal 'good', game.winner?
     end
 
 
@@ -1957,7 +1950,7 @@ module Werewolf
 
       # Dawn - Game over
       assert game.night_finished?
-      game.expects(:end_game)
+      # game.expects(:end_game)
       game.advance_time
       assert seer.dead?
     end

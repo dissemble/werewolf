@@ -4,8 +4,8 @@ module Werewolf
   class SlackBot < SlackRubyBot::Server
 
     def slackbot_channel
-      werewolf_bot_dev_channel = 'G2FQMNAF8'
-      # werewolf_channel = 'C2EP92WF3'
+      # werewolf_bot_dev_channel = 'G2FQMNAF8'
+      werewolf_channel = 'C2EP92WF3'
     end
 
     # This receives notifications from a Game instance upon changes.

@@ -32,7 +32,7 @@ module Werewolf
 
 
     def default_time_remaining_in_round
-      300
+      60 * 10
     end
 
 
@@ -384,10 +384,6 @@ module Werewolf
 
       changed
       notify_observers(:action => 'advance_time', :message => message)
-
-      if winner?
-        end_game
-      end
     end
 
 
@@ -428,8 +424,19 @@ module Werewolf
 
 
     def winner?
-      remaining_teams = living_players.map{|p| p.team}.uniq
-      (remaining_teams.size == 1) ? remaining_teams.first : false
+      # remaining_teams = living_players.map{|p| p.team}.uniq
+      # (remaining_teams.size == 1) ? remaining_teams.first : false
+
+      wolves = @players.values.find_all {|p| (p.alive?) && ('wolf' == p.role)}
+      good = @players.values.find_all {|p| (p.alive?) && ('good' == p.team)}
+
+      if wolves.empty?
+        'good'
+      elsif wolves.size >= good.size
+        'evil'
+      else
+        false
+      end
     end
 
 
