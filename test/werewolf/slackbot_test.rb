@@ -16,6 +16,12 @@ module Werewolf
     end
 
 
+    def test_can_set_channel
+      slackbot = Werewolf::SlackBot.new
+      slackbot.channel = "foo"
+    end
+
+
     # TODO:  collapse next 2 tests
     def test_game_notifies_on_advance_time
       game = Game.new
