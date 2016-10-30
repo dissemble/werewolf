@@ -11,7 +11,7 @@ module Werewolf
         # puts "_match: #{_match}"
         # puts "_match['bot']:  #{_match['bot']}"
         # puts "_match['command']:  #{_match['command']}"
-        # puts "_match['expression']:  #{_match['expression']}"        
+        # puts "_match['expression']:  #{_match['expression']}"
         # puts '........'
         Game.instance.add_username_to_game(data.user)
       end

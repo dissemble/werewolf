@@ -5,7 +5,7 @@ module Werewolf
     module Util
 
       class SlackParserTest < Minitest::Test
-        
+
         def test_extracting_username_with_match
           expected = 'U0BGR4GF8'
           assert_equal expected, SlackParser.extract_username('<@U0BGR4GF8>')
