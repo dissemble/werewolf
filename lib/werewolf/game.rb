@@ -353,8 +353,8 @@ module Werewolf
     def define_roles
       rolesets = {
         1 => ['seer'],
-        2 => ['seer', 'wolf'],
-        3 => ['seer', 'villager', 'wolf'],
+        2 => ['bodyguard', 'wolf'],
+        3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'bodyguard', 'villager', 'wolf', 'wolf'],
         6 => ['seer', 'bodyguard', 'beholder', 'villager', 'wolf', 'wolf'],
