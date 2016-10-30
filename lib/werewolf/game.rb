@@ -139,6 +139,25 @@ module Werewolf
     end
 
 
+    def add_vote!(voter:, candidate:)
+      # add new vote
+      if @vote_tally.has_key? candidate.name
+        @vote_tally[candidate.name] << voter.name
+      else
+        @vote_tally[candidate.name] = Set.new([voter.name])
+      end
+    end
+
+
+    def remove_vote!(voter:)
+      @vote_tally.each do |k,v|
+        if v.delete?(voter.name) && v.empty?
+          @vote_tally.delete(k)
+        end
+      end
+    end
+
+
     def vote(voter_name:, candidate_name:)
       voter, candidate = authorize_vote(voter_name:voter_name, candidate_name:candidate_name)
 
@@ -148,19 +167,8 @@ module Werewolf
         raise RuntimeError.new(message)
       end
 
-      # remove any previous vote
-      @vote_tally.each do |k,v|
-        if v.delete?(voter.name) && v.empty?
-          @vote_tally.delete(k)
-        end
-      end
-
-      # add new vote
-      if @vote_tally.has_key? candidate.name
-        @vote_tally[candidate.name] << voter.name
-      else
-        @vote_tally[candidate.name] = Set.new([voter.name])
-      end
+      remove_vote! voter:voter
+      add_vote! voter:voter, candidate:candidate
 
       changed
       notify_observers(
