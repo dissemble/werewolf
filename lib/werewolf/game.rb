@@ -286,6 +286,18 @@ module Werewolf
 
 
     def guard(bodyguard_name:, target_name:)
+      bodyguard_player, target_player = authorize_guard(bodyguard_name:bodyguard_name, target_name:target_name)
+
+      @night_actions['guard'] = lambda {
+        @guarded = target_player
+      }
+
+      # acknowledge guard command immediately
+      notify_player bodyguard_player, 'Guard order acknowledged.  It will take affect at dawn.'
+    end
+
+
+    def authorize_guard(bodyguard_name:, target_name:)
       bodyguard_player = @players[bodyguard_name]
       target_player = @players[target_name]
 
@@ -294,12 +306,7 @@ module Werewolf
       raise RuntimeError.new("Must guard a real player") unless target_player
       raise RuntimeError.new("Can only guard at night") unless time_period == 'night'
 
-      @night_actions['guard'] = lambda {
-        @guarded = target_player
-      }
-
-      # acknowledge guard command immediately
-      notify_player bodyguard_player, 'Guard order acknowledged.  It will take affect at dawn.'
+      return bodyguard_player, target_player
     end
 
 
