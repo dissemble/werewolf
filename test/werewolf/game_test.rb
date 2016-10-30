@@ -603,7 +603,7 @@ module Werewolf
     def test_wolf_is_told_of_wolves
       game = Game.new
       player1 = Player.new(:name => 'bill', :role => 'wolf')
-      player2 = Player.new(:name => 'tom', :role => 'wolf')
+      Player.new(:name => 'tom', :role => 'wolf')
       game.expects(:reveal_wolves_to).once.with(player1)
       game.notify_of_role player1
     end
