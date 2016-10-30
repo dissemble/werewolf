@@ -32,7 +32,7 @@ module Werewolf
     end
 
 
-    def test_tell_all_exists
+    def test_tell_throws_client_runtime_errors
       slackbot = Werewolf::SlackBot.new
       slackbot.stubs(:client).raises(RuntimeError.new("oops"))
       assert_raises(RuntimeError) {

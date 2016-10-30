@@ -1543,7 +1543,7 @@ module Werewolf
     end
 
 
-    def test_view_only_available_to_seer
+    def test_can_only_view_real_players
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
       err = assert_raises(RuntimeError) do
