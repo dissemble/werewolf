@@ -8,17 +8,18 @@ if ENV['SLACK_API_TOKEN'].nil?
   exit(1)
 end
 
+channel = ENV['SLACK_CHANNEL']
+if channel.nil?
+  channel = 'G2FQMNAF8' # werewolf-bot-dev
+  # channel = 'C2EP92WF3' # werewolf
+end
+
 SlackRubyBot::Client.logger.level = Logger::INFO
 game = Werewolf::Game.instance
 
 slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['!', 'w'])
+slackbot.channel = channel
 
-# slackbot.channel = 'C2EP92WF3' # werewolf
-# slackbot.channel = 'G2FQMNAF8' # werewolf-bot-dev
-
-unless ENV['SLACK_CHANNEL'].nil?
-  slackbot.channel = ENV['SLACK_CHANNEL']
-end
 
 game.add_observer(slackbot)
 
