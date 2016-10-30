@@ -3,7 +3,7 @@ module Werewolf
     class Vote < SlackRubyBot::Commands::Base
       command 'kill' do |client, data, match|
         name = Util::SlackParser.extract_username(match['expression'])
-        Game.instance.nightkill(werewolf=data.user, victim=name)
+        Game.instance.nightkill(werewolf: data.user, victim: name)
       end
     end
   end

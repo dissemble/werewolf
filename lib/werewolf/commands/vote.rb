@@ -3,7 +3,7 @@ module Werewolf
     class Vote < SlackRubyBot::Commands::Base
       command 'vote' do |client, data, match|
         name = Util::SlackParser.extract_username(match['expression'])
-        Game.instance.vote(data.user, name)
+        Game.instance.vote(voter_name: data.user, candidate_name: name)
       end
     end
   end

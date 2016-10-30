@@ -39,10 +39,10 @@ seer.view(beholder)
 game.advance_time
 
 # Day 1
-game.vote(voter_name='bill', 'john')
-game.vote(voter_name='tom', 'john')
-game.vote(voter_name='seth', 'bill')
-game.vote(voter_name='john', 'tom')
+game.vote(voter_name: 'bill', candidate_name: 'john')
+game.vote(voter_name: 'tom', candidate_name: 'john')
+game.vote(voter_name: 'seth', candidate_name: 'bill')
+game.vote(voter_name: 'john', candidate_name: 'tom')
 #villager3 doesn't vote
 game.vote_tally
 game.status
@@ -51,7 +51,7 @@ game.status
 game.advance_time
 game.players['john'].dead?
 seer.view(wolf)
-game.nightkill('tom', 'monty')
+game.nightkill(werewolf: 'tom', victim: 'monty')
 game.players['monty'].dead?
 game.status
 
@@ -59,9 +59,9 @@ game.status
 game.advance_time
 game.players['monty'].dead?
 
-game.vote(voter_name='bill', 'tom')
-game.vote(voter_name='tom', 'bill')
-game.vote(voter_name='seth', 'tom')
+game.vote(voter_name: 'bill', candidate_name: 'tom')
+game.vote(voter_name: 'tom', candidate_name: 'bill')
+game.vote(voter_name: 'seth', candidate_name: 'tom')
 game.vote_tally
 game.status
 

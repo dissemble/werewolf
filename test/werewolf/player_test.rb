@@ -3,12 +3,12 @@ require 'test_helper'
 module Werewolf
 
   class PlayerTest < Minitest::Test
-  	def test_cant_initialize_without_name
-  		assert_raises(ArgumentError) {
-  			Player.new
-  		}
-  	end
-    
+    def test_cant_initialize_without_name
+      assert_raises(ArgumentError) {
+        Player.new
+      }
+    end
+
     def test_can_set_and_get_role
       player = Player.new(name => 'seth')
       player.role = 'wolf'
