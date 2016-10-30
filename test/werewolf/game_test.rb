@@ -1445,6 +1445,8 @@ module Werewolf
       seer = Player.new(:name => 'john', :role => 'seer')
       villager1 = Player.new(:name => 'tom', :role => 'villager')
       [seer, villager1].each {|p| game.join(p)}
+
+      game.expects(:assign_roles)
       game.start
 
       err = assert_raises(RuntimeError) do

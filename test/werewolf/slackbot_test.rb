@@ -246,13 +246,18 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [villager, cultist, beholder]", {
+        "Active roles: [beholder, bodyguard, cultist, seer, villager, wolf]", {
           :title => "<@#{initiator}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
             {
               :title => ":eyes: beholder",
               :value => "team good. knows the identity of the seer.",
+              :short => true
+            },
+            {
+              :title => ":shield: bodyguard",
+              :value => "team good.  protects one player from the wolves each night.",
               :short => true
             },
             {
@@ -280,7 +285,39 @@ MESSAGE
       )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :active_roles => ['villager', 'cultist', 'beholder'])
+        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard'])
+    end
+
+
+    def test_handle_only_shows_active_roles
+      slackbot = Werewolf::SlackBot.new
+      initiator = "seth"
+      slackbot.expects(:tell_all).once.with(
+        "Active roles: [beholder, cultist, seer]", {
+          :title => "<@#{initiator}> has started the game. :partyparrot:",
+          :color => "good",
+          :fields => [
+            {
+              :title => ":eyes: beholder",
+              :value => "team good. knows the identity of the seer.",
+              :short => true
+            },
+            {
+              :title => ":dagger_knife: cultist",
+              :value => "team evil. knows the identity of the wolves.",
+              :short => true
+            },
+            {
+              :title => ":crystal_ball: seer",
+              :value => "team good.  views the alignment of one player each night.",
+              :short => true
+            }
+          ]
+        },
+      )
+      slackbot.handle_start(
+        :start_initiator => initiator,
+        :active_roles => ['cultist', 'beholder', 'seer'])
     end
 
 
