@@ -16,6 +16,12 @@ module Werewolf
     end
 
 
+    def test_can_set_channel
+      slackbot = Werewolf::SlackBot.new
+      slackbot.channel = "foo"
+    end
+
+
     # TODO:  collapse next 2 tests
     def test_game_notifies_on_advance_time
       game = Game.new
@@ -487,11 +493,12 @@ MESSAGE
     def test_tell_all
       slackbot = Werewolf::SlackBot.new
       message = 'ab cum de ex in pro sine sub'
+      channel = 'a channel'
+      slackbot.channel = channel
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
       mock_web_client = mock("mock_web_client")
-      channel = slackbot.slackbot_channel
       mock_client.stubs(:web_client).returns(mock_web_client)
       mock_web_client.expects(:chat_postMessage).once.with(
         :channel => channel,

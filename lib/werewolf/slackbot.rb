@@ -2,11 +2,7 @@ require 'slack-ruby-bot'
 
 module Werewolf
   class SlackBot < SlackRubyBot::Server
-
-    def slackbot_channel
-      werewolf_bot_dev_channel = 'G2FQMNAF8'
-      # werewolf_channel = 'C2EP92WF3'
-    end
+    attr_writer :channel
 
     # This receives notifications from a Game instance upon changes.
     # Game is Observable, and the slackbot is an observer.
@@ -78,7 +74,7 @@ module Werewolf
     def handle_start(options = {})
       formatted_roles = options[:active_roles].sort.join(', ')
 
-      all_fields = role_descriptions.delete_if {|k,_v| !options[:active_roles].include?(k)}  
+      all_fields = role_descriptions.delete_if {|k,_v| !options[:active_roles].include?(k)}
 
       tell_all(
         "Active roles: [#{formatted_roles}]",
@@ -173,7 +169,7 @@ MESSAGE
 
       # client.say(text: message, channel: slackbot_channel)
       client.web_client.chat_postMessage(
-        channel: slackbot_channel,
+        channel: @channel,
         as_user: true,
         attachments: [
           {
