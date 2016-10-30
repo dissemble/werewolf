@@ -111,7 +111,7 @@ module Werewolf
           }
       }
 
-      all_fields.delete_if {|k,v| !options[:active_roles].include?(k)}  
+      all_fields.delete_if {|k,_v| !options[:active_roles].include?(k)}  
 
       # TODO:  this should be passing a player and use slackify
       tell_all(
@@ -180,7 +180,7 @@ MESSAGE
 
     def handle_game_results(options = {})
       message = options[:message]
-      options[:players].each do |name,player|
+      options[:players].each do |_name,player|
         line = player.dead? ? '- :ghost:' : "+"
         line.concat " #{slackify(player)}: #{player.role}\n"
         message.concat line
