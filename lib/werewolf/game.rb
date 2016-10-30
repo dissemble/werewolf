@@ -101,7 +101,7 @@ module Werewolf
         if(seer)
           non_seers = @players.values - [seer]
           unless non_seers.empty?
-            view(seer_name: seer.name, target: non_seers.shuffle!.first.name)
+            view seer_name:seer.name, target_name:non_seers.shuffle!.first.name
           end
         end
 
@@ -295,15 +295,8 @@ module Werewolf
     end
 
 
-    def view(seer_name:, target:)
-      seer = @players[seer_name]
-      target = @players[target]
-
-      raise RuntimeError.new('View is only available to players') unless seer
-      raise RuntimeError.new('View is only available to the seer') unless seer.role == 'seer'
-      raise RuntimeError.new('Seer must be alive to view') unless seer.alive?
-      raise RuntimeError.new('You can only view at night') unless time_period == 'night'
-      raise RuntimeError.new('You must view a real player') unless target
+    def view(seer_name:, target_name:)
+      seer, target = authorize_view(seer_name:seer_name, target_name:target_name)
 
       @night_actions['view'] = lambda {
         # seer may be nightkilled after calling view, but before his night action is processed
@@ -319,6 +312,20 @@ module Werewolf
       }
 
       notify_player seer, "View order acknowledged.  It will take affect at dawn."
+    end
+
+
+    def authorize_view(seer_name:, target_name:)
+      seer = @players[seer_name]
+      target = @players[target_name]
+
+      raise RuntimeError.new('View is only available to players') unless seer
+      raise RuntimeError.new('View is only available to the seer') unless seer.role == 'seer'
+      raise RuntimeError.new('Seer must be alive to view') unless seer.alive?
+      raise RuntimeError.new('You can only view at night') unless time_period == 'night'
+      raise RuntimeError.new('You must view a real player') unless target
+
+      return seer, target
     end
 
 
