@@ -80,7 +80,7 @@ module Werewolf
     end
 
 
-    def start(start_initiator='Unknown')
+    def start(starter_name=nil)
       if active?
         notify_all "Game is already active"
       elsif @players.empty?
@@ -89,7 +89,13 @@ module Werewolf
         assign_roles
         @active = true
 
-        notify_start start_initiator
+        begin
+          starting_player = validate_player(starter_name)
+        rescue RuntimeError
+          starting_player = Player.new(:name => "GM")
+        end
+
+        notify_start starting_player
         status
 
         @players.values.each do |player|
@@ -557,11 +563,11 @@ module Werewolf
     end
 
 
-    def notify_start(start_initiator)
+    def notify_start(player)
       changed
       notify_observers(
         :action => 'start',
-        :start_initiator => start_initiator,
+        :start_initiator => player,
         :active_roles => active_roles)
     end
 
