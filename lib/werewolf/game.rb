@@ -357,7 +357,7 @@ module Werewolf
         3 => ['seer', 'villager', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'bodyguard', 'villager', 'wolf', 'wolf'],
-        6 => ['seer', 'bodyguard', 'villager', 'villager', 'wolf', 'wolf'],
+        6 => ['seer', 'bodyguard', 'beholder', 'villager', 'wolf', 'wolf'],
         7 => ['seer', 'bodyguard', 'beholder', 'villager', 'cultist', 'wolf', 'wolf'],
         8 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         9 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
