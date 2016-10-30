@@ -485,9 +485,6 @@ module Werewolf
 
 
     def winner?
-      # remaining_teams = living_players.map{|p| p.team}.uniq
-      # (remaining_teams.size == 1) ? remaining_teams.first : false
-
       wolves = @players.values.find_all {|p| (p.alive?) && ('wolf' == p.role)}
       good = @players.values.find_all {|p| (p.alive?) && ('good' == p.team)}
 
