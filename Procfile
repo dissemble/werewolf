@@ -1,1 +1,1 @@
-worker: bundler exec bin/slackrunner.rb
+web: bundler exec bin/slackrunner.rb
