@@ -76,40 +76,49 @@ module Werewolf
 
 
     def handle_start(options = {})
-      formatted_roles = options[:active_roles].join(', ')
+      formatted_roles = options[:active_roles].sort.join(', ')
+
+      all_fields = {
+        'beholder' => {
+            title: ":eyes: beholder",
+            value: "team good. knows the identity of the seer.",
+            short: true
+          },
+        'bodyguard' => {
+            :title => ":shield: bodyguard",
+            :value => "team good.  protects one player from the wolves each night.",
+            :short => true
+          },
+        'cultist' => {
+            title: ":dagger_knife: cultist",
+            value: "team evil. knows the identity of the wolves.",
+            short: true
+          },
+        'seer' => {
+            title: ":crystal_ball: seer",
+            value: "team good.  views the alignment of one player each night.",
+            short: true
+          },
+        'villager' => {
+            title: ":bust_in_silhouette: villager",
+            value: "team good.  no special powers.",
+            short: true
+          },
+        'wolf' => {
+            title: ":wolf: wolf",
+            value: "team evil.  kills people at night.",
+            short: true
+          }
+      }
+
+      all_fields.delete_if {|k,v| !options[:active_roles].include?(k)}  
 
       # TODO:  this should be passing a player and use slackify
       tell_all(
         "Active roles: [#{formatted_roles}]",
         title: "<@#{options[:start_initiator]}> has started the game. :partyparrot:",
         color: "good",
-        fields: [
-          {
-            title: ":eyes: beholder",
-            value: "team good. knows the identity of the seer.",
-            short: true
-          },
-          {
-            title: ":dagger_knife: cultist",
-            value: "team evil. knows the identity of the wolves.",
-            short: true
-          },
-          {
-            title: ":crystal_ball: seer",
-            value: "team good.  views the alignment of one player each night.",
-            short: true
-          },
-          {
-            title: ":bust_in_silhouette: villager",
-            value: "team good.  no special powers.",
-            short: true
-          },
-          {
-            title: ":wolf: wolf",
-            value: "team evil.  kills people at night.",
-            short: true
-          }
-        ]
+        fields: all_fields.values
       )
     end
 
