@@ -10,34 +10,9 @@ module Werewolf
     end
 
 
-    def test_tell_all_exists
-      slackbot = Werewolf::SlackBot.new
-      slackbot.stubs(:client).returns(mock(:say))
-      slackbot.tell_all("foo")
-    end
-
-
-    def test_tell_player_exists
-      slackbot = Werewolf::SlackBot.new
-      slackbot.stubs(:client).raises(RuntimeError.new("oops"))
-      assert_raises(RuntimeError) {
-        slackbot.tell_player(Player.new(:name => 'seth'), "amessage")
-      }      
-    end
-
-
     def test_tell_player_with_bot
       slackbot = Werewolf::SlackBot.new
       slackbot.tell_player(Player.new(:name => 'seth', :bot => true), "amessage")
-    end
-
-
-    def test_tell_all_exists
-      slackbot = Werewolf::SlackBot.new
-      slackbot.stubs(:client).raises(RuntimeError.new("oops"))
-      assert_raises(RuntimeError) {
-        slackbot.tell_all("some nice text")
-      }
     end
 
 
@@ -62,7 +37,7 @@ module Werewolf
       slackbot.expects(:handle_advance_time).once.with(:message => "#{message}")
 
       slackbot.update(
-        :action => 'advance_time', 
+        :action => 'advance_time',
         :message => message)
     end
 
@@ -83,8 +58,8 @@ module Werewolf
       player = Player.new(:name => 'seth')
 
       slackbot.expects(:update).with(
-        :action => 'join', 
-        :message => "has joined the game", 
+        :action => 'join',
+        :message => "has joined the game",
         :player => player)
 
       game.join(player)
@@ -98,8 +73,8 @@ module Werewolf
       slackbot.expects(:handle_join).once.with(:player => player, :message => "#{message}")
 
       slackbot.update(
-        :action => 'join', 
-        :message => message, 
+        :action => 'join',
+        :message => message,
         :player => player)
     end
 
@@ -112,7 +87,7 @@ module Werewolf
       slackbot.expects(:tell_all).once.with(":white_check_mark: <@#{player.name}> #{message}", {:color => "good"})
 
       slackbot.handle_join(
-        :message => message, 
+        :message => message,
         :player => player)
     end
 
@@ -217,8 +192,8 @@ MESSAGE
       slackbot.expects(:tell_player).once.with(seer, ":crystal_ball: <@tom> #{message}")
 
       slackbot.handle_view(
-        :action => 'view', 
-        :seer => seer, 
+        :action => 'view',
+        :seer => seer,
         :target => target,
         :message => message
       )
@@ -234,8 +209,8 @@ MESSAGE
       slackbot.expects(:tell_player).once.with(beholder, "#{message} <@tom> :crystal_ball:")
 
       slackbot.handle_behold(
-        :action => 'view', 
-        :beholder => beholder, 
+        :action => 'view',
+        :beholder => beholder,
         :seer => seer,
         :message => message
       )
@@ -260,7 +235,7 @@ MESSAGE
       slackbot.expects(:tell_all).once.with(expected)
 
       slackbot.handle_game_results(
-        :action => 'game_results', 
+        :action => 'game_results',
         :players => game.players,
         :message => "Evil won the game!\n"
       )
@@ -271,13 +246,18 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = "seth"
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [villager, cultist, beholder]", {
+        "Active roles: [beholder, bodyguard, cultist, seer, villager, wolf]", {
           :title => "<@#{initiator}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
             {
               :title => ":eyes: beholder",
               :value => "team good. knows the identity of the seer.",
+              :short => true
+            },
+            {
+              :title => ":shield: bodyguard",
+              :value => "team good.  protects one player from the wolves each night.",
               :short => true
             },
             {
@@ -305,7 +285,39 @@ MESSAGE
       )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :active_roles => ['villager', 'cultist', 'beholder'])
+        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard'])
+    end
+
+
+    def test_handle_only_shows_active_roles
+      slackbot = Werewolf::SlackBot.new
+      initiator = "seth"
+      slackbot.expects(:tell_all).once.with(
+        "Active roles: [beholder, cultist, seer]", {
+          :title => "<@#{initiator}> has started the game. :partyparrot:",
+          :color => "good",
+          :fields => [
+            {
+              :title => ":eyes: beholder",
+              :value => "team good. knows the identity of the seer.",
+              :short => true
+            },
+            {
+              :title => ":dagger_knife: cultist",
+              :value => "team evil. knows the identity of the wolves.",
+              :short => true
+            },
+            {
+              :title => ":crystal_ball: seer",
+              :value => "team good.  views the alignment of one player each night.",
+              :short => true
+            }
+          ]
+        },
+      )
+      slackbot.handle_start(
+        :start_initiator => initiator,
+        :active_roles => ['cultist', 'beholder', 'seer'])
     end
 
 
@@ -373,7 +385,7 @@ MESSAGE
 
     def test_handle_tally
       slackbot = Werewolf::SlackBot.new
-      expected = 
+      expected =
         "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
         "Lynch <@bill>:  (1 vote) - <@tom>"
 
@@ -381,7 +393,7 @@ MESSAGE
 
       slackbot.handle_tally( {
         :vote_tally => {
-          'tom' => Set.new(['seth', 'bill']), 
+          'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
         }
       } )

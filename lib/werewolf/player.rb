@@ -18,7 +18,7 @@ module Werewolf
 
     def kill!
       if(dead?)
-        raise RuntimeError.new("already dead") 
+        raise RuntimeError.new("already dead")
       else
         @alive = false
         true
@@ -33,7 +33,7 @@ module Werewolf
       raise RuntimeError.new("only seer may see") unless role == 'seer'
       other_player.team
     end
-    
+
     def bot?
       @bot
     end
@@ -43,5 +43,5 @@ module Werewolf
     end
 
   end
-  
+
 end

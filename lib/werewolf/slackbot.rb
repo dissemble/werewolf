@@ -72,40 +72,16 @@ module Werewolf
 
 
     def handle_start(options = {})
-      formatted_roles = options[:active_roles].join(', ')
+      formatted_roles = options[:active_roles].sort.join(', ')
+
+      all_fields = role_descriptions.delete_if {|k,_v| !options[:active_roles].include?(k)}
 
       # TODO:  this should be passing a player and use slackify
       tell_all(
         "Active roles: [#{formatted_roles}]",
         title: "<@#{options[:start_initiator]}> has started the game. :partyparrot:",
         color: "good",
-        fields: [
-          {
-            title: ":eyes: beholder",
-            value: "team good. knows the identity of the seer.",
-            short: true
-          },
-          {
-            title: ":dagger_knife: cultist",
-            value: "team evil. knows the identity of the wolves.",
-            short: true
-          },
-          {
-            title: ":crystal_ball: seer",
-            value: "team good.  views the alignment of one player each night.",
-            short: true
-          },
-          {
-            title: ":bust_in_silhouette: villager",
-            value: "team good.  no special powers.",
-            short: true
-          },
-          {
-            title: ":wolf: wolf",
-            value: "team evil.  kills people at night.",
-            short: true
-          }
-        ]
+        fields: all_fields.values
       )
     end
 
@@ -130,10 +106,6 @@ module Werewolf
       tell_all options[:message]
     end
 
-
-    def handle_vote(options = {})
-      tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
-    end
 
     def handle_vote(options = {})
       tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
@@ -171,7 +143,7 @@ MESSAGE
 
     def handle_game_results(options = {})
       message = options[:message]
-      options[:players].each do |name,player|
+      options[:players].each do |_name,player|
         line = player.dead? ? '- :ghost:' : "+"
         line.concat " #{slackify(player)}: #{player.role}\n"
         message.concat line
@@ -251,6 +223,42 @@ MESSAGE
 
 
     private
+
+
+    def role_descriptions
+      {
+        'beholder' => {
+            title: ":eyes: beholder",
+            value: "team good. knows the identity of the seer.",
+            short: true
+          },
+        'bodyguard' => {
+            :title => ":shield: bodyguard",
+            :value => "team good.  protects one player from the wolves each night.",
+            :short => true
+          },
+        'cultist' => {
+            title: ":dagger_knife: cultist",
+            value: "team evil. knows the identity of the wolves.",
+            short: true
+          },
+        'seer' => {
+            title: ":crystal_ball: seer",
+            value: "team good.  views the alignment of one player each night.",
+            short: true
+          },
+        'villager' => {
+            title: ":bust_in_silhouette: villager",
+            value: "team good.  no special powers.",
+            short: true
+          },
+        'wolf' => {
+            title: ":wolf: wolf",
+            value: "team evil.  kills people at night.",
+            short: true
+          }
+        }
+    end
 
 
     def pluralize_votes(number)

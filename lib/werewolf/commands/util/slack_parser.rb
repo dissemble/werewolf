@@ -1,9 +1,7 @@
 module Werewolf
   module Commands
-  	module Util
-
-      #TODO:  make module
-  		class SlackParser
+    module Util
+      class SlackParser
 
         #'<@U0BGR4GF8>' => 'U0BGR4GF8'
         def SlackParser.extract_username(input)
