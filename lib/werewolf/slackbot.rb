@@ -78,40 +78,7 @@ module Werewolf
     def handle_start(options = {})
       formatted_roles = options[:active_roles].sort.join(', ')
 
-      all_fields = {
-        'beholder' => {
-            title: ":eyes: beholder",
-            value: "team good. knows the identity of the seer.",
-            short: true
-          },
-        'bodyguard' => {
-            :title => ":shield: bodyguard",
-            :value => "team good.  protects one player from the wolves each night.",
-            :short => true
-          },
-        'cultist' => {
-            title: ":dagger_knife: cultist",
-            value: "team evil. knows the identity of the wolves.",
-            short: true
-          },
-        'seer' => {
-            title: ":crystal_ball: seer",
-            value: "team good.  views the alignment of one player each night.",
-            short: true
-          },
-        'villager' => {
-            title: ":bust_in_silhouette: villager",
-            value: "team good.  no special powers.",
-            short: true
-          },
-        'wolf' => {
-            title: ":wolf: wolf",
-            value: "team evil.  kills people at night.",
-            short: true
-          }
-      }
-
-      all_fields.delete_if {|k,_v| !options[:active_roles].include?(k)}  
+      all_fields = role_descriptions.delete_if {|k,_v| !options[:active_roles].include?(k)}  
 
       # TODO:  this should be passing a player and use slackify
       tell_all(
@@ -260,6 +227,42 @@ MESSAGE
 
 
     private
+
+
+    def role_descriptions
+      {
+        'beholder' => {
+            title: ":eyes: beholder",
+            value: "team good. knows the identity of the seer.",
+            short: true
+          },
+        'bodyguard' => {
+            :title => ":shield: bodyguard",
+            :value => "team good.  protects one player from the wolves each night.",
+            :short => true
+          },
+        'cultist' => {
+            title: ":dagger_knife: cultist",
+            value: "team evil. knows the identity of the wolves.",
+            short: true
+          },
+        'seer' => {
+            title: ":crystal_ball: seer",
+            value: "team good.  views the alignment of one player each night.",
+            short: true
+          },
+        'villager' => {
+            title: ":bust_in_silhouette: villager",
+            value: "team good.  no special powers.",
+            short: true
+          },
+        'wolf' => {
+            title: ":wolf: wolf",
+            value: "team evil.  kills people at night.",
+            short: true
+          }
+        }
+    end
 
 
     def pluralize_votes(number)
