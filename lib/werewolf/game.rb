@@ -254,15 +254,8 @@ module Werewolf
     end
 
 
-    def nightkill(werewolf:, victim:)
-      wolf_player = @players[werewolf]
-      victim_player = @players[victim]
-      raise RuntimeError.new("no such player as #{victim}") unless victim_player
-      raise RuntimeError.new('Only players may nightkill') unless wolf_player
-      raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
-      raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
-      raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
-      raise RuntimeError.new('Dead werewolves may not kill') unless wolf_player.alive?
+    def nightkill(werewolf_name:, victim_name:)
+      wolf_player, victim_player = authorize_nightkill(werewolf_name:werewolf_name, victim_name:victim_name)
 
       @night_actions['nightkill'] = lambda {
         unless @guarded == victim_player
@@ -274,6 +267,21 @@ module Werewolf
 
       # acknowledge nightkill command immediately
       notify_player wolf_player, 'Nightkill order acknowledged.  It will take affect at dawn.'
+    end
+
+
+    def authorize_nightkill(werewolf_name:, victim_name:)
+      wolf_player = @players[werewolf_name]
+      victim_player = @players[victim_name]
+
+      raise RuntimeError.new("no such player as #{victim_name}") unless victim_player
+      raise RuntimeError.new('Only players may nightkill') unless wolf_player
+      raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
+      raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
+      raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
+      raise RuntimeError.new('Dead werewolves may not kill') unless wolf_player.alive?
+
+      return wolf_player, victim_player
     end
 
 
