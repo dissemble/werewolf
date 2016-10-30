@@ -483,10 +483,21 @@ module Werewolf
     end
 
 
-    def test_start_call_notify_start
+    def test_start_call_notify_start_with_starter
       game = Game.new
-      game.add_username_to_game('seth')
-      game.expects(:notify_start)
+      player1 = Player.new(:name => 'seth')
+      game.join(player1)
+
+      game.expects(:notify_start).once.with(player1)
+      game.start player1.name
+    end
+
+
+    def test_start_call_notify_start_without_starter
+      game = Game.new
+      game.join Player.new(:name => 'seth')
+
+      game.expects(:notify_start).once
       game.start
     end
 
@@ -494,20 +505,18 @@ module Werewolf
     def test_notify_start
       game = Game.new
       player1 = Player.new(:name => 'seth')
-      player2 = Player.new(:name => 'tom')
-      game.join player1
-      game.join player2
+      game.join(player1)
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'start',
-        :start_initiator => 'seth',
+        :start_initiator => player1,
         :active_roles => ['foo', 'bar', 'baz'])
       game.add_observer(mock_observer)
 
       game.stubs(:active_roles).returns(['foo', 'bar', 'baz'])
 
-      game.notify_start player1.name
+      game.notify_start player1
     end
 
 
