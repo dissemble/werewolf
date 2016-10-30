@@ -2,7 +2,6 @@ module Werewolf
   module Commands
     class Join < SlackRubyBot::Commands::Base
       command 'join' do |_client, data, _match|
-        #TODO copy paste debug
         # puts '**** start ****'
         # puts "_client: #{_client}"
         # puts "data: #{data}"
