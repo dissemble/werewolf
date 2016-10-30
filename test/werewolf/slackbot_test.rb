@@ -487,11 +487,12 @@ MESSAGE
     def test_tell_all
       slackbot = Werewolf::SlackBot.new
       message = 'ab cum de ex in pro sine sub'
+      channel = 'a channel'
+      slackbot.channel = channel
 
       # TODO: mocking interface we don't own
       mock_client = mock("mock_client")
       mock_web_client = mock("mock_web_client")
-      channel = slackbot.slackbot_channel
       mock_client.stubs(:web_client).returns(mock_web_client)
       mock_web_client.expects(:chat_postMessage).once.with(
         :channel => channel,
