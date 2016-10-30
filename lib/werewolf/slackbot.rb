@@ -2,14 +2,10 @@ require 'slack-ruby-bot'
 
 module Werewolf
   class SlackBot < SlackRubyBot::Server
-
-    def slackbot_channel
-      # werewolf_bot_dev_channel = 'G2FQMNAF8'
-      werewolf_channel = 'C2EP92WF3'
-    end
+    attr_writer :channel
 
     # This receives notifications from a Game instance upon changes.
-    # Game is Observable, and the slackbot is an observer.  
+    # Game is Observable, and the slackbot is an observer.
     def update(options = {})
       send("handle_#{options[:action]}", options.tap { |hsh| hsh.delete(:action) })
     end
@@ -160,8 +156,8 @@ start:    start the game.  'wolfbot start' (only after players have joined)
 end:      terminate the running game.  'wolfbot end'
 status:   should probably work...  'wolfbot status'
 tally:    show lynch-vote tally (only during day)
-kill:     as a werewolf, nightkill a player.  'wolfbot kill @name' (only at night).  
-view:     as the seer, reveals the alignment of another player.  'wolfbot see @name' (only at night).  
+kill:     as a werewolf, nightkill a player.  'wolfbot kill @name' (only at night).
+view:     as the seer, reveals the alignment of another player.  'wolfbot see @name' (only at night).
 vote:     vote to lynch a player.  'wolfbot vote @name' (only during day)
 claim:    register a claim.  'wolfbot claim i am the walrus'
 claims:   view all claims.  'wolfbot claims'
@@ -202,7 +198,7 @@ MESSAGE
 
       # client.say(text: message, channel: slackbot_channel)
       client.web_client.chat_postMessage(
-        channel: slackbot_channel,
+        channel: @channel,
         as_user: true,
         attachments: [
           {
@@ -241,7 +237,7 @@ MESSAGE
         "Survivors: [#{living_string}]"
       end
     end
-    
+
 
     def slackify(player)
       if player.nil?
