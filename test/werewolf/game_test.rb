@@ -390,7 +390,7 @@ module Werewolf
 
       game.stubs(:day_number).returns(1)
       game.view seer_name:seer.name, target_name:wolf.name
-      game.nightkill(werewolf: wolf.name, victim: seer.name)
+      game.nightkill werewolf_name:wolf.name, victim_name:seer.name
 
       seer.expects(:view).never
       game.process_night_actions
@@ -912,7 +912,7 @@ module Werewolf
       # no actions queued
       assert !game.night_finished?
 
-      game.nightkill werewolf: wolf1.name, victim: seer.name
+      game.nightkill werewolf_name:wolf1.name, victim_name:seer.name
       assert !game.night_finished?
 
       game.view seer_name:seer.name, target_name:wolf2.name
@@ -937,7 +937,7 @@ module Werewolf
       assert !game.night_finished?
 
       # some actions queued
-      game.nightkill werewolf:wolf1.name, victim:villager.name
+      game.nightkill werewolf_name:wolf1.name, victim_name:villager.name
       assert game.night_finished?
     end
 
@@ -1240,7 +1240,7 @@ module Werewolf
       game.join Player.new(:name => 'seth', :role => 'wolf')
       game.join Player.new(:name => 'tom', :role => 'villager')
       game.stubs(:day_number).returns(1)
-      game.nightkill(werewolf: 'seth', victim: 'tom')
+      game.nightkill werewolf_name:'seth', victim_name:'tom'
     end
 
 
@@ -1251,7 +1251,7 @@ module Werewolf
       game.stubs(:day_number).returns(1)
 
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf: 'seth', victim: 'tom')
+        game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
       assert_match /Dead werewolves may not kill/, err.message
     end
@@ -1261,7 +1261,7 @@ module Werewolf
       game = Game.new
       game.join Player.new(:name => 'tom', :role => 'villager')
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf: 'lupin', victim: 'tom')
+        game.nightkill werewolf_name:'lupin', victim_name:'tom'
       }
       assert_match /Only players may nightkill/, err.message
     end
@@ -1272,7 +1272,7 @@ module Werewolf
       game.join Player.new(:name => 'seth', :role => 'villager')
       game.join Player.new(:name => 'tom', :role => 'villager')
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf: 'seth', victim: 'tom')
+        game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
       assert_match /Only wolves may nightkill/, err.message
     end
@@ -1287,7 +1287,7 @@ module Werewolf
 
       game.stubs(:day_number).returns(1)
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf: 'seth', victim: 'bill')
+        game.nightkill werewolf_name:'seth', victim_name:'bill'
         game.process_night_actions
       }
       assert_match /already dead/, err.message
@@ -1297,7 +1297,7 @@ module Werewolf
     def test_can_only_nightkill_real_players
       game = Game.new
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf: nil, victim: 'bigfoot')
+        game.nightkill werewolf_name:nil, victim_name:'bigfoot'
       }
       assert_match /no such player/, err.message
     end
@@ -1309,7 +1309,7 @@ module Werewolf
       game.join Player.new(:name => 'tom', :role => 'villager')
       game.expects(:time_period).once.returns('day')
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf: 'seth', victim: 'tom')
+        game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
       assert_match /nightkill may only be used at night/, err.message
     end
@@ -1321,7 +1321,7 @@ module Werewolf
       game.join Player.new(:name => 'tom', :role => 'villager')
 
       err = assert_raises(RuntimeError) {
-        game.nightkill(werewolf: 'seth', victim: 'tom')
+        game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
       assert_match /no nightkill on night 0/, err.message
     end
@@ -1334,8 +1334,8 @@ module Werewolf
       game.join Player.new(:name => 'bill', :role => 'villager')
 
       game.stubs(:day_number).returns(1)
-      game.nightkill(werewolf: 'seth', victim: 'tom')
-      game.nightkill(werewolf: 'seth', victim: 'bill')
+      game.nightkill werewolf_name:'seth', victim_name: 'tom'
+      game.nightkill werewolf_name: 'seth', victim_name:'bill'
       game.process_night_actions
 
       assert game.players['tom'].alive?
@@ -1354,7 +1354,7 @@ module Werewolf
       game.expects(:notify_player).once.with(
         wolf, "Nightkill order acknowledged.  It will take affect at dawn.")
 
-      game.nightkill(werewolf: 'tom', victim: 'seth')
+      game.nightkill werewolf_name:'tom', victim_name:'seth'
     end
 
 
@@ -1364,7 +1364,7 @@ module Werewolf
       game.join(player1)
 
       game.stubs(:day_number).returns(1)
-      game.nightkill(werewolf: 'seth', victim: 'seth')
+      game.nightkill werewolf_name:'seth', victim_name:'seth'
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).with(
@@ -1383,7 +1383,7 @@ module Werewolf
       assert game.night_actions.empty?
 
       game.stubs(:day_number).returns(1)
-      game.nightkill(werewolf: 'seth', victim: 'seth')
+      game.nightkill werewolf_name:'seth', victim_name: 'seth'
       assert !game.night_actions.empty?
     end
 
@@ -1397,7 +1397,7 @@ module Werewolf
 
       game.stubs(:day_number).returns(1)
 
-      game.nightkill werewolf:wolf.name, victim:villager.name
+      game.nightkill werewolf_name:wolf.name, victim_name:villager.name
       game.guard bodyguard_name:bodyguard.name, target_name:villager.name
       game.process_night_actions
 
@@ -1972,7 +1972,7 @@ module Werewolf
 
       # Night 1
       game.view seer_name:seer.name, target_name:wolf.name
-      game.nightkill(werewolf: wolf.name, victim: beholder.name)
+      game.nightkill werewolf_name:wolf.name, victim_name:beholder.name
 
       # Dawn - is able to auto advance b/c all night actions are in
       assert game.night_finished?
@@ -1993,7 +1993,7 @@ module Werewolf
       # Night 3
       game.view seer_name:seer.name, target_name:wolf.name
       assert !game.night_finished?
-      game.nightkill(werewolf: wolf.name, victim: seer.name)
+      game.nightkill werewolf_name:wolf.name, victim_name:seer.name
 
       # Dawn - Game over
       assert game.night_finished?
