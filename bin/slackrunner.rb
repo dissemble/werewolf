@@ -39,6 +39,9 @@ loop do
       end
     end
 
+    if winner?
+      game.end_game
+    end
     puts "time remaining in round: #{game.time_remaining_in_round}"
   end
 
