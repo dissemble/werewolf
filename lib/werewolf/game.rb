@@ -272,7 +272,7 @@ module Werewolf
         end
       }
 
-      # acknowledge nightkill command
+      # acknowledge nightkill command immediately
       notify_player wolf_player, 'Nightkill order acknowledged.  It will take affect at dawn.'
     end
 
@@ -289,6 +289,9 @@ module Werewolf
       @night_actions['guard'] = lambda {
         @guarded = target_player
       }
+
+      # acknowledge guard command immediately
+      notify_player bodyguard_player, 'Guard order acknowledged.  It will take affect at dawn.'
     end
 
 

@@ -1492,6 +1492,18 @@ module Werewolf
     end
 
 
+    def test_guard_is_acknowledged_immediately
+      game = Game.new
+      bodyguard = Player.new(:name => 'seth', :role => 'bodyguard')
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      [bodyguard, villager].each {|p| game.join(p)}
+      
+      game.expects(:notify_player).with(bodyguard, "Guard order acknowledged.  It will take affect at dawn.")
+
+      game.guard(bodyguard_name:bodyguard.name, target_name:villager.name)
+    end
+
+
     def test_night_finished_needs_guard_if_present
       game = Game.new
       bill = Werewolf::Player.new(:name => 'bill', :role => 'bodyguard')
