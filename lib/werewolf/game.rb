@@ -254,6 +254,16 @@ module Werewolf
     end
 
 
+    def validate_player(player_name)
+      player = @players[player_name]
+
+      raise RuntimeError.new("invalid player name") unless player
+      raise RuntimeError.new("player must be alive") unless player.alive?
+
+      player
+    end
+
+
     def nightkill(werewolf_name:, victim_name:)
       wolf_player, victim_player = authorize_nightkill(werewolf_name:werewolf_name, victim_name:victim_name)
 
@@ -271,15 +281,12 @@ module Werewolf
 
 
     def authorize_nightkill(werewolf_name:, victim_name:)
-      wolf_player = @players[werewolf_name]
-      victim_player = @players[victim_name]
+      wolf_player = validate_player werewolf_name
+      victim_player = validate_player victim_name
 
-      raise RuntimeError.new("no such player as #{victim_name}") unless victim_player
-      raise RuntimeError.new('Only players may nightkill') unless wolf_player
       raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
       raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
       raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
-      raise RuntimeError.new('Dead werewolves may not kill') unless wolf_player.alive?
 
       return wolf_player, victim_player
     end
@@ -298,12 +305,10 @@ module Werewolf
 
 
     def authorize_guard(bodyguard_name:, target_name:)
-      bodyguard_player = @players[bodyguard_name]
-      target_player = @players[target_name]
+      bodyguard_player = validate_player bodyguard_name
+      target_player = validate_player target_name
 
       raise RuntimeError.new("Only the bodyguard can guard") unless 'bodyguard' == bodyguard_player.role
-      raise RuntimeError.new("Bodyguard must be alive to guard") unless bodyguard_player.alive?
-      raise RuntimeError.new("Must guard a real player") unless target_player
       raise RuntimeError.new("Can only guard at night") unless time_period == 'night'
 
       return bodyguard_player, target_player
@@ -331,14 +336,11 @@ module Werewolf
 
 
     def authorize_view(seer_name:, target_name:)
-      seer = @players[seer_name]
-      target = @players[target_name]
+      seer = validate_player seer_name
+      target = validate_player target_name
 
-      raise RuntimeError.new('View is only available to players') unless seer
       raise RuntimeError.new('View is only available to the seer') unless seer.role == 'seer'
-      raise RuntimeError.new('Seer must be alive to view') unless seer.alive?
       raise RuntimeError.new('You can only view at night') unless time_period == 'night'
-      raise RuntimeError.new('You must view a real player') unless target
 
       return seer, target
     end

@@ -1253,7 +1253,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
-      assert_match /Dead werewolves may not kill/, err.message
+      assert_match /player must be alive/, err.message
     end
 
 
@@ -1263,7 +1263,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.nightkill werewolf_name:'lupin', victim_name:'tom'
       }
-      assert_match /Only players may nightkill/, err.message
+      assert_match /invalid player name/, err.message
     end
 
 
@@ -1290,7 +1290,7 @@ module Werewolf
         game.nightkill werewolf_name:'seth', victim_name:'bill'
         game.process_night_actions
       }
-      assert_match /already dead/, err.message
+      assert_match /player must be alive/, err.message
     end
 
 
@@ -1299,7 +1299,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.nightkill werewolf_name:nil, victim_name:'bigfoot'
       }
-      assert_match /no such player/, err.message
+      assert_match /invalid player name/, err.message
     end
 
 
@@ -1464,7 +1464,7 @@ module Werewolf
       err = assert_raises(RuntimeError) do
         game.guard bodyguard_name:bodyguard.name, target_name:bodyguard.name
       end
-      assert_match /Bodyguard must be alive/, err.message
+      assert_match /player must be alive/, err.message
     end
 
 
@@ -1476,7 +1476,7 @@ module Werewolf
       err = assert_raises(RuntimeError) do
         game.guard bodyguard_name:bodyguard.name, target_name:'whitneyhouston'
       end
-      assert_match /Must guard a real player/, err.message
+      assert_match /invalid player name/, err.message
     end
 
 
@@ -1502,7 +1502,7 @@ module Werewolf
       
       game.expects(:notify_player).with(bodyguard, "Guard order acknowledged.  It will take affect at dawn.")
 
-      game.guard(bodyguard_name:bodyguard.name, target_name:villager.name)
+      game.guard bodyguard_name:bodyguard.name, target_name:villager.name
     end
 
 
@@ -1542,7 +1542,7 @@ module Werewolf
       err = assert_raises(RuntimeError) do
         game.view seer_name:'bartelby', target_name:'tom'
       end
-      assert_match /View is only available to players/, err.message
+      assert_match /invalid player name/, err.message
     end
 
 
@@ -1563,7 +1563,7 @@ module Werewolf
       err = assert_raises(RuntimeError) do
         game.view seer_name:'seth', target_name:'hercules'
       end
-      assert_match /You must view a real player/, err.message
+      assert_match /invalid player name/, err.message
     end
 
 
@@ -1585,7 +1585,7 @@ module Werewolf
       err = assert_raises(RuntimeError) do
         game.view seer_name:'seth', target_name:'seth'
       end
-      assert_match /Seer must be alive to view/, err.message
+      assert_match /player must be alive/, err.message
     end
 
 
