@@ -105,7 +105,7 @@ module Werewolf
           end
         end
 
-        # TODO: thought - beholder/cultist could be N0 actions for those roles
+        # thought: beholder/cultist could be N0 actions for those roles
         # Provide no-op nightkill to fake out 'night_finished?' so N0 auto advances to D1
         @night_actions['nightkill'] = lambda {}
         @night_actions['guard'] = lambda {}
@@ -499,14 +499,8 @@ module Werewolf
     end
 
 
-    # TODO: claims/claim are too confusing
     def claims
-      # TODO:  there is a better way
-      all_players.each do |p|
-        unless(@claims.has_key? p)
-          @claims[p] = nil
-        end
-      end
+      all_players.each {|p| @claims[p] = nil unless @claims[p]}
       @claims
     end
 

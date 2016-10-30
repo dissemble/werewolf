@@ -303,11 +303,6 @@ module Werewolf
     end
 
 
-    def test_status
-      #TODO
-    end
-
-
     def test_create_time_period_generator
       game = Game.new
       generator = game.create_time_period_generator

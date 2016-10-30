@@ -1,8 +1,6 @@
 module Werewolf
   module Commands
     module Util
-
-      #TODO:  make module
       class SlackParser
 
         #'<@U0BGR4GF8>' => 'U0BGR4GF8'
