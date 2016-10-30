@@ -76,10 +76,9 @@ module Werewolf
 
       all_fields = role_descriptions.delete_if {|k,_v| !options[:active_roles].include?(k)}
 
-      # TODO:  this should be passing a player and use slackify
       tell_all(
         "Active roles: [#{formatted_roles}]",
-        title: "<@#{options[:start_initiator]}> has started the game. :partyparrot:",
+        title: "#{slackify(options[:start_initiator])} has started the game. :partyparrot:",
         color: "good",
         fields: all_fields.values
       )

@@ -244,10 +244,10 @@ MESSAGE
 
     def test_handle_start_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
-      initiator = "seth"
+      initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
         "Active roles: [beholder, bodyguard, cultist, seer, villager, wolf]", {
-          :title => "<@#{initiator}> has started the game. :partyparrot:",
+          :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
             {
@@ -291,10 +291,10 @@ MESSAGE
 
     def test_handle_only_shows_active_roles
       slackbot = Werewolf::SlackBot.new
-      initiator = "seth"
+      initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
         "Active roles: [beholder, cultist, seer]", {
-          :title => "<@#{initiator}> has started the game. :partyparrot:",
+          :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
             {
