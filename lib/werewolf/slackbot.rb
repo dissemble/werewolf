@@ -139,10 +139,6 @@ module Werewolf
       tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
     end
 
-    def handle_vote(options = {})
-      tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
-    end
-
 
     def handle_lynch_player(options = {})
       tell_all "***** #{options[:message]} #{slackify(options[:player])} (#{options[:player].role})"
