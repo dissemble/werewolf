@@ -389,7 +389,7 @@ module Werewolf
       [seer, wolf].each {|p| game.join(p)}
 
       game.stubs(:day_number).returns(1)
-      game.view(seer_name: seer.name, target: wolf.name)
+      game.view seer_name:seer.name, target_name:wolf.name
       game.nightkill(werewolf: wolf.name, victim: seer.name)
 
       seer.expects(:view).never
@@ -915,7 +915,7 @@ module Werewolf
       game.nightkill werewolf: wolf1.name, victim: seer.name
       assert !game.night_finished?
 
-      game.view seer_name: seer.name, target: wolf2.name
+      game.view seer_name:seer.name, target_name:wolf2.name
       assert !game.night_finished?
 
       game.guard bodyguard_name:bodyguard.name, target_name:seer.name
@@ -1532,7 +1532,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
       game.join(Player.new(:name => 'tom', :role => 'villager'))
-      game.view(seer_name: 'seth', target: 'tom')
+      game.view seer_name:'seth', target_name:'tom'
     end
 
 
@@ -1540,7 +1540,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       err = assert_raises(RuntimeError) do
-        game.view(seer_name: 'bartelby', target: 'tom')
+        game.view seer_name:'bartelby', target_name:'tom'
       end
       assert_match /View is only available to players/, err.message
     end
@@ -1551,7 +1551,7 @@ module Werewolf
       game.join(Player.new(:name => 'seth', :role => 'villager'))
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       err = assert_raises(RuntimeError) do
-        game.view(seer_name: 'seth', target: 'tom')
+        game.view seer_name:'seth', target_name:'tom'
       end
       assert_match /View is only available to the seer/, err.message
     end
@@ -1561,7 +1561,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer'))
       err = assert_raises(RuntimeError) do
-        game.view(seer_name: 'seth', target: 'hercules')
+        game.view seer_name:'seth', target_name:'hercules'
       end
       assert_match /You must view a real player/, err.message
     end
@@ -1573,7 +1573,7 @@ module Werewolf
       game.stubs(:time_period).returns('day')
 
       err = assert_raises(RuntimeError) do
-        game.view(seer_name: 'seth', target: 'seth')
+        game.view seer_name:'seth', target_name:'seth'
       end
       assert_match /You can only view at night/, err.message
     end
@@ -1583,7 +1583,7 @@ module Werewolf
       game = Game.new
       game.join(Player.new(:name => 'seth', :role => 'seer', :alive => false))
       err = assert_raises(RuntimeError) do
-        game.view(seer_name: 'seth', target: 'seth')
+        game.view seer_name:'seth', target_name:'seth'
       end
       assert_match /Seer must be alive to view/, err.message
     end
@@ -1595,7 +1595,7 @@ module Werewolf
       game.join(Player.new(:name => 'tom', :role => 'villager'))
       assert game.night_actions.empty?
 
-      game.view(seer_name: 'seth', target: 'tom')
+      game.view seer_name:'seth', target_name:'tom'
       assert game.night_actions['view']
     end
 
@@ -1611,7 +1611,7 @@ module Werewolf
         seer,
         "View order acknowledged.  It will take affect at dawn.")
 
-      game.view(seer_name: 'seth', target: 'tom')
+      game.view seer_name:'seth', target_name:'tom'
     end
 
 
@@ -1621,7 +1621,7 @@ module Werewolf
       villager = Player.new(:name => 'tom', :role => 'villager')
       [seer, villager].each {|p| game.join(p)}
 
-      game.view(seer_name: 'seth', target: 'tom')
+      game.view seer_name:'seth', target_name:'tom'
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -1642,7 +1642,7 @@ module Werewolf
       [seer, villager].each { |p| game.join(p) }
 
       game.stubs(:assign_roles)
-      game.expects(:view).once.with(seer_name: seer.name, target: villager.name)
+      game.expects(:view).once.with(seer_name: seer.name, target_name: villager.name)
       game.start
     end
 
@@ -1971,7 +1971,7 @@ module Werewolf
       assert villager.dead?
 
       # Night 1
-      game.view(seer_name: seer.name, target: wolf.name)
+      game.view seer_name:seer.name, target_name:wolf.name
       game.nightkill(werewolf: wolf.name, victim: beholder.name)
 
       # Dawn - is able to auto advance b/c all night actions are in
@@ -1991,7 +1991,7 @@ module Werewolf
       game.advance_time
 
       # Night 3
-      game.view(seer_name: seer.name, target: wolf.name)
+      game.view seer_name:seer.name, target_name:wolf.name
       assert !game.night_finished?
       game.nightkill(werewolf: wolf.name, victim: seer.name)
 
