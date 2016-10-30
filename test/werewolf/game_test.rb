@@ -782,7 +782,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.vote voter_name: 'seth', candidate_name: 'babar'
       }
-      assert_match /is not a player/, err.message
+      assert_match /invalid player name/, err.message
     end
 
 
@@ -797,7 +797,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.vote voter_name: player1.name, candidate_name: player2.name
       }
-      assert_match /is already dead/, err.message
+      assert_match /player must be alive/, err.message
     end
 
 
@@ -827,7 +827,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         game.vote voter_name: 'babar', candidate_name: 'seth'
       }
-      assert_match /may not vote/, err.message
+      assert_match /invalid player name/, err.message
     end
 
 
@@ -1072,7 +1072,7 @@ module Werewolf
       err = assert_raises(RuntimeError) do
         game.vote(voter_name: 'seth', candidate_name: 'tom')
       end
-      assert_match /may not vote when dead/, err.message
+      assert_match /player must be alive/, err.message
     end
 
 

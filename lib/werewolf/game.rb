@@ -140,14 +140,7 @@ module Werewolf
 
 
     def vote(voter_name:, candidate_name:)
-      voter = @players[voter_name]
-      candidate = @players[candidate_name]
-
-      raise RuntimeError.new("Game has not started") unless active?
-      raise RuntimeError.new("'#{voter_name}' may not vote") unless voter
-      raise RuntimeError.new("'#{candidate_name}' is not a player") unless candidate
-      raise RuntimeError.new("'#{candidate_name}' is already dead.") unless candidate.alive?
-      raise RuntimeError.new("'#{voter_name}' may not vote when dead") unless voter.alive?
+      voter, candidate = authorize_vote(voter_name:voter_name, candidate_name:candidate_name)
 
       unless 'day' == time_period
         message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
@@ -157,26 +150,36 @@ module Werewolf
 
       # remove any previous vote
       @vote_tally.each do |k,v|
-        if v.delete?(voter_name) && v.empty?
+        if v.delete?(voter.name) && v.empty?
           @vote_tally.delete(k)
         end
       end
 
       # add new vote
-      if @vote_tally.has_key? candidate_name
-        @vote_tally[candidate_name] << voter_name
+      if @vote_tally.has_key? candidate.name
+        @vote_tally[candidate.name] << voter.name
       else
-        @vote_tally[candidate_name] = Set.new([voter_name])
+        @vote_tally[candidate.name] = Set.new([voter.name])
       end
 
       changed
       notify_observers(
         :action => 'vote',
-        :voter => @players[voter_name],
-        :votee => @players[candidate_name],
+        :voter => @players[voter.name],
+        :votee => @players[candidate.name],
         :message => "voted for")
 
       print_tally
+    end
+
+
+    def authorize_vote(voter_name:, candidate_name:)
+      voter = validate_player voter_name
+      candidate = validate_player candidate_name
+
+      raise RuntimeError.new("Game has not started") unless active?
+
+      return voter, candidate
     end
 
 
