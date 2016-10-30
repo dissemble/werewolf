@@ -139,7 +139,7 @@ module Werewolf
     end
 
 
-    def vote(voter_name=name1, candidate_name=name2)
+    def vote(voter_name:, candidate_name:)
       voter = @players[voter_name]
       candidate = @players[candidate_name]
 
