@@ -1,1 +1,1 @@
-werewolf: bundler exec bin/slackrunner.rb
+worker: bundler exec bin/slackrunner.rb
