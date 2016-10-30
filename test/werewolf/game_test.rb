@@ -196,70 +196,32 @@ module Werewolf
     end
 
 
-    def test_define_roles_3_player_game
-      game = Game.new
-      game.add_username_to_game 'john'
-      game.add_username_to_game 'seth'
-      game.add_username_to_game 'tom'
-      expected = ['seer', 'villager', 'wolf']
-      assert_equal expected, game.define_roles
-    end
-
-
     def test_define_roles_4_player_game
       game = Game.new
       1.upto(4) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'cultist', 'wolf']
+      expected = ['seer', 'villager', 'villager', 'wolf']
       assert_equal expected, game.define_roles
     end
 
 
-    def test_define_roles_5_player_game
-      game = Game.new
-      1.upto(5) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'cultist', 'wolf']
-      assert_equal expected, game.define_roles
+    def test_define_roles_create_right_number_of_roles
+      valid_roles = Set.new ['seer', 'beholder', 'villager', 'cultist', 'wolf', 'bodyguard']
+
+      1.upto(12) do |num_roles|
+        game = Game.new
+        1.upto(num_roles) { |i| game.add_username_to_game("#{i}") }
+        defined_roles = game.define_roles
+        assert_equal num_roles, defined_roles.size
+        defined_roles.each {|r| valid_roles.include? r}
+      end
     end
 
 
-    def test_define_roles_6_player_game
-      game = Game.new
-      1.upto(6) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf']
-      assert_equal expected, game.define_roles
+    # TODO: 13-whatever people
+    def test_define_roles_for_large_games 
+
     end
-
-
-    def test_define_roles_7_player_game
-      game = Game.new
-      1.upto(7) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf']
-      assert_equal expected, game.define_roles
-    end
-
-
-    def test_define_roles_8_player_game
-      game = Game.new
-      1.upto(8) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf']
-      assert_equal expected, game.define_roles
-    end
-
-    def test_define_roles_9_player_game
-      game = Game.new
-      1.upto(9) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
-      assert_equal expected, game.define_roles
-    end
-
-
-    def test_define_roles_10_player_game
-      game = Game.new
-      1.upto(10) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf']
-      assert_equal expected, game.define_roles
-    end
-
+    
 
     def test_define_roles_raises_if_no_roleset_for_number_of_players
       game = Game.new
@@ -1961,66 +1923,7 @@ module Werewolf
     end
 
 
-    # def test_aspirations_1
-    #   game = Game.new
-    #   seer = Player.new(:name => 'seer')
-    #   wolf = Player.new(:name => 'wolf')
-    #   villager1 = Player.new(:name => 'villager1')
-    #   villager2 = Player.new(:name => 'villager2')
-    #   cultist = Player.new(:name => 'cultist')
-
-    #   game.join(seer)
-    #   game.join(wolf)
-    #   game.join(villager1)
-    #   game.join(villager2)
-    #   game.join(cultist)
-
-    #   # start 5 player game
-    #   game.start
-
-    #   # reassign roles
-    #   seer.role = 'seer'
-    #   wolf.role = 'wolf'
-    #   villager1.role = 'villager'
-    #   villager2.role = 'villager'
-    #   cultist.role = 'cultist'
-
-    #   # Night 0
-    #   assert_equal 'good', seer.view(villager1)
-    #   game.advance_time
-
-    #   # Day 1
-    #   game.vote(voter_name='seer', 'villager2')
-    #   game.vote(voter_name='wolf', 'villager2')
-    #   game.vote(voter_name='villager1', 'seer')
-    #   game.vote(voter_name='villager2', 'wolf')
-    #   #cultist doesn't vote
-
-    #   # Night 1
-    #   game.advance_time
-    #   assert game.players['villager2'].dead?
-    #   assert_equal 'evil', seer.view(wolf)
-    #   game.nightkill(werewolf='wolf', victim='cultist')
-      
-    #   # Process night actions
-    #   game.advance_time
-    #   assert game.players['cultist'].dead?
-
-    #   # Day 2
-    #   game.vote(voter_name='seer', 'wolf')
-    #   game.vote(voter_name='wolf', 'seer')
-
-    #   # Game over once last vote is cast
-    #   game.expects(:end_game)
-    #   game.vote(voter_name='villager1', 'wolf')
-      
-    #   game.advance_time
-    #   assert game.players['wolf'].dead?
-    #   assert_equal 'good', game.winner?
-    # end
-
-
-    def test_aspirations_2
+    def test_aspirations_1
       game = Game.new
 
       bill = Werewolf::Player.new(:name => 'bill', :bot => true)
@@ -2031,7 +1934,9 @@ module Werewolf
       [bill, tom, seth, john, monty].each {|p| game.join(p)}
 
       # start 5 player game
+      game.stubs(:define_roles).returns ['seer', 'wolf', 'beholder', 'villager', 'cultist']
       game.start
+
 
       seer = game.players.values.find {|p| 'seer' == p.role}
       wolf = game.players.values.find {|p| 'wolf' == p.role}

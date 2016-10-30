@@ -355,13 +355,15 @@ module Werewolf
         1 => ['seer'],
         2 => ['seer', 'wolf'],
         3 => ['seer', 'villager', 'wolf'],
-        4 => ['seer', 'beholder', 'cultist', 'wolf'],
-        5 => ['seer', 'beholder', 'villager', 'cultist', 'wolf'],
-        6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
-        7 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        8 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        9 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
-        10 => ['seer', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'wolf', 'wolf', 'wolf'],
+        4 => ['seer', 'villager', 'villager', 'wolf'],
+        5 => ['seer', 'bodyguard', 'villager', 'wolf', 'wolf'],
+        6 => ['seer', 'bodyguard', 'villager', 'villager', 'wolf', 'wolf'],
+        7 => ['seer', 'bodyguard', 'beholder', 'villager', 'cultist', 'wolf', 'wolf'],
+        8 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        9 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        10 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        11 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        12 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
       }
 
       available_roles = rolesets[@players.size]
