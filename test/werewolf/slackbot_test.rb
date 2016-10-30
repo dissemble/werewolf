@@ -10,34 +10,9 @@ module Werewolf
     end
 
 
-    def test_tell_all_exists
-      slackbot = Werewolf::SlackBot.new
-      slackbot.stubs(:client).returns(mock(:say))
-      slackbot.tell_all("foo")
-    end
-
-
-    def test_tell_player_exists
-      slackbot = Werewolf::SlackBot.new
-      slackbot.stubs(:client).raises(RuntimeError.new("oops"))
-      assert_raises(RuntimeError) {
-        slackbot.tell_player(Player.new(:name => 'seth'), "amessage")
-      }
-    end
-
-
     def test_tell_player_with_bot
       slackbot = Werewolf::SlackBot.new
       slackbot.tell_player(Player.new(:name => 'seth', :bot => true), "amessage")
-    end
-
-
-    def test_tell_throws_client_runtime_errors
-      slackbot = Werewolf::SlackBot.new
-      slackbot.stubs(:client).raises(RuntimeError.new("oops"))
-      assert_raises(RuntimeError) {
-        slackbot.tell_all("some nice text")
-      }
     end
 
 
