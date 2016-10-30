@@ -190,7 +190,7 @@ module Werewolf
       living_roles = Set.new(living_players.map {|p| p.role})
 
       # filter all possible night_actions to only those which might be performed
-      expected_actions = roles_with_night_actions.select {|r,a| living_roles.include? r}.values
+      expected_actions = roles_with_night_actions.select {|r,_a| living_roles.include? r}.values
 
       (expected_actions - night_actions.keys).empty?
     end
@@ -202,7 +202,7 @@ module Werewolf
 
 
     def vote_count
-      @vote_tally.values.reduce(0) {|count, s| count += s.size}
+      @vote_tally.values.reduce(0) {|count, s| count + s.size}
     end
 
 
@@ -226,10 +226,10 @@ module Werewolf
         notify_all "No one voted - no one was lynched"
       else
         # this gives the voters for the player with the most votes
-        lynchee_name, voters = @vote_tally.max_by{|k,v| v.size}
+        lynchee_name, voters = @vote_tally.max_by{|_k,v| v.size}
 
         # but there may be a tie.  find anyone with that many voters
-        vote_leaders = @vote_tally.select{|k,v| v.size == voters.size}
+        vote_leaders = @vote_tally.select{|_k,v| v.size == voters.size}
 
         if vote_leaders.size > 1
           # tie
