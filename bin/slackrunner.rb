@@ -24,6 +24,8 @@ slackbot.start_async
 
 event_loop = Werewolf::EventLoop.new(game)
 
+game.notify_all("SHALL WE PLAY A GAME?")
+
 loop do
   sleep event_loop.time_increment
   event_loop.next
