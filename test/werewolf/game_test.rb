@@ -444,7 +444,7 @@ module Werewolf
       player = Player.new(:name => 'seth')
 
       mock_observer = mock('observer')
-      mock_observer.expects(:update).once.with(:action => 'join', :player => player, :message => 'has joined the game')
+      mock_observer.expects(:update).once.with(:action => 'join', :player => player)
       game.add_observer mock_observer
 
       game.join player

@@ -17,7 +17,7 @@ module Werewolf
 
 
     def handle_join(options = {})
-      tell_all ":white_check_mark: #{slackify(options[:player])} #{options[:message]}", color: "good"
+      tell_all ":white_check_mark: #{slackify(options[:player])} joins the game", color: "good"
     end
 
 
@@ -27,7 +27,7 @@ module Werewolf
 
 
     def handle_leave(options = {})
-      tell_all ":leaves: #{slackify(options[:player])} has left the game", color: "warning"
+      tell_all ":leaves: #{slackify(options[:player])} leaves the game", color: "warning"
     end
 
 

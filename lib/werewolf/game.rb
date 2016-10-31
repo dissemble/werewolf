@@ -63,7 +63,7 @@ module Werewolf
       else
         @players[player.name] = player
         changed
-        notify_observers(:action => 'join', :player => player, :message => "has joined the game")
+        notify_observers(:action => 'join', :player => player)
       end
     end
 

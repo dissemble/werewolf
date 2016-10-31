@@ -65,7 +65,6 @@ module Werewolf
 
       slackbot.expects(:update).with(
         :action => 'join',
-        :message => "has joined the game",
         :player => player)
 
       game.join(player)
@@ -75,12 +74,10 @@ module Werewolf
     def test_handle_join_called_when_notified
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
-      message = "bobby shaftoe's gone to sea"
-      slackbot.expects(:handle_join).once.with(:player => player, :message => "#{message}")
+      slackbot.expects(:handle_join).once.with(:player => player)
 
       slackbot.update(
         :action => 'join',
-        :message => message,
         :player => player)
     end
 
@@ -88,12 +85,10 @@ module Werewolf
     def test_handle_join_broadcast_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
-      message = "ride a cock-horse to banbury cross"
 
-      slackbot.expects(:tell_all).once.with(":white_check_mark: <@#{player.name}> #{message}", {:color => "good"})
+      slackbot.expects(:tell_all).once.with(":white_check_mark: <@#{player.name}> joins the game", {:color => "good"})
 
       slackbot.handle_join(
-        :message => message,
         :player => player)
     end
 
@@ -102,7 +97,7 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
 
-      slackbot.expects(:tell_all).once.with(":leaves: <@#{player.name}> has left the game", {:color => "warning"})
+      slackbot.expects(:tell_all).once.with(":leaves: <@#{player.name}> leaves the game", {:color => "warning"})
       slackbot.handle_leave(:player => player)
     end
 
