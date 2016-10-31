@@ -1,7 +1,7 @@
 module Werewolf
   module Roles
     class Werewolf < Role
-      @good = false
+      @side = "evil"
       @powers = ["kill"]
       @allies = [Cultist]
     end

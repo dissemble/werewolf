@@ -1,9 +1,7 @@
 module Werewolf
   module Roles
     class Beholder < Role
-      @good = true
-      @powers = []
-      @allies = []
+      @side = "good"
     end
   end
 end
