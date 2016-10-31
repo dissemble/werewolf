@@ -22,6 +22,10 @@ module Werewolf
       @allies ||= []
     end
 
+    def self.description
+      @description
+    end
+
     def self.to_s
       "#{self.name} (#{side})"
     end

@@ -4,6 +4,7 @@ module Werewolf
       @side = "evil"
       @powers = ["kill"]
       @allies = [Cultist]
+      @description = "kills people at night."
     end
   end
 end
