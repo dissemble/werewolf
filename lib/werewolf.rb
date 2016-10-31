@@ -1,5 +1,6 @@
 require "werewolf/version"
 require "werewolf/slackbot"
+require "werewolf/event_loop"
 require "werewolf/game"
 require "werewolf/player"
 require "werewolf/commands/claim"
