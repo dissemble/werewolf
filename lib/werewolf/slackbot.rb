@@ -27,7 +27,7 @@ module Werewolf
 
 
     def handle_leave(options = {})
-      tell_all ":homerhide: #{slackify(options[:player])} has left the game", color: "warning"
+      tell_all ":leaves: #{slackify(options[:player])} has left the game", color: "warning"
     end
 
 

@@ -102,7 +102,7 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
 
-      slackbot.expects(:tell_all).once.with(":homerhide: <@#{player.name}> has left the game", {:color => "warning"})
+      slackbot.expects(:tell_all).once.with(":leaves: <@#{player.name}> has left the game", {:color => "warning"})
       slackbot.handle_leave(:player => player)
     end
 
