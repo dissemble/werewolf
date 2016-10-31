@@ -19,40 +19,14 @@ game = Werewolf::Game.instance
 
 slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['!', 'w'])
 slackbot.channel = channel
-
-
 game.add_observer(slackbot)
-
 slackbot.start_async
 
-time_increment = 1
-warning_tick = 30
+event_loop = Werewolf::EventLoop.new(game)
+
+game.notify_all("SHALL WE PLAY A GAME?")
 
 loop do
-  sleep time_increment
-
-  if game.active?
-    if game.round_expired?
-      game.advance_time
-    elsif game.voting_finished?
-      game.notify_all "All votes have been cast; dusk will come early."
-      game.advance_time
-    elsif game.night_finished?
-      game.notify_all "All night actions are complete; dawn will come early."
-      game.advance_time
-    else
-      game.tick time_increment
-
-      if (game.time_remaining_in_round == warning_tick)
-        game.notify_all("#{game.time_period} ending in #{game.time_remaining_in_round} seconds")
-      end
-    end
-
-    if game.winner?
-      game.end_game
-    end
-    puts "time remaining in round: #{game.time_remaining_in_round}"
-  end
-
-
+  sleep event_loop.time_increment
+  event_loop.next
 end
