@@ -285,7 +285,9 @@ module Werewolf
       wolf_player, victim_player = authorize_nightkill(werewolf_name:werewolf_name, victim_name:victim_name)
 
       @night_actions['nightkill'] = lambda {
-        unless @guarded == victim_player
+        if @guarded == victim_player
+          notify_all "No one was killed during the night"
+        else
           victim_player.kill!
           changed
           notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
