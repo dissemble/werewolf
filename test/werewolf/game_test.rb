@@ -1419,6 +1419,22 @@ module Werewolf
     end
 
 
+    def test_guard_notifies_when_nightkill_is_prevented
+      game = Game.new
+      bodyguard = Player.new(:name => 'john', :role => 'bodyguard')
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      [bodyguard, villager, wolf].each {|p| game.join(p)}
+
+      game.stubs(:day_number).returns(1)
+
+      game.nightkill werewolf_name:wolf.name, victim_name:villager.name
+      game.guard bodyguard_name:bodyguard.name, target_name:villager.name
+      game.expects(:notify_all).with("No one was killed during the night")
+      game.process_night_actions
+    end
+
+
     def test_only_one_guard_per_night
       game = Game.new
       bodyguard = Player.new(:name => 'john', :role => 'bodyguard')
