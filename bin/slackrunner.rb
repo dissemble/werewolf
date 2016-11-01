@@ -14,7 +14,7 @@ if channel.nil?
   # channel = 'C2EP92WF3' # werewolf
 end
 
-SlackRubyBot::Client.logger.level = Logger::INFO
+SlackRubyBot::Client.logger.level = Logger::WARN
 game = Werewolf::Game.instance
 
 slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['!', 'w'])
