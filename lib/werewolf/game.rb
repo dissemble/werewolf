@@ -63,7 +63,7 @@ module Werewolf
       else
         @players[player.name] = player
         changed
-        notify_observers(:action => 'join', :player => player, :message => "has joined the game")
+        notify_observers(:action => 'join', :player => player)
       end
     end
 
@@ -285,7 +285,9 @@ module Werewolf
       wolf_player, victim_player = authorize_nightkill(werewolf_name:werewolf_name, victim_name:victim_name)
 
       @night_actions['nightkill'] = lambda {
-        unless @guarded == victim_player
+        if @guarded == victim_player
+          notify_all "No one was killed during the night"
+        else
           victim_player.kill!
           changed
           notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
@@ -436,20 +438,17 @@ module Werewolf
 
       if 'night' == time_period
         lynch
+        action = 'dusk'
       else
         process_night_actions
-      end
-
-      if 'night' == time_period
-        title = "[:night_with_stars: Dusk], day #{day_number}"
-        message = "The sun will rise again in #{default_time_remaining_in_round} seconds :hourglass:."
-      else
-        title = "[:sunrise: Dawn], day #{day_number}"
-        message = "The sun will set again in #{default_time_remaining_in_round} seconds :hourglass:."
+        action = 'dawn'
       end
 
       changed
-      notify_observers(:action => 'advance_time', :title=> title, :message => message)
+      notify_observers(
+        :action => action, 
+        :day_number => day_number, 
+        :round_time => default_time_remaining_in_round)
     end
 
 

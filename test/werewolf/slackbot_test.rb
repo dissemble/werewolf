@@ -22,37 +22,27 @@ module Werewolf
     end
 
 
-    # TODO:  collapse next 2 tests
-    def test_game_notifies_on_advance_time
-      game = Game.new
+    def test_handle_dawn
       slackbot = Werewolf::SlackBot.new
-      game.add_observer(slackbot)
-
-      slackbot.expects(:update).with(
-        :action => 'advance_time',
-        :title => "[:sunrise: Dawn], day 1",
-        :message => "The sun will set again in #{game.default_time_remaining_in_round} seconds :hourglass:.")
-
-      game.advance_time
+      title = "[:sunrise: Dawn], day 4"
+      message = "The sun will set again in 47 seconds :hourglass:."
+      slackbot.expects(:tell_all).once.with(message, anything)
+      slackbot.handle_dawn(
+        :action => 'dawn',
+        :day_number => 4, 
+        :round_time => 47)
     end
 
 
-    def test_handle_advance_time_called_when_notified
+    def test_handle_dusk
       slackbot = Werewolf::SlackBot.new
-      message = "bobby shaftoe's gone to sea"
-      slackbot.expects(:handle_advance_time).once.with(:message => "#{message}")
-
-      slackbot.update(
-        :action => 'advance_time',
-        :message => message)
-    end
-
-
-    def test_advance_time_broadcasts_to_room
-      slackbot = Werewolf::SlackBot.new
-      message = "i see the moon, and the moon sees me."
-      slackbot.expects(:tell_all).once.with(message, {:title => nil})
-      slackbot.handle_advance_time(:message => message)
+      title = "[:night_with_stars: Dusk], day 5"
+      message = "The sun will rise again in 57 seconds :hourglass:."
+      slackbot.expects(:tell_all).once.with(message, anything)
+      slackbot.handle_dusk(
+        :action => 'dusk',
+        :day_number => 5, 
+        :round_time => 57)
     end
 
 
@@ -65,7 +55,6 @@ module Werewolf
 
       slackbot.expects(:update).with(
         :action => 'join',
-        :message => "has joined the game",
         :player => player)
 
       game.join(player)
@@ -75,12 +64,10 @@ module Werewolf
     def test_handle_join_called_when_notified
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
-      message = "bobby shaftoe's gone to sea"
-      slackbot.expects(:handle_join).once.with(:player => player, :message => "#{message}")
+      slackbot.expects(:handle_join).once.with(:player => player)
 
       slackbot.update(
         :action => 'join',
-        :message => message,
         :player => player)
     end
 
@@ -88,12 +75,10 @@ module Werewolf
     def test_handle_join_broadcast_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
-      message = "ride a cock-horse to banbury cross"
 
-      slackbot.expects(:tell_all).once.with(":white_check_mark: <@#{player.name}> #{message}", {:color => "good"})
+      slackbot.expects(:tell_all).once.with(":white_check_mark: <@#{player.name}> joins the game", {:color => "good"})
 
       slackbot.handle_join(
-        :message => message,
         :player => player)
     end
 
@@ -102,7 +87,7 @@ module Werewolf
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
 
-      slackbot.expects(:tell_all).once.with(":homerhide: <@#{player.name}> has left the game", {:color => "warning"})
+      slackbot.expects(:tell_all).once.with(":leaves: <@#{player.name}> leaves the game", {:color => "warning"})
       slackbot.handle_leave(:player => player)
     end
 
