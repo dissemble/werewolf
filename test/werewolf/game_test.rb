@@ -338,7 +338,51 @@ module Werewolf
 
     def test_advance_time_calls_process_night_actions
       game = Game.new
+      game.stubs(:time_period).returns('day')
       game.expects(:process_night_actions).once
+      game.advance_time
+    end
+
+
+    def test_advance_time_calls_lynch
+      game = Game.new
+      game.stubs(:time_period).returns('night')
+      game.expects(:lynch).once
+      game.advance_time
+    end
+
+
+    def test_advance_time_notifies_of_dawn
+      game = Game.new
+      game.stubs(:time_period).returns('day')
+      game.stubs(:day_number).returns(17)
+      game.stubs(:default_time_remaining_in_round).returns(42)
+      
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'dawn', 
+        :day_number => 17,
+        :round_time => 42)
+      game.add_observer mock_observer
+
+      game.advance_time
+    end
+
+
+    def test_advance_time_notifies_of_dusk
+      game = Game.new
+      game.stubs(:time_period).returns('night')
+      game.stubs(:day_number).returns(17)
+      game.stubs(:default_time_remaining_in_round).returns(42)
+      
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'dusk', 
+        :day_number => 17,
+        :round_time => 42)
+      game.add_observer mock_observer
+      game.expects(:lynch)
+
       game.advance_time
     end
 
@@ -402,40 +446,6 @@ module Werewolf
       game.add_observer(mock_observer)
 
       game.print_tally
-    end
-
-
-    def test_advance_time_notifies_when_time_changes_to_day
-      game = Game.new
-      game.start
-
-      mock_observer = mock('observer')
-      mock_observer.expects(:update).once.with(
-        :action => 'advance_time',
-        :title => "[:sunrise: Dawn], day 1",
-        :message => "The sun will set again in 17 seconds :hourglass:.")
-      game.add_observer mock_observer
-
-      game.stubs(:default_time_remaining_in_round).returns(17)
-      game.advance_time
-    end
-
-
-    def test_game_notifies_when_time_changes_to_night
-      game = Game.new
-      game.advance_time
-
-      mock_observer = mock('observer')
-      mock_observer.expects(:update).once.with(
-        :action => 'advance_time',
-        :title => "[:night_with_stars: Dusk], day 1",
-        :message => "The sun will rise again in 17 seconds :hourglass:.")
-      game.add_observer mock_observer
-
-      game.stubs(:default_time_remaining_in_round).returns(17)
-      game.expects(:lynch)
-
-      game.advance_time
     end
 
 

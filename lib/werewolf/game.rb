@@ -436,20 +436,17 @@ module Werewolf
 
       if 'night' == time_period
         lynch
+        action = 'dusk'
       else
         process_night_actions
-      end
-
-      if 'night' == time_period
-        title = "[:night_with_stars: Dusk], day #{day_number}"
-        message = "The sun will rise again in #{default_time_remaining_in_round} seconds :hourglass:."
-      else
-        title = "[:sunrise: Dawn], day #{day_number}"
-        message = "The sun will set again in #{default_time_remaining_in_round} seconds :hourglass:."
+        action = 'dawn'
       end
 
       changed
-      notify_observers(:action => 'advance_time', :title=> title, :message => message)
+      notify_observers(
+        :action => action, 
+        :day_number => day_number, 
+        :round_time => default_time_remaining_in_round)
     end
 
 

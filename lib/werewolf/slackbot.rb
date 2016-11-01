@@ -11,8 +11,27 @@ module Werewolf
     end
 
 
-    def handle_advance_time(options = {})
-      tell_all options[:message], title: options[:title]
+    def handle_dawn(options = {})
+      puts 'handle dawn'
+      title = <<TITLE
+=================
+§  [Dawn], day #{options[:day_number]} :sunrise: 
+=================
+TITLE
+      message = "The sun will set again in #{options[:round_time]} seconds :hourglass:."
+      tell_all(message, title:title)
+    end
+
+
+    def handle_dusk(options = {})
+      puts 'handle dusk'
+            title = <<TITLE
+=================
+§  [Dusk], day #{options[:day_number]} :night_with_stars:
+=================
+TITLE
+      message = "The sun will rise again in #{options[:round_time]} seconds :hourglass:."
+      tell_all(message, title:title)
     end
 
 
@@ -166,7 +185,7 @@ MESSAGE
 
 
     def tell_all(message, title: nil, color: nil, fields: nil)
-      puts "tell_all:  #{message}, #{title}, #{color}"
+      puts "tell_all('#{message}', title:'#{title}', color:'#{color}'"
 
       # client.say(text: message, channel: slackbot_channel)
       client.web_client.chat_postMessage(
