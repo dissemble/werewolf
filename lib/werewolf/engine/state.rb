@@ -19,7 +19,7 @@ module Werewolf
       end
 
       def to_s
-        "[#{self.current.upcase}] on day #{self.day_number}"
+        "[#{self.current.capitalize}], day #{self.day_number}"
       end
     end
   end
