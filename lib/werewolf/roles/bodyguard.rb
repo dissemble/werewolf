@@ -3,8 +3,8 @@ module Werewolf
     class Bodyguard
       include Roles
 
-      SIDE = :good
-      VISIBLE_SIDE = SIDE
+      TEAM = :villagers
+      VISIBLE_TEAM = TEAM
       WEIGHT = 3
       ALLIES = []
       DESCRIPTION = "protects one player from the wolves each night."

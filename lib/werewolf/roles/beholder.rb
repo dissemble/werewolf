@@ -3,8 +3,8 @@ module Werewolf
     class Beholder
       include Roles
 
-      SIDE = :good
-      VISIBLE_SIDE = SIDE
+      TEAM = :villagers
+      VISIBLE_TEAM = TEAM
       WEIGHT = 2
       ALLIES = []
       DESCRIPTION = "knows the identity of the seer."

@@ -3,8 +3,8 @@ module Werewolf
     class Villager
       include Roles
 
-      SIDE = :good
-      VISIBLE_SIDE = SIDE
+      TEAM = :villagers
+      VISIBLE_TEAM = TEAM
       WEIGHT = 1
       ALLIES = []
       DESCRIPTION = "no special powers."

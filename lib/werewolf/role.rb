@@ -15,8 +15,8 @@ module Werewolf
         self::DESCRIPTION
       end
 
-      def side(actual=false)
-          actual ? self::SIDE : self::VISIBLE_SIDE
+      def team(actual=false)
+          actual ? self::TEAM : self::VISIBLE_TEAM
       end
 
       def powers
@@ -25,6 +25,18 @@ module Werewolf
 
       def allies
         self::ALLIES
+      end
+
+      def good?
+        [:villagers].include? team
+      end
+
+      def evil?
+        [:werewolves].include? team
+      end
+
+      def to_s
+        "#{name.split('::').last}"
       end
     end
   end

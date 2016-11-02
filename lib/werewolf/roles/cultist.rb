@@ -3,8 +3,8 @@ module Werewolf
     class Cultist
       include Roles
 
-      SIDE = :evil
-      VISIBLE_SIDE = :good
+      TEAM = :villagers
+      VISIBLE_TEAM = :werewolves
       WEIGHT = -6
       ALLIES = []
       DESCRIPTION = "knows the identity of the wolves."

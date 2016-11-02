@@ -3,8 +3,8 @@ module Werewolf
     class Werewolf
       include Roles
 
-      SIDE = :evil
-      VISIBLE_SIDE = SIDE
+      TEAM = :werewolves
+      VISIBLE_TEAM = TEAM
       WEIGHT = -6
       ALLIES = [Cultist]
       DESCRIPTION = "kills people at night."
