@@ -1,8 +1,14 @@
 module Werewolf
   module Roles
-    class Cultist < Role
-      @side = "evil"
-      @description = ""
+    class Cultist
+      include Roles
+
+      SIDE = :evil
+      VISIBLE_SIDE = :good
+      WEIGHT = -6
+      POWERS = []
+      ALLIES = []
+      DESCRIPTION = "knows the identity of the wolves."
     end
   end
 end

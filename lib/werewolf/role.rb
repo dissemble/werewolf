@@ -1,33 +1,31 @@
 module Werewolf
-  class Role
-    @@roles = []
-
-    def self.roles
-      @@roles
+  module Roles
+    class << self
+      attr_reader :all
     end
 
-    def self.inherited(subclass)
-      @@roles << subclass
+    def self.included(base)
+      base.extend(ClassMethods)
+      @all ||= []
+      @all << base
     end
 
-    def self.side
-      @side ||= "good"
-    end
+    module ClassMethods
+      def description
+        self::DESCRIPTION
+      end
 
-    def self.powers
-      @powers ||= []
-    end
+      def side(actual=false)
+          actual ? self::SIDE : self::VISIBLE_SIDE
+      end
 
-    def self.allies
-      @allies ||= []
-    end
+      def powers
+        self::POWERS
+      end
 
-    def self.description
-      @description
-    end
-
-    def self.to_s
-      "#{self.name} (#{side})"
+      def allies
+        self::ALLIES
+      end
     end
   end
 end

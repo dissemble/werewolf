@@ -1,8 +1,14 @@
 module Werewolf
   module Roles
-    class Beholder < Role
-      @side = "good"
-      @description = "knows the identity of the seer."
+    class Beholder
+      include Roles
+
+      SIDE = :good
+      VISIBLE_SIDE = SIDE
+      WEIGHT = 2
+      POWERS = []
+      ALLIES = []
+      DESCRIPTION = "knows the identity of the seer."
     end
   end
 end

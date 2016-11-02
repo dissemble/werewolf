@@ -1,10 +1,14 @@
 module Werewolf
   module Roles
-    class Werewolf < Role
-      @side = "evil"
-      @powers = ["kill"]
-      @allies = [Cultist]
-      @description = "kills people at night."
+    class Werewolf
+      include Roles
+
+      SIDE = :evil
+      VISIBLE_SIDE = SIDE
+      WEIGHT = -6
+      POWERS = [:kill]
+      ALLIES = [Cultist]
+      DESCRIPTION = "kills people at night."
     end
   end
 end
