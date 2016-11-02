@@ -35,7 +35,7 @@ module Werewolf
 
     def view(other_player)
       raise RuntimeError.new("only seer may see") unless role == 'seer'
-      other_player.team
+      other_player.apparent_team
     end
 
     def bot?
