@@ -1,4 +1,7 @@
 module Werewolf
-  class GameError < StandardError
+  class PrivateGameError < StandardError
+  end
+
+  class PublicGameError < StandardError
   end
 end

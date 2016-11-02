@@ -329,6 +329,11 @@ MESSAGE
     end
 
 
+    def test_handle_tell_name
+      # TODO:
+    end
+
+
     def test_handle_tell_all
       fake_message = "look into thy glass"
 
