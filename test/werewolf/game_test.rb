@@ -2149,7 +2149,7 @@ module Werewolf
       game.advance_time
 
       # Day 1
-      assert_equal 5, game.remaining_votes.size
+      assert_equal 6, game.remaining_votes.size
       game.vote(voter_name: seer.name, candidate_name: villager.name)
       game.vote(voter_name: wolf.name, candidate_name: villager.name)
       game.vote(voter_name: lycan.name, candidate_name: villager.name)
@@ -2176,7 +2176,7 @@ module Werewolf
       assert beholder.dead?
 
       # Day 2
-      assert_equal 3, game.remaining_votes.size
+      assert_equal 4, game.remaining_votes.size
       game.vote(voter_name: seer.name, candidate_name: cultist.name)
       game.vote(voter_name: wolf.name, candidate_name: cultist.name)
       game.vote(voter_name: lycan.name, candidate_name: cultist.name)
@@ -2194,7 +2194,7 @@ module Werewolf
       assert !game.night_finished?
       game.nightkill werewolf_name:wolf.name, victim_name:seer.name
 
-      # Dawn 
+      # Dawn
       assert game.night_finished?
       game.advance_time
       assert seer.dead?
