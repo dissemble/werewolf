@@ -1,15 +1,15 @@
 module Werewolf
   module Engine
     class State
-      attr_reader :current, :turn_number, :day_number
+      attr_reader :current, :turn_number, :day_number, :enumerator
 
       STATES = [:dawn, :day, :dusk, :night]
       TRANSITIONS = [:dawn, :dusk]
 
       # We start at turn 0, :dawn on day 0
       def initialize
-        @state_enumerator = STATES.cycle
-        @current = @state_enumerator.next
+        @enumerator = STATES.cycle
+        @current = @enumerator.next
         @index, @turn_number, @day_number = 0, 0, 0
       end
 
@@ -22,7 +22,7 @@ module Werewolf
         @day_number += @index/STATES.length
         # reset index once we have hit then end of a cycle
         @index = 0 if @index >= STATES.length
-        @current = @state_enumerator.next
+        @current = @enumerator.next
       end
 
       def transitioning?
@@ -34,7 +34,7 @@ module Werewolf
         if transitioning?
           "[#{current.capitalize}], day #{day_number}"
         else
-          "#{current.capitalize}"
+          "#{current.capitalize}time (day #{day_number})"
         end
       end
 
