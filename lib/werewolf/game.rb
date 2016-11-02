@@ -70,8 +70,8 @@ module Werewolf
 
     def leave(name)
       player = @players[name]
-      raise RuntimeError.new("must be player to leave game") unless player
-      raise RuntimeError.new("can't leave an active game") if active?
+      raise GameError.new("must be player to leave game") unless player
+      raise GameError.new("can't leave an active game") if active?
 
       @players.delete name
 
@@ -91,7 +91,7 @@ module Werewolf
 
         begin
           starting_player = validate_player(starter_name)
-        rescue RuntimeError
+        rescue GameError
           starting_player = Player.new(:name => "GM")
         end
 
@@ -133,7 +133,7 @@ module Werewolf
 
 
     def end_game(name='Unknown')
-      raise RuntimeError.new('Game is not active') unless active?
+      raise GameError.new('Game is not active') unless active?
 
       ender = @players[name]
 
@@ -170,7 +170,7 @@ module Werewolf
       unless 'day' == time_period
         message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
         notify_all message
-        raise RuntimeError.new(message)
+        raise GameError.new(message)
       end
 
       remove_vote! voter:voter
@@ -191,7 +191,7 @@ module Werewolf
       voter = validate_player voter_name
       candidate = validate_player candidate_name
 
-      raise RuntimeError.new("Game has not started") unless active?
+      raise GameError.new("Game has not started") unless active?
 
       return voter, candidate
     end
@@ -274,8 +274,8 @@ module Werewolf
     def validate_player(player_name)
       player = @players[player_name]
 
-      raise RuntimeError.new("invalid player name") unless player
-      raise RuntimeError.new("player must be alive") unless player.alive?
+      raise GameError.new("invalid player name") unless player
+      raise GameError.new("player must be alive") unless player.alive?
 
       player
     end
@@ -303,9 +303,9 @@ module Werewolf
       wolf_player = validate_player werewolf_name
       victim_player = validate_player victim_name
 
-      raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
-      raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
-      raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
+      raise GameError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
+      raise GameError.new('nightkill may only be used at night') unless 'night' == time_period
+      raise GameError.new('no nightkill on night 0') if 0 == day_number
 
       return wolf_player, victim_player
     end
@@ -327,8 +327,8 @@ module Werewolf
       bodyguard_player = validate_player bodyguard_name
       target_player = validate_player target_name
 
-      raise RuntimeError.new("Only the bodyguard can guard") unless 'bodyguard' == bodyguard_player.role
-      raise RuntimeError.new("Can only guard at night") unless time_period == 'night'
+      raise GameError.new("Only the bodyguard can guard") unless 'bodyguard' == bodyguard_player.role
+      raise GameError.new("Can only guard at night") unless time_period == 'night'
 
       return bodyguard_player, target_player
     end
@@ -358,8 +358,8 @@ module Werewolf
       seer = validate_player seer_name
       target = validate_player target_name
 
-      raise RuntimeError.new('View is only available to the seer') unless seer.role == 'seer'
-      raise RuntimeError.new('You can only view at night') unless time_period == 'night'
+      raise GameError.new('View is only available to the seer') unless seer.role == 'seer'
+      raise GameError.new('You can only view at night') unless time_period == 'night'
 
       return seer, target
     end
@@ -414,7 +414,7 @@ module Werewolf
 
       available_roles = rolesets[@players.size]
       if available_roles.nil?
-        raise RuntimeError.new("no rolesets for #{@players.size} players")
+        raise NotImplementedError.new("no rolesets for #{@players.size} players")
       else
         available_roles
       end
@@ -505,7 +505,7 @@ module Werewolf
 
     def claim(name, text)
       player = @players[name]
-      raise RuntimeError.new("claim is only available to players") unless player
+      raise GameError.new("claim is only available to players") unless player
 
       @claims[player] = text
       print_claims
