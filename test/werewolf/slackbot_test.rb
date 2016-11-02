@@ -285,7 +285,7 @@ MESSAGE
       slackbot.handle_game_results(
         :action => 'game_results',
         :players => game.players,
-        :message => "Evil won the game!\n"
+        :message => "Evil won the game!"
       )
     end
 

@@ -1793,7 +1793,7 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'game_results',
         :players => game.players,
-        :message => "Evil won the game!\n" )
+        :message => "Evil won the game!" )
       game.add_observer(mock_observer)
 
       game.print_results

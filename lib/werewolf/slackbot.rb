@@ -185,7 +185,7 @@ MESSAGE
 
 
     def handle_game_results(options = {})
-      message = ":tada: " + options[:message]
+      message = ":tada: #{options[:message]}\n"
       options[:players].each do |_name,player|
         line = player.dead? ? '-' : "+"
         line.concat " #{slackify(player)}: #{SlackBot.format_role player.role}"

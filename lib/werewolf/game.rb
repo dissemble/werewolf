@@ -539,7 +539,7 @@ module Werewolf
 
     def print_results
       if winner?
-        message = "#{winner?.capitalize} won the game!\n"
+        message = "#{winner?.capitalize} won the game!"
       else
         message = "No winner, game was ended prematurely"
       end
