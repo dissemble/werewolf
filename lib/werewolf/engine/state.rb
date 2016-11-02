@@ -14,10 +14,13 @@ module Werewolf
 
       # Advance to the next time period
       def next
+        # increment the index and turn every time next is called
         @index += 1
         @turn_number += 1
+        # only increment the day if a full cycle has happened
         @day_number += @index/STATES.length
-        @index = 0 if @index == STATES.length
+        # reset index once we have hit then end of a cycle
+        @index = 0 if @index >= STATES.length
         @current = @state_enumerator.next
       end
 
