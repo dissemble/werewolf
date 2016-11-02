@@ -237,7 +237,7 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [beholder, bodyguard, cultist, seer, villager, wolf]", {
+        "Active roles: [beholder, bodyguard, cultist, lycan, seer, villager, wolf]", {
           :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
@@ -254,6 +254,11 @@ MESSAGE
             {
               :title => ":dagger_knife: cultist",
               :value => "team evil. knows the identity of the wolves.",
+              :short => true
+            },
+            {
+              :title => ":see_no_evil: lycan",
+              :value => "team good, but appears evil to seer.  no special powers.",
               :short => true
             },
             {
@@ -276,7 +281,7 @@ MESSAGE
       )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard'])
+        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard', 'lycan'])
     end
 
 
@@ -321,6 +326,11 @@ MESSAGE
       slackbot.handle_tell_player(
         :player => fake_player,
         :message => fake_message)
+    end
+
+
+    def test_handle_tell_name
+      # TODO:
     end
 
 

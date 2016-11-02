@@ -184,6 +184,15 @@ MESSAGE
     end
 
 
+    def handle_tell_name(options = {})
+      name = options[:name]
+      message = options[:message]
+      puts "tell_name:  #{name}, #{message}"
+      im = client.web_client.im_open(:user => "#{name}")
+      client.say(text: message, channel: "#{im.channel.id}", mrkdwn: true)
+    end
+
+
     def tell_all(message, title: nil, color: nil, fields: nil)
       puts "tell_all('#{message}', title:'#{title}', color:'#{color}'"
 
@@ -259,6 +268,11 @@ MESSAGE
         'cultist' => {
             title: ":dagger_knife: cultist",
             value: "team evil. knows the identity of the wolves.",
+            short: true
+          },
+        'lycan' => {
+            title: ":see_no_evil: lycan",
+            value: "team good, but appears evil to seer.  no special powers.",
             short: true
           },
         'seer' => {

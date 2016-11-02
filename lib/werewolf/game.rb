@@ -70,8 +70,8 @@ module Werewolf
 
     def leave(name)
       player = @players[name]
-      raise RuntimeError.new("must be player to leave game") unless player
-      raise RuntimeError.new("can't leave an active game") if active?
+      raise PrivateGameError.new("must be player to leave game") unless player
+      raise PrivateGameError.new("can't leave an active game") if active?
 
       @players.delete name
 
@@ -91,7 +91,7 @@ module Werewolf
 
         begin
           starting_player = validate_player(starter_name)
-        rescue RuntimeError
+        rescue PrivateGameError
           starting_player = Player.new(:name => "GM")
         end
 
@@ -133,7 +133,7 @@ module Werewolf
 
 
     def end_game(name='Unknown')
-      raise RuntimeError.new('Game is not active') unless active?
+      raise PrivateGameError.new('Game is not active') unless active?
 
       ender = @players[name]
 
@@ -165,12 +165,8 @@ module Werewolf
 
 
     def vote(voter_name:, candidate_name:)
-      voter, candidate = authorize_vote(voter_name:voter_name, candidate_name:candidate_name)
-
-      unless 'day' == time_period
-        message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
-        notify_all message
-        raise RuntimeError.new(message)
+      voter, candidate = notify_on_error(voter_name) do
+        authorize_vote(voter_name:voter_name, candidate_name:candidate_name)
       end
 
       remove_vote! voter:voter
@@ -191,7 +187,12 @@ module Werewolf
       voter = validate_player voter_name
       candidate = validate_player candidate_name
 
-      raise RuntimeError.new("Game has not started") unless active?
+      raise PublicGameError.new("Game has not started") unless active?
+
+      unless 'day' == time_period
+        message = "You may not vote at night.  Night ends in #{time_remaining_in_round} seconds"
+        raise PublicGameError.new(message)
+      end
 
       return voter, candidate
     end
@@ -274,15 +275,17 @@ module Werewolf
     def validate_player(player_name)
       player = @players[player_name]
 
-      raise RuntimeError.new("invalid player name") unless player
-      raise RuntimeError.new("player must be alive") unless player.alive?
+      raise PrivateGameError.new("invalid player name") unless player
+      raise PrivateGameError.new("player must be alive") unless player.alive?
 
       player
     end
 
 
     def nightkill(werewolf_name:, victim_name:)
-      wolf_player, victim_player = authorize_nightkill(werewolf_name:werewolf_name, victim_name:victim_name)
+      wolf_player, victim_player = notify_on_error(werewolf_name) do
+        authorize_nightkill(werewolf_name:werewolf_name, victim_name:victim_name)
+      end
 
       @night_actions['nightkill'] = lambda {
         if @guarded == victim_player
@@ -303,16 +306,18 @@ module Werewolf
       wolf_player = validate_player werewolf_name
       victim_player = validate_player victim_name
 
-      raise RuntimeError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
-      raise RuntimeError.new('nightkill may only be used at night') unless 'night' == time_period
-      raise RuntimeError.new('no nightkill on night 0') if 0 == day_number
+      raise PrivateGameError.new('Only wolves may nightkill') unless 'wolf' == wolf_player.role
+      raise PrivateGameError.new('nightkill may only be used at night') unless 'night' == time_period
+      raise PrivateGameError.new('no nightkill on night 0') if 0 == day_number
 
       return wolf_player, victim_player
     end
 
 
     def guard(bodyguard_name:, target_name:)
-      bodyguard_player, target_player = authorize_guard(bodyguard_name:bodyguard_name, target_name:target_name)
+      bodyguard_player, target_player = notify_on_error(bodyguard_name) do
+        authorize_guard(bodyguard_name:bodyguard_name, target_name:target_name)
+      end
 
       @night_actions['guard'] = lambda {
         @guarded = target_player
@@ -327,15 +332,17 @@ module Werewolf
       bodyguard_player = validate_player bodyguard_name
       target_player = validate_player target_name
 
-      raise RuntimeError.new("Only the bodyguard can guard") unless 'bodyguard' == bodyguard_player.role
-      raise RuntimeError.new("Can only guard at night") unless time_period == 'night'
+      raise PrivateGameError.new("Only the bodyguard can guard") unless 'bodyguard' == bodyguard_player.role
+      raise PrivateGameError.new("Can only guard at night") unless time_period == 'night'
 
       return bodyguard_player, target_player
     end
 
 
     def view(seer_name:, target_name:)
-      seer, target = authorize_view(seer_name:seer_name, target_name:target_name)
+      seer, target = notify_on_error(seer_name) do
+        authorize_view seer_name:seer_name, target_name:target_name
+      end
 
       @night_actions['view'] = lambda {
         # seer may be nightkilled after calling view, but before his night action is processed
@@ -358,8 +365,8 @@ module Werewolf
       seer = validate_player seer_name
       target = validate_player target_name
 
-      raise RuntimeError.new('View is only available to the seer') unless seer.role == 'seer'
-      raise RuntimeError.new('You can only view at night') unless time_period == 'night'
+      raise PrivateGameError.new('View is only available to the seer') unless seer.role == 'seer'
+      raise PrivateGameError.new('You can only view at night') unless time_period == 'night'
 
       return seer, target
     end
@@ -403,18 +410,18 @@ module Werewolf
         3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'bodyguard', 'villager', 'wolf', 'wolf'],
-        6 => ['seer', 'bodyguard', 'beholder', 'villager', 'wolf', 'wolf'],
-        7 => ['seer', 'bodyguard', 'beholder', 'villager', 'cultist', 'wolf', 'wolf'],
-        8 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        9 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        10 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        11 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        12 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        6 => ['seer', 'bodyguard', 'lycan', 'villager', 'wolf', 'wolf'],
+        7 => ['seer', 'bodyguard', 'lycan', 'villager', 'cultist', 'wolf', 'wolf'],
+        8 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'cultist', 'wolf', 'wolf'],
+        9 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        10 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        12 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
       }
 
       available_roles = rolesets[@players.size]
       if available_roles.nil?
-        raise RuntimeError.new("no rolesets for #{@players.size} players")
+        raise NotImplementedError.new("no rolesets for #{@players.size} players")
       else
         available_roles
       end
@@ -505,7 +512,7 @@ module Werewolf
 
     def claim(name, text)
       player = @players[name]
-      raise RuntimeError.new("claim is only available to players") unless player
+      raise PrivateGameError.new("claim is only available to players") unless player
 
       @claims[player] = text
       print_claims
@@ -541,6 +548,27 @@ module Werewolf
       notify_observers(
         :action => 'game_results',
         :players => players,
+        :message => message)
+    end
+
+
+
+    def notify_on_error(name, &block)
+      yield
+    rescue PrivateGameError => err
+      notify_name(name, err.message)
+      raise
+    rescue PublicGameError => err
+      notify_all(err.message)
+      raise
+    end
+
+
+    def notify_name(name, message)
+      changed
+      notify_observers(
+        :action => 'tell_name',
+        :name => name,
         :message => message)
     end
 
