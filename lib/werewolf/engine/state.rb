@@ -3,19 +3,22 @@ module Werewolf
     class State
       attr_reader :current, :turn_number, :day_number
 
-      TRANSITIONS = {:dawn => :day, :day => :dusk, :dusk => :night, :night => :dawn}
+      STATES = [:dawn, :day, :dusk, :night]
 
-      # We start at turn 1, :dawn on day 1
+      # We start at turn 0, :dawn on day 0
       def initialize
-        @current = :dawn
-        @turn_number, @day_number = 1, 1
+        @state_enumerator = STATES.cycle
+        @current = @state_enumerator.next
+        @index, @turn_number, @day_number = 0, 0, 0
       end
 
       # Advance to the next time period
       def next
+        @index += 1
         @turn_number += 1
-        @day_number += @turn_number/TRANSITIONS.length
-        @current = TRANSITIONS[@current]
+        @day_number += @index/STATES.length
+        @index = 0 if @index == STATES.length
+        @current = @state_enumerator.next
       end
 
       def to_s
