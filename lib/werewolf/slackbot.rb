@@ -11,8 +11,27 @@ module Werewolf
     end
 
 
-    def handle_advance_time(options = {})
-      tell_all options[:message], title: options[:title]
+    def handle_dawn(options = {})
+      puts 'handle dawn'
+      title = <<TITLE
+=================
+§  [Dawn], day #{options[:day_number]} :sunrise: 
+=================
+TITLE
+      message = "The sun will set again in #{options[:round_time]} seconds :hourglass:."
+      tell_all(message, title:title)
+    end
+
+
+    def handle_dusk(options = {})
+      puts 'handle dusk'
+            title = <<TITLE
+=================
+§  [Dusk], day #{options[:day_number]} :night_with_stars:
+=================
+TITLE
+      message = "The sun will rise again in #{options[:round_time]} seconds :hourglass:."
+      tell_all(message, title:title)
     end
 
 
@@ -120,18 +139,19 @@ module Werewolf
       message = <<MESSAGE
 Commands you can use:
 ```
-help:     this command.  'wolfbot help'
-join:     join the game.  'wolfbot join' (only before the game starts)
-leave:    leave the game.  'wolfbot leave' (only before the game starts)
-start:    start the game.  'wolfbot start' (only after players have joined)
-end:      terminate the running game.  'wolfbot end'
-status:   should probably work...  'wolfbot status'
+help:     this command.  'w help'
+join:     join the game.  'w join' (only before the game starts)
+leave:    leave the game.  'w leave' (only before the game starts)
+start:    start the game.  'w start' (only after players have joined)
+end:      terminate the running game.  'w end'
+status:   should probably work...  'w status'
 tally:    show lynch-vote tally (only during day)
-kill:     as a werewolf, nightkill a player.  'wolfbot kill @name' (only at night).
+kill:     as a werewolf, nightkill a player.  'w kill @name' (only at night).
 view:     as the seer, reveals the alignment of another player.  'wolfbot see @name' (only at night).
-vote:     vote to lynch a player.  'wolfbot vote @name' (only during day)
-claim:    register a claim.  'wolfbot claim i am the walrus'
-claims:   view all claims.  'wolfbot claims'
+guard:    as the bodyguard, protects one player from nightkill.  'w guard @name' (only at night)
+vote:     vote to lynch a player.  'w vote @name' (only during day)
+claim:    register a claim.  'w claim i am the walrus'
+claims:   view all claims.  'w claims'
 ```
 MESSAGE
 
@@ -165,7 +185,7 @@ MESSAGE
 
 
     def tell_all(message, title: nil, color: nil, fields: nil)
-      puts "tell_all:  #{message}, #{title}, #{color}"
+      puts "tell_all('#{message}', title:'#{title}', color:'#{color}'"
 
       # client.say(text: message, channel: slackbot_channel)
       client.web_client.chat_postMessage(
@@ -239,6 +259,11 @@ MESSAGE
         'cultist' => {
             title: ":dagger_knife: cultist",
             value: "team evil. knows the identity of the wolves.",
+            short: true
+          },
+        'lycan' => {
+            title: ":see_no_evil: lycan",
+            value: "team good, but appears evil to seer.  no special powers.",
             short: true
           },
         'seer' => {

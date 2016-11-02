@@ -22,37 +22,27 @@ module Werewolf
     end
 
 
-    # TODO:  collapse next 2 tests
-    def test_game_notifies_on_advance_time
-      game = Game.new
+    def test_handle_dawn
       slackbot = Werewolf::SlackBot.new
-      game.add_observer(slackbot)
-
-      slackbot.expects(:update).with(
-        :action => 'advance_time',
-        :title => "[:sunrise: Dawn], day 1",
-        :message => "The sun will set again in #{game.default_time_remaining_in_round} seconds :hourglass:.")
-
-      game.advance_time
+      title = "[:sunrise: Dawn], day 4"
+      message = "The sun will set again in 47 seconds :hourglass:."
+      slackbot.expects(:tell_all).once.with(message, anything)
+      slackbot.handle_dawn(
+        :action => 'dawn',
+        :day_number => 4, 
+        :round_time => 47)
     end
 
 
-    def test_handle_advance_time_called_when_notified
+    def test_handle_dusk
       slackbot = Werewolf::SlackBot.new
-      message = "bobby shaftoe's gone to sea"
-      slackbot.expects(:handle_advance_time).once.with(:message => "#{message}")
-
-      slackbot.update(
-        :action => 'advance_time',
-        :message => message)
-    end
-
-
-    def test_advance_time_broadcasts_to_room
-      slackbot = Werewolf::SlackBot.new
-      message = "i see the moon, and the moon sees me."
-      slackbot.expects(:tell_all).once.with(message, {:title => nil})
-      slackbot.handle_advance_time(:message => message)
+      title = "[:night_with_stars: Dusk], day 5"
+      message = "The sun will rise again in 57 seconds :hourglass:."
+      slackbot.expects(:tell_all).once.with(message, anything)
+      slackbot.handle_dusk(
+        :action => 'dusk',
+        :day_number => 5, 
+        :round_time => 57)
     end
 
 
@@ -247,7 +237,7 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [beholder, bodyguard, cultist, seer, villager, wolf]", {
+        "Active roles: [beholder, bodyguard, cultist, lycan, seer, villager, wolf]", {
           :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
@@ -264,6 +254,11 @@ MESSAGE
             {
               :title => ":dagger_knife: cultist",
               :value => "team evil. knows the identity of the wolves.",
+              :short => true
+            },
+            {
+              :title => ":see_no_evil: lycan",
+              :value => "team good, but appears evil to seer.  no special powers.",
               :short => true
             },
             {
@@ -286,7 +281,7 @@ MESSAGE
       )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard'])
+        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard', 'lycan'])
     end
 
 
