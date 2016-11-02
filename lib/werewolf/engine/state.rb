@@ -17,6 +17,10 @@ module Werewolf
         @day_number += @turn_number/TRANSITIONS.length
         @current = TRANSITIONS[@current]
       end
+
+      def to_s
+        "[#{self.current.upcase}] on day #{self.day_number}"
+      end
     end
   end
 end
