@@ -4,6 +4,7 @@ module Werewolf
       attr_reader :current, :turn_number, :day_number
 
       STATES = [:dawn, :day, :dusk, :night]
+      TRANSITIONS = [:dawn, :dusk]
 
       # We start at turn 0, :dawn on day 0
       def initialize
@@ -24,8 +25,21 @@ module Werewolf
         @current = @state_enumerator.next
       end
 
+      def transitioning?
+        TRANSITIONS.include? @current
+      end
+
+      # A more verbose description, suitable for messaging
+      def describe
+        if transitioning?
+          "[#{current.capitalize}], day #{day_number}"
+        else
+          "#{current.capitalize}"
+        end
+      end
+
       def to_s
-        "[#{self.current.capitalize}], day #{self.day_number}"
+        "<State: current=#{current}, turn_number=#{turn_number}, day_number=#{day_number}>"
       end
     end
   end
