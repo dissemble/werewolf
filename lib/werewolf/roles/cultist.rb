@@ -6,7 +6,6 @@ module Werewolf
       SIDE = :evil
       VISIBLE_SIDE = :good
       WEIGHT = -6
-      POWERS = []
       ALLIES = []
       DESCRIPTION = "knows the identity of the wolves."
     end

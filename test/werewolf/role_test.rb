@@ -13,7 +13,6 @@ module Werewolf
         assert !role::SIDE.nil?
         assert defined? role::VISIBLE_SIDE
         assert defined? role::WEIGHT
-        assert defined? role::POWERS
         assert defined? role::ALLIES
         assert defined? role::DESCRIPTION
         assert !role::DESCRIPTION.nil?

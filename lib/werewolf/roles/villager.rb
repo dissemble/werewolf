@@ -6,7 +6,6 @@ module Werewolf
       SIDE = :good
       VISIBLE_SIDE = SIDE
       WEIGHT = 1
-      POWERS = []
       ALLIES = []
       DESCRIPTION = "no special powers."
     end
