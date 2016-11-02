@@ -15,7 +15,7 @@ module Werewolf
       puts 'handle dawn'
       title = <<TITLE
 =================
-§  [Dawn], day #{options[:day_number]} :sunrise: 
+§  [Dawn], day #{options[:day_number]} :sunrise:
 =================
 TITLE
       message = "The sun will set again in #{options[:round_time]} seconds :hourglass:."
@@ -66,19 +66,32 @@ TITLE
 
 
     def handle_tally(options = {})
-      vote_hash = options[:vote_tally]
+      fields = []
 
+      vote_hash = options[:vote_tally]
       if vote_hash.empty?
-        message = "No votes yet :zero:"
+        tally_message = "No votes yet :zero:"
       else
         lines = vote_hash.map do |k, v|
           voters = v.map{|name| "<@#{name}>"}.join(', ')
           "Lynch <@#{k}>:  (#{pluralize_votes(v.size)}) - #{voters}"
         end
-        message = lines.join("\n")
+        tally_message = lines.join("\n")
       end
 
-      tell_all message
+      fields.push({title: ':memo: Town Ballot', value: tally_message, short: false})
+
+      remaining_votes = options[:remaining_votes]
+      if remaining_votes.empty?
+        remaining_message = "Everyone has voted! :ballot_box_with_check:"
+      else
+        remaining_message = remaining_votes.map{|name| "<@#{name}>"}.sort.join(', ')
+      end
+
+      fields.push({title: ':hourglass: Remaining Voters', value: remaining_message, short: false})
+
+      tell_all '', fields: fields
+
     end
 
 

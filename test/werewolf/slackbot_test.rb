@@ -29,7 +29,7 @@ module Werewolf
       slackbot.expects(:tell_all).once.with(message, anything)
       slackbot.handle_dawn(
         :action => 'dawn',
-        :day_number => 4, 
+        :day_number => 4,
         :round_time => 47)
     end
 
@@ -41,7 +41,7 @@ module Werewolf
       slackbot.expects(:tell_all).once.with(message, anything)
       slackbot.handle_dusk(
         :action => 'dusk',
-        :day_number => 5, 
+        :day_number => 5,
         :round_time => 57)
     end
 
@@ -386,28 +386,78 @@ MESSAGE
 
     def test_handle_tally
       slackbot = Werewolf::SlackBot.new
-      expected =
-        "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
-        "Lynch <@bill>:  (1 vote) - <@tom>"
 
-      slackbot.expects(:tell_all).once.with(expected)
+      expected_fields = [
+        {
+          title: ':memo: Town Ballot',
+          value: "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
+                 "Lynch <@bill>:  (1 vote) - <@tom>",
+          short: false
+        },
+        {
+          title: ':hourglass: Remaining Voters',
+          value: '<@ari>, <@devin>, <@kayleigh>',
+          short: false
+        }
+      ]
+      slackbot.expects(:tell_all).once.with('', fields: expected_fields)
 
       slackbot.handle_tally( {
         :vote_tally => {
           'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
-        }
+        },
+        :remaining_votes => Set.new(['kayleigh', 'devin', 'ari'])
       } )
     end
 
 
     def test_handle_tally_when_empty
       slackbot = Werewolf::SlackBot.new
-      expected = "No votes yet :zero:"
 
-      slackbot.expects(:tell_all).once.with(expected)
+      expected_fields = [
+        {
+          title: ':memo: Town Ballot',
+          value: 'No votes yet :zero:',
+          short: false
+        },
+        {
+          title: ':hourglass: Remaining Voters',
+          value: 'Everyone has voted! :ballot_box_with_check:',
+          short: false
+        }
+      ]
+      slackbot.expects(:tell_all).once.with('', fields: expected_fields)
 
-      slackbot.handle_tally({ :vote_tally => {} })
+      slackbot.handle_tally({ :vote_tally => {}, :remaining_votes => Set.new })
+    end
+
+
+    def test_handle_tally_one_remaining_voter
+      slackbot = Werewolf::SlackBot.new
+
+      expected_fields = [
+        {
+          title: ':memo: Town Ballot',
+          value: "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
+                 "Lynch <@bill>:  (1 vote) - <@tom>",
+          short: false
+        },
+        {
+          title: ':hourglass: Remaining Voters',
+          value: '<@zak>',
+          short: false
+        }
+      ]
+      slackbot.expects(:tell_all).once.with('', fields: expected_fields)
+
+      slackbot.handle_tally( {
+        :vote_tally => {
+          'tom' => Set.new(['seth', 'bill']),
+          'bill' => Set.new(['tom'])
+        },
+        :remaining_votes => Set.new(['zak'])
+      } )
     end
 
 

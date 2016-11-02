@@ -11,7 +11,7 @@ module Werewolf
 
     attr_reader :players
     attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
-    attr_accessor :time_remaining_in_round, :vote_tally
+    attr_accessor :time_remaining_in_round, :vote_tally, :remaining_votes
 
     def initialize()
       reset
@@ -25,6 +25,7 @@ module Werewolf
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
       @vote_tally = {}
+      @remaining_votes = Set.new
       @night_actions = {}   # {'action_name' => lambda}
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
@@ -152,6 +153,7 @@ module Werewolf
       else
         @vote_tally[candidate.name] = Set.new([voter.name])
       end
+      @remaining_votes.delete voter.name
     end
 
 
@@ -161,6 +163,7 @@ module Werewolf
           @vote_tally.delete(k)
         end
       end
+      @remaining_votes.add voter.name
     end
 
 
@@ -197,9 +200,14 @@ module Werewolf
       return voter, candidate
     end
 
+    def init_vote!
+      @vote_tally = {}
+      @remaining_votes = Set.new(living_players.map {|p| p.name})
+    end
+
 
     def voting_finished?
-      (living_players.size == vote_count)
+      (@remaining_votes.size == 0)
     end
 
 
@@ -215,12 +223,7 @@ module Werewolf
 
 
     def detect_voting_finished?
-      (living_players.size == vote_count)
-    end
-
-
-    def vote_count
-      @vote_tally.values.reduce(0) {|count, s| count + s.size}
+      (@remaining_votes.size == 0)
     end
 
 
@@ -257,7 +260,6 @@ module Werewolf
         end
       end
 
-      @vote_tally = {}
     end
 
 
@@ -438,23 +440,31 @@ module Werewolf
       end
     end
 
+    def night?
+      ('night' == time_period)
+    end
+
+    def day?
+      !night?
+    end
 
     def advance_time
       @time_remaining_in_round = default_time_remaining_in_round
       @time_period, @day_number = @time_period_generator.next
 
-      if 'night' == time_period
+      if night?
         lynch
         action = 'dusk'
       else
         process_night_actions
+        init_vote!
         action = 'dawn'
       end
 
       changed
       notify_observers(
-        :action => action, 
-        :day_number => day_number, 
+        :action => action,
+        :day_number => day_number,
         :round_time => default_time_remaining_in_round)
     end
 
@@ -533,7 +543,7 @@ module Werewolf
 
     def print_tally
       changed
-      notify_observers(:action => 'tally', :vote_tally => vote_tally)
+      notify_observers(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes)
     end
 
 
