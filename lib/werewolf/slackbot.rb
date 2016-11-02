@@ -261,6 +261,11 @@ MESSAGE
             value: "team evil. knows the identity of the wolves.",
             short: true
           },
+        'lycan' => {
+            title: ":see_no_evil: lycan",
+            value: "team good, but appears evil to seer.  no special powers.",
+            short: true
+          },
         'seer' => {
             title: ":crystal_ball: seer",
             value: "team good.  views the alignment of one player each night.",

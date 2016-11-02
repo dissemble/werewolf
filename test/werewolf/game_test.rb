@@ -1754,6 +1754,13 @@ module Werewolf
     end
 
 
+    def test_winner_counts_lycan_as_good
+      game = Game.new
+      game.join(Player.new(:name => 'seth', :role => 'lycan'))
+      assert_equal 'good', game.winner?
+    end
+
+
     def test_print_results
       game = Game.new
       game.join(Player.new(:name => 'bill', :role => 'villager', :alive => false))
@@ -1968,18 +1975,19 @@ module Werewolf
       seth = Werewolf::Player.new(:name => 'seth', :bot => true)
       john = Werewolf::Player.new(:name => 'john', :bot => true)
       monty = Werewolf::Player.new(:name => 'monty', :bot => true)
-      [bill, tom, seth, john, monty].each {|p| game.join(p)}
+      katie = Werewolf::Player.new(:name => 'katie', :bot => true)
+      [bill, tom, seth, john, monty, katie].each {|p| game.join(p)}
 
       # start 5 player game
-      game.stubs(:define_roles).returns ['seer', 'wolf', 'beholder', 'villager', 'cultist']
+      game.stubs(:define_roles).returns ['seer', 'wolf', 'beholder', 'villager', 'cultist', 'lycan']
       game.start
-
 
       seer = game.players.values.find {|p| 'seer' == p.role}
       wolf = game.players.values.find {|p| 'wolf' == p.role}
       beholder = game.players.values.find {|p| 'beholder' == p.role}
       villager = game.players.values.find {|p| 'villager' == p.role}
       cultist = game.players.values.find {|p| 'cultist' == p.role}
+      lycan = game.players.values.find {|p| 'lycan' == p.role}
 
       # Dawn - game should be able to auto-advance
       assert game.night_finished?
@@ -1988,6 +1996,7 @@ module Werewolf
       # Day 1
       game.vote(voter_name: seer.name, candidate_name: villager.name)
       game.vote(voter_name: wolf.name, candidate_name: villager.name)
+      game.vote(voter_name: lycan.name, candidate_name: villager.name)
       game.vote(voter_name: beholder.name, candidate_name: wolf.name)
       game.vote(voter_name: villager.name, candidate_name: seer.name)
       #cultist doesn't vote
@@ -2012,6 +2021,7 @@ module Werewolf
       # Day 2
       game.vote(voter_name: seer.name, candidate_name: cultist.name)
       game.vote(voter_name: wolf.name, candidate_name: cultist.name)
+      game.vote(voter_name: lycan.name, candidate_name: cultist.name)
       game.vote(voter_name: cultist.name, candidate_name: seer.name)
       assert_equal 2, game.vote_tally.size
       game.status
@@ -2025,9 +2035,8 @@ module Werewolf
       assert !game.night_finished?
       game.nightkill werewolf_name:wolf.name, victim_name:seer.name
 
-      # Dawn - Game over
+      # Dawn 
       assert game.night_finished?
-      # game.expects(:end_game)
       game.advance_time
       assert seer.dead?
     end
