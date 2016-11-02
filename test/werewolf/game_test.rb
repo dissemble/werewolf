@@ -357,10 +357,10 @@ module Werewolf
       game.stubs(:time_period).returns('day')
       game.stubs(:day_number).returns(17)
       game.stubs(:default_time_remaining_in_round).returns(42)
-      
+
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
-        :action => 'dawn', 
+        :action => 'dawn',
         :day_number => 17,
         :round_time => 42)
       game.add_observer mock_observer
@@ -374,10 +374,10 @@ module Werewolf
       game.stubs(:time_period).returns('night')
       game.stubs(:day_number).returns(17)
       game.stubs(:default_time_remaining_in_round).returns(42)
-      
+
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
-        :action => 'dusk', 
+        :action => 'dusk',
         :day_number => 17,
         :round_time => 42)
       game.add_observer mock_observer
@@ -548,12 +548,12 @@ module Werewolf
       game = Game.new
       player1 = Player.new(:name => 'seth')
 
-      expected_message = "Your role is: #{player1.role}.  Go hunt some wolves!"
+      expected_exhortation = "Go hunt some wolves!"
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
-        :action => 'tell_player',
+        :action => 'notify_player_role',
         :player => player1,
-        :message => expected_message)
+        :exhortation => expected_exhortation)
       game.add_observer mock_observer
       player1.stubs(:team).returns('good')
 
@@ -565,13 +565,13 @@ module Werewolf
       game = Game.new
       player1 = Player.new(:name => 'seth')
 
-      expected_message = "Your role is: #{player1.role}.  Go kill some villagers!"
+      expected_exhortation = "Go kill some villagers!"
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
-        :action => 'tell_player',
+        :action => 'notify_player_role',
         :player => player1,
-        :message => expected_message)
+        :exhortation => expected_exhortation)
       game.add_observer mock_observer
       player1.stubs(:team).returns('evil')
 
@@ -1546,7 +1546,7 @@ module Werewolf
       bodyguard = Player.new(:name => 'seth', :role => 'bodyguard')
       villager = Player.new(:name => 'tom', :role => 'villager')
       [bodyguard, villager].each {|p| game.join(p)}
-      
+
       game.expects(:notify_player).with(bodyguard, "Guard order acknowledged.  It will take affect at dawn.")
 
       game.guard bodyguard_name:bodyguard.name, target_name:villager.name
@@ -2108,7 +2108,7 @@ module Werewolf
       assert !game.night_finished?
       game.nightkill werewolf_name:wolf.name, victim_name:seer.name
 
-      # Dawn 
+      # Dawn
       assert game.night_finished?
       game.advance_time
       assert seer.dead?
