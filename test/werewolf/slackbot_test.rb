@@ -13,7 +13,7 @@ module Werewolf
         villager: ':bust_in_silhouette:',
         wolf: ':wolf:'
       }
-      assert_equal expected, Werewolf::SlackBot.role_icons
+      assert_equal expected, Werewolf::SlackBot::ROLE_ICONS
     end
 
 

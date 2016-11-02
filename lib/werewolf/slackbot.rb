@@ -3,9 +3,8 @@ require 'slack-ruby-bot'
 module Werewolf
   class SlackBot < SlackRubyBot::Server
     attr_writer :channel
-    cattr_reader :role_icons
 
-    @@role_icons = {
+    ROLE_ICONS = {
       beholder: ':eyes:',
       bodyguard: ':shield:',
       cultist: ':dagger_knife:',
@@ -17,9 +16,9 @@ module Werewolf
 
     def self.format_role role_name
       role_key = role_name.to_sym
-      raise InvalidRoleError.new("#{role_name} is not a valid role") unless @@role_icons.has_key? role_key
+      raise InvalidRoleError.new("#{role_name} is not a valid role") unless ROLE_ICONS.has_key? role_key
 
-      "#{@@role_icons.fetch role_key} #{role_name}"
+      "#{ROLE_ICONS.fetch role_key} #{role_name}"
     end
 
     # This receives notifications from a Game instance upon changes.
@@ -74,12 +73,12 @@ TITLE
 
 
     def handle_view(options = {})
-      tell_player options[:seer], "#{role_icons[:seer]} #{slackify(options[:target])} #{options[:message]}"
+      tell_player options[:seer], "#{ROLE_ICONS[:seer]} #{slackify(options[:target])} #{options[:message]}"
     end
 
 
     def handle_behold(options = {})
-      tell_player options[:beholder], "#{options[:message]} #{slackify(options[:seer])} #{role_icons[:seer]}"
+      tell_player options[:beholder], "#{options[:message]} #{slackify(options[:seer])} #{ROLE_ICONS[:seer]}"
     end
 
 
@@ -104,7 +103,7 @@ TITLE
       wolves = options[:wolves]
       grammar = (wolves.size == 1) ? 'wolf is' : 'wolves are'
       slackified_wolves = wolves.map{|p| slackify(p)}.join(" and ")
-      tell_player options[:player], "#{role_icons[:wolf]} The #{grammar} #{slackified_wolves}"
+      tell_player options[:player], "#{ROLE_ICONS[:wolf]} The #{grammar} #{slackified_wolves}"
     end
 
 
