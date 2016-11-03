@@ -6,7 +6,10 @@ module Werewolf
       TEAM = :werewolves
       VISIBLE_TEAM = TEAM
       WEIGHT = -6
-      ALLIES = [Cultist]
+      ALLIES = [Werewolf]
+      POWERS = {
+        :night => :kill
+      }
       DESCRIPTION = "kills people at night."
     end
   end

@@ -15,8 +15,12 @@ module Werewolf
         self::DESCRIPTION
       end
 
-      def team(actual=false)
+      def team(actual = false)
           actual ? self::TEAM : self::VISIBLE_TEAM
+      end
+
+      def weight
+        self::WEIGHT
       end
 
       def powers
@@ -27,12 +31,26 @@ module Werewolf
         self::ALLIES
       end
 
-      def good?
-        [:villagers].include? team
+      def good?(actual = false)
+        [:villagers].include? team actual
       end
 
-      def evil?
-        [:werewolves].include? team
+      def evil?(actual = false)
+        [:werewolves].include? team actual
+      end
+
+      def describe_team
+        s = "on the side of #{team(:actual => true)}"
+        if team != team(:actual => true)
+          s += ", appears on the side of the #{team} when viewed."
+        else
+          s += "."
+        end
+        s
+      end
+
+      def <=> (other)
+        return weight <=> other.weight
       end
 
       def to_s

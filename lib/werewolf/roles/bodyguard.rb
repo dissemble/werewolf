@@ -7,6 +7,9 @@ module Werewolf
       VISIBLE_TEAM = TEAM
       WEIGHT = 3
       ALLIES = []
+      POWERS = {
+        :night => :guard
+      }
       DESCRIPTION = "protects one player from the wolves each night."
     end
   end

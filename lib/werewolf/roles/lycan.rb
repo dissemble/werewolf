@@ -1,11 +1,11 @@
 module Werewolf
   module Roles
-    class Villager
+    class Lycan
       include Roles
 
-      TEAM = :villagers
-      VISIBLE_TEAM = TEAM
-      WEIGHT = 1
+      TEAM = :villager
+      VISIBLE_TEAM = :werewolves
+      WEIGHT = -1
       ALLIES = []
       POWERS = {}
       DESCRIPTION = "no special powers."
