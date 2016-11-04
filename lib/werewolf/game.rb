@@ -65,6 +65,7 @@ module Werewolf
         changed
         notify_observers(:action => 'join', :player => player)
       end
+      player
     end
 
 
