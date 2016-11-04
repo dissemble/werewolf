@@ -121,6 +121,12 @@ TITLE
     end
 
 
+    def handle_roles(options = {})
+      formatted_roles = options[:active_roles].sort.join(', ')
+      tell_player(options[:player], "Active roles: [#{formatted_roles}]")
+    end
+
+
     def handle_nightkill(options = {})
       player = options[:player]
       tell_all ":skull_and_crossbones: #{slackify(player)} (#{SlackBot.format_role player.role}) #{options[:message]}", title: "Murder!", color: "danger"
