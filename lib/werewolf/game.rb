@@ -533,8 +533,12 @@ module Werewolf
 
 
     def print_tally
-      changed
-      notify_observers(:action => 'tally', :vote_tally => vote_tally)
+      if 'night' == time_period
+        notify_all("Nightime.  No voting in progress.")
+      else
+        changed
+        notify_observers(:action => 'tally', :vote_tally => vote_tally)
+      end
     end
 
 

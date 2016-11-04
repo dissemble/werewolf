@@ -438,6 +438,7 @@ module Werewolf
 
     def test_print_tally_notifies_room
       game = Game.new
+      game.stubs(:time_period).returns('day')
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -445,6 +446,14 @@ module Werewolf
         :vote_tally => game.vote_tally)
       game.add_observer(mock_observer)
 
+      game.print_tally
+    end
+
+
+    def test_print_tally_at_night
+      game = Game.new
+      game.stubs(:time_period).returns('night')
+      game.expects(:notify_all).once.with('Nightime.  No voting in progress.')
       game.print_tally
     end
 
