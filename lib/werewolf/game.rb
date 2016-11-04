@@ -65,6 +65,9 @@ module Werewolf
         changed
         notify_observers(:action => 'join', :player => player)
       end
+
+      status
+      player
     end
 
 
@@ -105,9 +108,10 @@ module Werewolf
         # Give seer a random N0 view
         seer = @players.values.find {|p| 'seer' == p.role}
         if(seer)
-          non_seers = @players.values - [seer]
-          unless non_seers.empty?
-            view seer_name:seer.name, target_name:non_seers.shuffle!.first.name
+          eligible = @players.values.find_all {|p| 'good' == p.apparent_team}
+          eligible = eligible - [seer]
+          unless eligible.empty?
+            view seer_name:seer.name, target_name:eligible.shuffle!.first.name
           end
         end
 
@@ -453,8 +457,8 @@ module Werewolf
 
       changed
       notify_observers(
-        :action => action, 
-        :day_number => day_number, 
+        :action => action,
+        :day_number => day_number,
         :round_time => default_time_remaining_in_round)
     end
 
@@ -531,15 +535,32 @@ module Werewolf
     end
 
 
-    def print_tally
+    def print_roles(name)
+      player = @players[name]
+
+      notify_on_error(name) do
+        raise PrivateGameError.new("You are not playing") unless player
+        raise PrivateGameError.new("Game is not running") unless active?
+      end
+
       changed
-      notify_observers(:action => 'tally', :vote_tally => vote_tally)
+      notify_observers(:action => 'roles', :player => player, :active_roles => active_roles)
+    end
+
+
+    def print_tally
+      if 'night' == time_period
+        notify_all("Nightime.  No voting in progress.")
+      else
+        changed
+        notify_observers(:action => 'tally', :vote_tally => vote_tally)
+      end
     end
 
 
     def print_results
       if winner?
-        message = "#{winner?.capitalize} won the game!\n"
+        message = "#{winner?.capitalize} won the game!"
       else
         message = "No winner, game was ended prematurely"
       end
@@ -606,9 +627,8 @@ module Werewolf
         exhortation = "Go hunt some wolves!"
       end
 
-      message = "Your role is: #{player.role}.  #{exhortation}"
       changed
-      notify_observers(:action => 'tell_player', :player => player, :message => message)
+      notify_observers(:action => 'notify_player_role', :player => player, :exhortation => exhortation)
 
       if 'beholder' == player.role
         reveal_seer_to player
