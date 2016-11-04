@@ -42,6 +42,13 @@ module Werewolf
     end
 
 
+    def test_join_shows_status
+      game = Game.new
+      game.expects(:status)
+      game.join(Player.new(:name => 'seth'))
+    end
+
+
     def test_same_name_cant_join_twice
       game = Game.new
       player1 = Player.new(:name => 'seth')
@@ -503,6 +510,8 @@ module Werewolf
       game = Game.new
       player = Player.new(:name => 'seth')
 
+      game.stubs(:status)
+
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(:action => 'join', :player => player)
       game.add_observer mock_observer
@@ -515,6 +524,8 @@ module Werewolf
       game = Game.new
       player = Player.new(:name => 'seth')
       game.join(player)
+
+      game.stubs(:status)
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -531,6 +542,7 @@ module Werewolf
       game = Game.new
       player = Player.new(:name => 'seth')
       game.expects(:active?).once.returns(true)
+      game.stubs(:status)
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(

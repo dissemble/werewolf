@@ -168,19 +168,34 @@ TITLE
       message = <<MESSAGE
 Commands you can use:
 ```
-help:     this command.  'w help'
-join:     join the game.  'w join' (only before the game starts)
-leave:    leave the game.  'w leave' (only before the game starts)
-start:    start the game.  'w start' (only after players have joined)
-end:      terminate the running game.  'w end'
-status:   should probably work...  'w status'
-tally:    show lynch-vote tally (only during day)
-kill:     as a werewolf, nightkill a player.  'w kill @name' (only at night).
-view:     as the seer, reveals the alignment of another player.  'wolfbot see @name' (only at night).
-guard:    as the bodyguard, protects one player from nightkill.  'w guard @name' (only at night)
-vote:     vote to lynch a player.  'w vote @name' (only during day)
-claim:    register a claim.  'w claim i am the walrus'
-claims:   view all claims.  'w claims'
+help:     this command 
+          'w help' (DM)
+join:     join the game
+          'w join' (before the game starts)
+leave:    leave the game
+          'w leave' (before the game starts)
+start:    start the game
+          'w start' (only after players have joined)
+end:      terminate the running game.  
+          'w end'
+status:   should probably work...  
+          'w status'
+tally:    show lynch-vote tally 
+          'w tally' (only during day)
+kill:     as a werewolf, nightkill a player.
+          'w kill @name' (DM, only at night).
+view:     as the seer, reveals the alignment of another player.
+          'w view @name' (DM, only at night).
+guard:    as the bodyguard, protects one player from nightkill.  
+          'w guard @name' (DM, only at night)
+vote:     vote to lynch a player.
+          'w vote @name' (only during day)
+claim:    register a claim.  
+          'w claim i am the walrus'
+claims:   view all claims.  
+          'w claims'
+roles:    show all roles for the current game.  
+          'w roles' (DM)
 ```
 MESSAGE
 
