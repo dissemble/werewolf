@@ -9,7 +9,7 @@ module Werewolf
 
     # make sure all roles have attributes to describe them
     def test_roles_have_attributes
-      attributes = [:TEAM, :VISIBLE_TEAM, :WEIGHT, :ALLIES, :DESCRIPTION]
+      attributes = [:TEAM, :VISIBLE_TEAM, :WEIGHT, :ALLIES, :POWERS, :DESCRIPTION]
       Werewolf::Roles::all.each do |role|
         attributes.each do |attribute|
           assert defined? "role::#{attribute}", "#{role.name} is missing the #{attribute} attribute"
