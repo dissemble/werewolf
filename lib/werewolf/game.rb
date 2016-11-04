@@ -532,6 +532,19 @@ module Werewolf
     end
 
 
+    def print_roles(name)
+      player = @players[name]
+
+      notify_on_error(name) do
+        raise PrivateGameError.new("You are not playing") unless player
+        raise PrivateGameError.new("Game is not running") unless active?
+      end
+
+      changed
+      notify_observers(:action => 'roles', :player => player, :active_roles => active_roles)
+    end
+
+
     def print_tally
       if 'night' == time_period
         notify_all("Nightime.  No voting in progress.")

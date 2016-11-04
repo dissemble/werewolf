@@ -458,6 +458,47 @@ module Werewolf
     end
 
 
+    def test_print_roles
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join(player)
+      game.stubs(:active?).returns(true)
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'roles',
+        :player => player,
+        :active_roles => game.active_roles)
+      game.add_observer(mock_observer)
+
+      game.print_roles(player.name)
+    end
+
+
+    def test_print_roles_from_non_player
+      game = Game.new
+
+      game.expects(:notify_name).once
+      err = assert_raises(PrivateGameError) do
+        game.print_roles('fake-player-name')
+      end
+      assert_match /You are not playing/, err.message
+    end
+
+
+    def test_print_roles_with_inactive_game
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join(player)
+
+      game.expects(:notify_name).once
+      err = assert_raises(PrivateGameError) do
+        game.print_roles(player.name)
+      end
+      assert_match /Game is not running/, err.message
+    end
+
+
     def test_game_notifies_when_player_joins
       game = Game.new
       player = Player.new(:name => 'seth')

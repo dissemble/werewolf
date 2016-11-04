@@ -478,6 +478,20 @@ MESSAGE
     end
 
 
+    def test_handle_roles
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth', :role => 'seer')
+
+      slackbot.expects(:tell_player).once.with(
+        player,
+        "Active roles: [beholder, lycan, seer]")
+
+      slackbot.handle_roles(
+        :player => player,
+        :active_roles => ['seer', 'beholder', 'lycan'])
+    end
+
+
     def test_handler_join_error_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
