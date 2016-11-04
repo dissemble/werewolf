@@ -83,6 +83,11 @@ module Werewolf
       assert_equal 'evil', villager.team
     end
 
+    def test_team_is_good_for_lycan
+      villager = Player.new(:name => 'seth', :role => 'lycan')
+      assert_equal 'good', villager.team
+    end
+
     def test_normal_players_are_not_bots
       player = Player.new(:name => 'seth')
       assert !player.bot?
@@ -100,11 +105,21 @@ module Werewolf
 
     def test_apparent_team
       assert_equal 'evil', Player.new(:name => 'seth', :role => 'wolf').apparent_team
-      assert_equal 'good', Player.new(:name => 'seth', :role => 'villager').apparent_team
+      assert_equal 'good', Player.new(:name => 'tom', :role => 'villager').apparent_team
     end
 
     def test_lycan_appears_evil_to_seer
+      seer = Player.new(:name => 'seth', :role => 'seer')
+      lycan = Player.new(:name => 'tom', :role => 'lycan')
+      assert_equal 'evil', seer.view(lycan)
+    end
+
+    def test_apparent_team_is_evil_for_lycan
       assert_equal 'evil', Player.new(:name => 'seth', :role => 'lycan').apparent_team
+    end
+
+    def test_cultist_appears_evil_to_seer
+      assert_equal 'evil', Player.new(:name => 'seth', :role => 'cultist').apparent_team
     end
 
     def test_to_s
