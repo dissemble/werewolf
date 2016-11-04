@@ -453,8 +453,8 @@ module Werewolf
 
       changed
       notify_observers(
-        :action => action, 
-        :day_number => day_number, 
+        :action => action,
+        :day_number => day_number,
         :round_time => default_time_remaining_in_round)
     end
 
@@ -539,7 +539,7 @@ module Werewolf
 
     def print_results
       if winner?
-        message = "#{winner?.capitalize} won the game!\n"
+        message = "#{winner?.capitalize} won the game!"
       else
         message = "No winner, game was ended prematurely"
       end
@@ -606,9 +606,8 @@ module Werewolf
         exhortation = "Go hunt some wolves!"
       end
 
-      message = "Your role is: #{player.role}.  #{exhortation}"
       changed
-      notify_observers(:action => 'tell_player', :player => player, :message => message)
+      notify_observers(:action => 'notify_player_role', :player => player, :exhortation => exhortation)
 
       if 'beholder' == player.role
         reveal_seer_to player

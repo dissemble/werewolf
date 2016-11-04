@@ -118,6 +118,10 @@ module Werewolf
       assert_equal 'evil', Player.new(:name => 'seth', :role => 'lycan').apparent_team
     end
 
+    def test_cultist_appears_evil_to_seer
+      assert_equal 'evil', Player.new(:name => 'seth', :role => 'cultist').apparent_team
+    end
+
     def test_to_s
       player = Player.new(:name => 'seth', :alive => false, :role => 'villager', :bot => false)
       assert_equal "#<Player name=seth>", player.to_s
