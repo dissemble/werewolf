@@ -108,6 +108,7 @@ module Werewolf
       game = Game.new
       slackbot = Werewolf::SlackBot.new
       game.add_observer(slackbot)
+      game.stubs(:status)
       player = Player.new(:name => 'seth')
 
       slackbot.expects(:update).with(
@@ -442,6 +443,7 @@ MESSAGE
       game.add_observer(slackbot)
 
       game.stubs(:active?).returns(true)
+      game.stubs(:status)
       player = Player.new(:name => 'seth')
       slackbot.expects(:handle_join_error).once.with(
         :player => player,
