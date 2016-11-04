@@ -105,9 +105,10 @@ module Werewolf
         # Give seer a random N0 view
         seer = @players.values.find {|p| 'seer' == p.role}
         if(seer)
-          non_seers = @players.values - [seer]
-          unless non_seers.empty?
-            view seer_name:seer.name, target_name:non_seers.shuffle!.first.name
+          eligible = @players.values.find_all {|p| 'good' == p.apparent_team}
+          eligible = eligible - [seer]
+          unless eligible.empty?
+            view seer_name:seer.name, target_name:eligible.shuffle!.first.name
           end
         end
 

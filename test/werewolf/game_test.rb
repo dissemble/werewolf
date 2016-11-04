@@ -1691,7 +1691,8 @@ module Werewolf
       game = Game.new
       seer = Player.new(:name => 'seth', :role => 'seer')
       villager = Player.new(:name => 'tom', :role => 'villager')
-      [seer, villager].each { |p| game.join(p) }
+      wolf = Player.new(:name => 'bill', :role => 'wolf')  # should never be viewed
+      [seer, villager, wolf].each { |p| game.join(p) }
 
       game.stubs(:assign_roles)
       game.expects(:view).once.with(seer_name: seer.name, target_name: villager.name)
