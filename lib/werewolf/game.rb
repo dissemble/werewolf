@@ -628,7 +628,7 @@ module Werewolf
       end
 
       changed
-      notify_observers(:action => 'notify_player_role', :player => player, :exhortation => exhortation)
+      notify_observers(:action => 'notify_role', :player => player, :exhortation => exhortation)
 
       if 'beholder' == player.role
         reveal_seer_to player

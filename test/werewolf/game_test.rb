@@ -613,7 +613,7 @@ module Werewolf
       expected_exhortation = "Go hunt some wolves!"
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
-        :action => 'notify_player_role',
+        :action => 'notify_role',
         :player => player1,
         :exhortation => expected_exhortation)
       game.add_observer mock_observer
@@ -631,7 +631,7 @@ module Werewolf
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
-        :action => 'notify_player_role',
+        :action => 'notify_role',
         :player => player1,
         :exhortation => expected_exhortation)
       game.add_observer mock_observer
