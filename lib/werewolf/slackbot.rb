@@ -14,12 +14,42 @@ module Werewolf
       wolf: ':wolf:'
     }
 
-    def self.format_role role_name
+
+    def initialize(options = {})
+      super options
+      @slack_users = {}
+      @@instance = self
+    end
+
+
+    def SlackBot.instance()
+      @@instance
+    end
+
+
+    def user(slack_id)
+      @slack_users[slack_id]
+    end
+
+
+    def register_user(slack_id)
+      @slack_users[slack_id] = get_slack_user_info(slack_id)
+    end
+
+
+    def get_slack_user_info(slack_id)
+      response = client.web_client.users_info(user: slack_id)
+      response.user
+    end
+
+
+    def SlackBot.format_role role_name
       role_key = role_name.to_sym
       raise InvalidRoleError.new("#{role_name} is not a valid role") unless ROLE_ICONS.has_key? role_key
 
       "#{ROLE_ICONS.fetch role_key} #{role_name}"
     end
+
 
     # This receives notifications from a Game instance upon changes.
     # Game is Observable, and the slackbot is an observer.
@@ -293,7 +323,12 @@ MESSAGE
       elsif player.bot?
         player.name
       else
-        "<@#{player.name}>"
+        slack_user = @slack_users[player.name]
+        if slack_user
+          slack_user.name
+        else 
+          "<@#{player.name}>"
+        end
       end
     end
 
