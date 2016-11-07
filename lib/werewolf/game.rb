@@ -37,7 +37,7 @@ module Werewolf
     end
 
 
-    def self.instance()
+    def Game.instance()
       @instance ||= Game.new
     end
 
