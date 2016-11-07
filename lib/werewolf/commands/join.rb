@@ -12,6 +12,9 @@ module Werewolf
         # puts "_match['command']:  #{_match['command']}"
         # puts "_match['expression']:  #{_match['expression']}"
         # puts '........'
+
+        slackbot = Werewolf::SlackBot.instance()
+        slackbot.register_user(data.user)
         Game.instance.add_username_to_game(data.user)
       end
     end
