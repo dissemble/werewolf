@@ -11,4 +11,9 @@ task :codeclimate do
   sh 'CODECLIMATE_REPO_TOKEN=aaf36ba538c166427e081ca1d282bdd3b564484e42ce2859b8a75e2a582a5755 codeclimate-test-reporter'
 end
 
+task :console do
+  sh 'bundle exec bin/console'
+end
+
+
 task :default => :test
