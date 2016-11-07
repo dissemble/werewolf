@@ -24,7 +24,7 @@ module Werewolf
       @active_roles = nil
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
-      @vote_tally = {}
+      @vote_tally = {}      # {'candidate_name' => Set[voter_names]}
       @night_actions = {}   # {'action_name' => lambda}
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
@@ -37,7 +37,7 @@ module Werewolf
     end
 
 
-    def self.instance()
+    def Game.instance()
       @instance ||= Game.new
     end
 
