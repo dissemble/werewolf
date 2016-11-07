@@ -118,9 +118,9 @@ TITLE
       if vote_hash.empty?
         message = "No votes yet :zero:"
       else
-        lines = vote_hash.map do |k, v|
-          voters = v.map{|name| "<@#{name}>"}.join(', ')
-          "Lynch <@#{k}>:  (#{pluralize_votes(v.size)}) - #{voters}"
+        lines = vote_hash.map do |candidate, voterset|
+          voters = voterset.map{|name| "#{get_name(name)}"}.join(', ')
+          "Lynch #{get_name(candidate)}:  (#{pluralize_votes(voterset.size)}) - #{voters}"
         end
         message = lines.join("\n")
       end
@@ -323,12 +323,22 @@ MESSAGE
       elsif player.bot?
         player.name
       else
-        slack_user = @slack_users[player.name]
+        slack_user = user(player.name)
         if slack_user
           slack_user.name
         else 
           "<@#{player.name}>"
         end
+      end
+    end
+
+
+    def get_name(slack_id)
+      slack_user = user(slack_id)
+      if slack_user
+        slack_user.name
+      else 
+        slack_id
       end
     end
 

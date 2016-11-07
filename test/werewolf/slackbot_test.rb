@@ -456,9 +456,12 @@ MESSAGE
     def test_handle_tally
       slackbot = Werewolf::SlackBot.new
       expected =
-        "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
-        "Lynch <@bill>:  (1 vote) - <@tom>"
+        "Lynch tomx:  (2 votes) - sethx, billx\n" \
+        "Lynch billx:  (1 vote) - tomx"
 
+      slackbot.expects(:user).once.with('seth').returns(stub(:name => 'sethx'))
+      slackbot.expects(:user).twice.with('tom').returns(stub(:name => 'tomx'))
+      slackbot.expects(:user).twice.with('bill').returns(stub(:name => 'billx'))
       slackbot.expects(:tell_all).once.with(expected)
 
       slackbot.handle_tally( {
@@ -621,7 +624,7 @@ MESSAGE
       mock_slack_user = mock('slack_user')
       mock_slack_user.stubs(:name).returns('Lancelot')
       slackbot.stubs(:get_slack_user_info).returns(mock_slack_user)
-      
+
       slackbot.register_user('my_slack_id')
       assert_equal 'Lancelot', slackbot.slackify(Player.new(:name => 'my_slack_id'))
     end
@@ -666,6 +669,24 @@ MESSAGE
       mock_response.expects(:user).returns(mock_user)
 
       slackbot.register_user('foo')
+    end
+
+
+    def test_get_name_with_unregistered_slack_id
+      slackbot = Werewolf::SlackBot.new
+      assert_equal 'foo', slackbot.get_name('foo')
+    end
+
+
+    def test_get_name_with_registered_slack_id
+      slackbot = Werewolf::SlackBot.new
+      slack_id = 'foo'
+      fake_slack_name = 'bar'
+      fake_user_info = stub(:name => fake_slack_name)
+      slackbot.stubs(:get_slack_user_info).returns(fake_user_info)
+      slackbot.register_user(slack_id)
+
+      assert_equal fake_slack_name, slackbot.get_name('foo')
     end
 
   end
