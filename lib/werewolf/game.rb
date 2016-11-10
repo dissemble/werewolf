@@ -33,7 +33,7 @@ module Werewolf
 
 
     def default_time_remaining_in_round
-      60 * 70
+      60 * 10
     end
 
 
