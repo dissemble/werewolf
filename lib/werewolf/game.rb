@@ -33,7 +33,7 @@ module Werewolf
 
 
     def default_time_remaining_in_round
-      60 * 10
+      60 * 70
     end
 
 
@@ -414,7 +414,7 @@ module Werewolf
         3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'beholder', 'villager', 'lycan', 'wolf'],
-        6 => ['seer', 'bodyguard', 'villager', 'villager', 'wolf', 'wolf'],
+        6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
         7 => ['seer', 'bodyguard', 'villager', 'villager', 'lycan', 'wolf', 'wolf'],
         8 => ['seer', 'bodyguard', 'lycan', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         9 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
