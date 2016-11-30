@@ -4,4 +4,7 @@ module Werewolf
 
   class PublicGameError < StandardError
   end
+
+  class InvalidRoleError < StandardError
+  end
 end

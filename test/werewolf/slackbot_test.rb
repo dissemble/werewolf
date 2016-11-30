@@ -3,6 +3,63 @@ require 'test_helper'
 module Werewolf
   class SlackbotTest < Minitest::Test
 
+    def test_role_icons
+      expected = {
+        beholder: ':eyes:',
+        bodyguard: ':shield:',
+        cultist: ':dagger_knife:',
+        lycan: ':see_no_evil:',
+        seer: ':crystal_ball:',
+        villager: ':bust_in_silhouette:',
+        wolf: ':wolf:'
+      }
+      assert_equal expected, Werewolf::SlackBot::ROLE_ICONS
+    end
+
+
+    def test_format_role_beholder
+      assert_equal ':eyes: beholder', Werewolf::SlackBot.format_role('beholder')
+    end
+
+
+    def test_format_role_bodyguard
+      assert_equal ':shield: bodyguard', Werewolf::SlackBot.format_role('bodyguard')
+    end
+
+
+    def test_format_role_cultist
+      assert_equal ':dagger_knife: cultist', Werewolf::SlackBot.format_role('cultist')
+    end
+
+
+    def test_format_role_lycan
+      assert_equal ':see_no_evil: lycan', Werewolf::SlackBot.format_role('lycan')
+    end
+
+
+    def test_format_role_seer
+      assert_equal ':crystal_ball: seer', Werewolf::SlackBot.format_role('seer')
+    end
+
+
+    def test_format_role_villager
+      assert_equal ':bust_in_silhouette: villager', Werewolf::SlackBot.format_role('villager')
+    end
+
+
+    def test_format_role_wolf
+      assert_equal ':wolf: wolf', Werewolf::SlackBot.format_role('wolf')
+    end
+
+
+    def test_format_role_only_real_roles
+      err = assert_raises(InvalidRoleError) {
+        Werewolf::SlackBot.format_role('snark')
+      }
+      assert_equal 'snark is not a valid role', err.message
+    end
+
+
     def test_can_observe_game
       game = Game.new
       slackbot = Werewolf::SlackBot.new
@@ -51,6 +108,7 @@ module Werewolf
       game = Game.new
       slackbot = Werewolf::SlackBot.new
       game.add_observer(slackbot)
+      game.stubs(:status)
       player = Player.new(:name => 'seth')
 
       slackbot.expects(:update).with(
@@ -104,9 +162,9 @@ module Werewolf
 
     def test_handle_nightkill_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
-      player = Player.new(:name => 'seth', :role => 'musketeer')
+      player = Player.new(:name => 'seth', :role => 'wolf')
       message = "i see the moon, and the moon sees me"
-      slackbot.expects(:tell_all).once.with(":skull_and_crossbones: <@seth> (musketeer) #{message}", {:title => "Murder!", :color => "danger"})
+      slackbot.expects(:tell_all).once.with(":skull_and_crossbones: <@seth> (:wolf: wolf) #{message}", {:title => "Murder!", :color => "danger"})
       slackbot.handle_nightkill(
         :player => player,
         :message => message)
@@ -217,18 +275,18 @@ MESSAGE
       game.join(Player.new(:name => 'john', :role => 'wolf'))
 
       expected = <<MESSAGE
-Evil won the game!
-- :ghost: <@bill>: villager
-- :ghost: <@tom>: seer
-- :ghost: <@seth>: beholder
-+ <@john>: wolf
+:tada: Evil won the game!
+- <@bill>: :bust_in_silhouette: villager :coffin:
+- <@tom>: :crystal_ball: seer :coffin:
+- <@seth>: :eyes: beholder :coffin:
++ <@john>: :wolf: wolf
 MESSAGE
       slackbot.expects(:tell_all).once.with(expected)
 
       slackbot.handle_game_results(
         :action => 'game_results',
         :players => game.players,
-        :message => "Evil won the game!\n"
+        :message => "Evil won the game!"
       )
     end
 
@@ -317,6 +375,16 @@ MESSAGE
     end
 
 
+    def test_handle_notify_role
+      player = Player.new(:name => 'seth', :role => 'beholder')
+      exhortation = 'Do the thing!'
+      expected_message = 'Your role is: :eyes: beholder. Do the thing!'
+      slackbot = Werewolf::SlackBot.new
+      slackbot.expects(:tell_player).once.with(player, expected_message)
+      slackbot.handle_notify_role(:player => player, :exhortation => exhortation)
+    end
+
+
     def test_handle_tell_player
       fake_player = "bert"
       fake_message = "where is ernie?"
@@ -358,10 +426,10 @@ MESSAGE
 
     def test_handle_lynch_player
       slackbot = Werewolf::SlackBot.new
-      player = Player.new(:name => 'seth', :role => 'musketeer')
+      player = Player.new(:name => 'seth', :role => 'seer')
       message = 'and with its head, he went galumphing back'
 
-      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}> (musketeer)")
+      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}> (:crystal_ball: seer)")
 
       slackbot.handle_lynch_player(
         :player => player,
@@ -375,6 +443,7 @@ MESSAGE
       game.add_observer(slackbot)
 
       game.stubs(:active?).returns(true)
+      game.stubs(:status)
       player = Player.new(:name => 'seth')
       slackbot.expects(:handle_join_error).once.with(
         :player => player,
@@ -390,13 +459,13 @@ MESSAGE
       expected_fields = [
         {
           title: ':memo: Town Ballot',
-          value: "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
-                 "Lynch <@bill>:  (1 vote) - <@tom>",
+          value: "Lynch tom:  (2 votes) - seth, bill\n" \
+                 "Lynch bill:  (1 vote) - tom",
           short: false
         },
         {
           title: ':hourglass: Remaining Voters',
-          value: '<@ari>, <@devin>, <@kayleigh>',
+          value: 'betty, ca, katie',
           short: false
         }
       ]
@@ -407,7 +476,7 @@ MESSAGE
           'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
         },
-        :remaining_votes => Set.new(['kayleigh', 'devin', 'ari'])
+        :remaining_votes => Set.new(['katie', 'ca', 'betty'])
       } )
     end
 
@@ -439,13 +508,13 @@ MESSAGE
       expected_fields = [
         {
           title: ':memo: Town Ballot',
-          value: "Lynch <@tom>:  (2 votes) - <@seth>, <@bill>\n" \
-                 "Lynch <@bill>:  (1 vote) - <@tom>",
+          value: "Lynch tom:  (2 votes) - seth, bill\n" \
+                 "Lynch bill:  (1 vote) - tom",
           short: false
         },
         {
           title: ':hourglass: Remaining Voters',
-          value: '<@zak>',
+          value: 'katie',
           short: false
         }
       ]
@@ -456,8 +525,22 @@ MESSAGE
           'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
         },
-        :remaining_votes => Set.new(['zak'])
+        :remaining_votes => Set.new(['katie'])
       } )
+    end
+
+
+    def test_handle_roles
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth', :role => 'seer')
+
+      slackbot.expects(:tell_player).once.with(
+        player,
+        "Active roles: [beholder, lycan, seer]")
+
+      slackbot.handle_roles(
+        :player => player,
+        :active_roles => ['seer', 'beholder', 'lycan'])
     end
 
 
@@ -580,6 +663,77 @@ MESSAGE
     def test_slackify_with_nil
       slackbot = Werewolf::SlackBot.new
       assert_equal '', slackbot.slackify(nil)
+    end
+
+
+    def test_slackify_with_slack_user
+      slackbot = Werewolf::SlackBot.new
+      mock_slack_user = mock('slack_user')
+      mock_slack_user.stubs(:name).returns('Lancelot')
+      slackbot.stubs(:get_slack_user_info).returns(mock_slack_user)
+
+      slackbot.register_user('my_slack_id')
+      assert_equal 'Lancelot', slackbot.slackify(Player.new(:name => 'my_slack_id'))
+    end
+
+
+    def test_singleton_with_no_args_constructor
+      slackbot = Werewolf::SlackBot.new
+      assert_equal slackbot, Werewolf::SlackBot.instance
+    end
+
+
+    def test_singleton_passing_args_to_constructor
+      slackbot = Werewolf::SlackBot.new(token: ENV['SLACK_API_TOKEN'], aliases: ['!', 'w'])
+      assert_equal slackbot, Werewolf::SlackBot.instance
+    end
+
+
+    def test_register_user_calls_get_slack_user_info
+      slackbot = Werewolf::SlackBot.new
+      slackbot.expects(:get_slack_user_info)
+      slackbot.register_user('foo')
+    end
+
+
+    def test_user_returns_what_get_slack_user_info_returned
+      slackbot = Werewolf::SlackBot.new
+      slack_id = 'foo'
+      fake_user_info = 'bar'
+      slackbot.stubs(:get_slack_user_info).returns(fake_user_info)
+      slackbot.register_user(slack_id)
+      assert_equal fake_user_info, slackbot.user(slack_id)
+    end
+
+
+    def test_get_slack_user_info
+      slackbot = Werewolf::SlackBot.new
+
+      # hot mess of things we have no business mocking
+      mock_response = mock('response')
+      mock_user = mock('fun user users_info')
+      slackbot.send(:client).web_client.expects(:users_info).returns(mock_response)
+      mock_response.expects(:user).returns(mock_user)
+
+      slackbot.register_user('foo')
+    end
+
+
+    def test_get_name_with_unregistered_slack_id
+      slackbot = Werewolf::SlackBot.new
+      assert_equal 'foo', slackbot.get_name('foo')
+    end
+
+
+    def test_get_name_with_registered_slack_id
+      slackbot = Werewolf::SlackBot.new
+      slack_id = 'foo'
+      fake_slack_name = 'bar'
+      fake_user_info = stub(:name => fake_slack_name)
+      slackbot.stubs(:get_slack_user_info).returns(fake_user_info)
+      slackbot.register_user(slack_id)
+
+      assert_equal fake_slack_name, slackbot.get_name('foo')
     end
 
   end

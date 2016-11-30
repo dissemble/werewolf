@@ -11,7 +11,7 @@ module Werewolf
 
     attr_reader :players
     attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
-    attr_accessor :time_remaining_in_round, :vote_tally, :remaining_votes
+    attr_accessor :time_remaining_in_round, :vote_tally
 
     def initialize()
       reset
@@ -24,8 +24,7 @@ module Werewolf
       @active_roles = nil
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
-      @vote_tally = {}
-      @remaining_votes = Set.new
+      @vote_tally = {}      # {'candidate' => Set.new([voter_name_1, vote_name_2])}
       @night_actions = {}   # {'action_name' => lambda}
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
@@ -34,11 +33,11 @@ module Werewolf
 
 
     def default_time_remaining_in_round
-      60 * 10
+      60 * 70
     end
 
 
-    def self.instance()
+    def Game.instance()
       @instance ||= Game.new
     end
 
@@ -66,6 +65,9 @@ module Werewolf
         changed
         notify_observers(:action => 'join', :player => player)
       end
+
+      status
+      player
     end
 
 
@@ -106,9 +108,10 @@ module Werewolf
         # Give seer a random N0 view
         seer = @players.values.find {|p| 'seer' == p.role}
         if(seer)
-          non_seers = @players.values - [seer]
-          unless non_seers.empty?
-            view seer_name:seer.name, target_name:non_seers.shuffle!.first.name
+          eligible = @players.values.find_all {|p| 'good' == p.apparent_team}
+          eligible = eligible - [seer]
+          unless eligible.empty?
+            view seer_name:seer.name, target_name:eligible.shuffle!.first.name
           end
         end
 
@@ -153,7 +156,6 @@ module Werewolf
       else
         @vote_tally[candidate.name] = Set.new([voter.name])
       end
-      @remaining_votes.delete voter.name
     end
 
 
@@ -163,7 +165,6 @@ module Werewolf
           @vote_tally.delete(k)
         end
       end
-      @remaining_votes.add voter.name
     end
 
 
@@ -200,14 +201,30 @@ module Werewolf
       return voter, candidate
     end
 
+
     def init_vote!
       @vote_tally = {}
-      @remaining_votes = Set.new(living_players.map {|p| p.name})
     end
 
 
     def voting_finished?
-      (@remaining_votes.size == 0)
+      (living_players.size == vote_count)
+    end
+
+
+    def vote_count
+      @vote_tally.values.reduce(0) {|count, s| count + s.size}
+    end
+
+
+    # returns names, not players
+    def remaining_votes
+      voter_names = Set.new
+      @vote_tally.each do |_k,v|
+        voter_names += v
+      end
+
+      Set.new(living_players.map{|p| p.name}) - voter_names
     end
 
 
@@ -223,7 +240,7 @@ module Werewolf
 
 
     def detect_voting_finished?
-      (@remaining_votes.size == 0)
+      (living_players.size == vote_count)
     end
 
 
@@ -411,11 +428,11 @@ module Werewolf
         2 => ['bodyguard', 'wolf'],
         3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
-        5 => ['seer', 'bodyguard', 'villager', 'wolf', 'wolf'],
-        6 => ['seer', 'bodyguard', 'lycan', 'villager', 'wolf', 'wolf'],
-        7 => ['seer', 'bodyguard', 'lycan', 'villager', 'cultist', 'wolf', 'wolf'],
-        8 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'cultist', 'wolf', 'wolf'],
-        9 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        5 => ['seer', 'beholder', 'villager', 'lycan', 'wolf'],
+        6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
+        7 => ['seer', 'bodyguard', 'villager', 'villager', 'lycan', 'cultist', 'wolf'],
+        8 => ['seer', 'bodyguard', 'lycan', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
+        9 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         10 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         12 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
@@ -541,15 +558,32 @@ module Werewolf
     end
 
 
-    def print_tally
+    def print_roles(name)
+      player = @players[name]
+
+      notify_on_error(name) do
+        raise PrivateGameError.new("You are not playing") unless player
+        raise PrivateGameError.new("Game is not running") unless active?
+      end
+
       changed
-      notify_observers(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes)
+      notify_observers(:action => 'roles', :player => player, :active_roles => active_roles)
+    end
+
+
+    def print_tally
+      if 'night' == time_period
+        notify_all("Nightime.  No voting in progress.")
+      else
+        changed
+        notify_observers(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes)
+      end
     end
 
 
     def print_results
       if winner?
-        message = "#{winner?.capitalize} won the game!\n"
+        message = "#{winner?.capitalize} won the game!"
       else
         message = "No winner, game was ended prematurely"
       end
@@ -616,9 +650,8 @@ module Werewolf
         exhortation = "Go hunt some wolves!"
       end
 
-      message = "Your role is: #{player.role}.  #{exhortation}"
       changed
-      notify_observers(:action => 'tell_player', :player => player, :message => message)
+      notify_observers(:action => 'notify_role', :player => player, :exhortation => exhortation)
 
       if 'beholder' == player.role
         reveal_seer_to player
