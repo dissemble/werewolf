@@ -61,6 +61,7 @@ game.vote(voter_name: 'seth', candidate_name: 'bill')
 game.vote(voter_name: 'john', candidate_name: 'tom')
 #villager3 doesn't vote
 game.vote_tally
+game.remaining_votes
 game.status
 
 # Night 1
@@ -79,6 +80,7 @@ game.vote(voter_name: 'bill', candidate_name: 'tom')
 game.vote(voter_name: 'tom', candidate_name: 'bill')
 game.vote(voter_name: 'seth', candidate_name: 'tom')
 game.vote_tally
+game.remaining_votes
 game.status
 
 # Game over

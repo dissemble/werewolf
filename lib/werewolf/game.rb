@@ -24,7 +24,7 @@ module Werewolf
       @active_roles = nil
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
-      @vote_tally = {}      # {'candidate_name' => Set[voter_names]}
+      @vote_tally = {}      # {'candidate' => Set.new([voter_name_1, vote_name_2])}
       @night_actions = {}   # {'action_name' => lambda}
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
@@ -202,8 +202,29 @@ module Werewolf
     end
 
 
+    def init_vote!
+      @vote_tally = {}
+    end
+
+
     def voting_finished?
       (living_players.size == vote_count)
+    end
+
+
+    def vote_count
+      @vote_tally.values.reduce(0) {|count, s| count + s.size}
+    end
+
+
+    # returns names, not players
+    def remaining_votes
+      voter_names = Set.new
+      @vote_tally.each do |_k,v|
+        voter_names += v
+      end
+
+      Set.new(living_players.map{|p| p.name}) - voter_names
     end
 
 
@@ -223,13 +244,13 @@ module Werewolf
     end
 
 
-    def vote_count
-      @vote_tally.values.reduce(0) {|count, s| count + s.size}
+    def living_players
+      @players.values.find_all{|p| p.alive?}
     end
 
 
-    def living_players
-      @players.values.find_all{|p| p.alive?}
+    def dead_players
+      @players.values.find_all{|p| p.dead?}
     end
 
 
@@ -261,7 +282,6 @@ module Werewolf
         end
       end
 
-      @vote_tally = {}
     end
 
 
@@ -442,16 +462,24 @@ module Werewolf
       end
     end
 
+    def night?
+      ('night' == time_period)
+    end
+
+    def day?
+      !night?
+    end
 
     def advance_time
       @time_remaining_in_round = default_time_remaining_in_round
       @time_period, @day_number = @time_period_generator.next
 
-      if 'night' == time_period
+      if night?
         lynch
         action = 'dusk'
       else
         process_night_actions
+        init_vote!
         action = 'dawn'
       end
 
@@ -525,6 +553,10 @@ module Werewolf
 
     def claims
       all_players.each {|p| @claims[p] = nil unless @claims[p]}
+
+      # we could do this once a round, not every time.  this is easy though
+      dead_players.each {|p| @claims.delete(p)}
+      
       @claims
     end
 
@@ -553,7 +585,7 @@ module Werewolf
         notify_all("Nightime.  No voting in progress.")
       else
         changed
-        notify_observers(:action => 'tally', :vote_tally => vote_tally)
+        notify_observers(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes)
       end
     end
 

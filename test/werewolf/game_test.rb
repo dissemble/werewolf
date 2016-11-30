@@ -29,6 +29,34 @@ module Werewolf
     end
 
 
+    def test_night
+      game = Game.new
+      game.time_period = 'night'
+      assert game.night?
+    end
+
+
+    def test_night_is_not_day
+      game = Game.new
+      game.time_period = 'day'
+      assert !game.night?
+    end
+
+
+    def test_day
+      game = Game.new
+      game.time_period = 'day'
+      assert game.day?
+    end
+
+
+    def test_day_is_not_night
+      game = Game.new
+      game.time_period = 'night'
+      assert !game.day?
+    end
+
+
     def test_join_add_to_players
       game = Game.new
       player1 = Player.new(:name => 'seth')
@@ -180,7 +208,6 @@ module Werewolf
     end
 
 
-
     def test_assign_roles_assigns_one_active_role_to_each_player
       game = Game.new
       roles = [:a, :b, :c, :d]
@@ -252,9 +279,11 @@ module Werewolf
       end
     end
 
+
     def test_instance_method_returns_new_instance
       assert_equal Game, Game.instance.class
     end
+
 
     def test_instance_method_returns_same_instance_when_called_twice
       x = Game.instance
@@ -347,6 +376,21 @@ module Werewolf
       game = Game.new
       game.stubs(:time_period).returns('day')
       game.expects(:process_night_actions).once
+      game.advance_time
+    end
+
+
+    def test_advance_time_calls_init_vote_at_dawn
+      game = Game.new
+      game.stubs(:time_period).returns('day')
+      game.expects(:init_vote!).once
+      game.advance_time
+    end
+
+    def test_advance_time_does_not_call_init_vote_at_dusk
+      game = Game.new
+      game.stubs(:time_period).returns('night')
+      game.expects(:init_vote!).never
       game.advance_time
     end
 
@@ -450,7 +494,8 @@ module Werewolf
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
         :action => 'tally',
-        :vote_tally => game.vote_tally)
+        :vote_tally => game.vote_tally,
+        :remaining_votes => game.remaining_votes)
       game.add_observer(mock_observer)
 
       game.print_tally
@@ -725,6 +770,7 @@ module Werewolf
       game.end_game
     end
 
+
     def test_end_calls_print_results
       game = Game.new
       game.stubs(:active?).returns(true)
@@ -813,6 +859,18 @@ module Werewolf
 
       game.reset
       assert_equal 0, game.vote_tally.size
+    end
+
+
+    def test_reset_clears_remaining_votes
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+      expected = Set.new ['seth']
+      assert_equal expected, game.remaining_votes
+
+      game.reset
+      expected = Set.new
+      assert_equal expected, game.remaining_votes
     end
 
 
@@ -927,7 +985,6 @@ module Werewolf
     end
 
 
-
     def test_vote_calls_print_tally
       game = Game.new
       game.add_username_to_game 'seth'
@@ -944,6 +1001,7 @@ module Werewolf
       game.add_username_to_game 'tom'
       game.add_username_to_game 'bill'
       game.start
+      game.init_vote!
       game.stubs(:time_period).returns('day')
       game.stubs(:advance_time).returns(false)
       game.vote voter_name: 'seth', candidate_name: 'seth'
@@ -953,12 +1011,13 @@ module Werewolf
     end
 
 
-    def test_voting_finished_when_votes_are_missing
+    def test_voting_not_finished_when_votes_are_remaining
       game = Game.new
       game.add_username_to_game 'seth'
       game.add_username_to_game 'tom'
       game.add_username_to_game 'bill'
       game.start
+      game.init_vote!
       game.stubs(:time_period).returns('day')
       game.vote voter_name: 'seth', candidate_name: 'seth'
       game.vote voter_name: 'tom', candidate_name: 'seth'
@@ -966,11 +1025,10 @@ module Werewolf
     end
 
 
-    def test_voting_finished_when_no_votes
+    def test_voting_not_finished_when_no_votes
       game = Game.new
       game.add_username_to_game 'seth'
-      game.add_username_to_game 'tom'
-      game.add_username_to_game 'bill'
+      game.init_vote!
       game.stubs(:time_period).returns('day')
       assert !game.voting_finished?
     end
@@ -1071,6 +1129,7 @@ module Werewolf
     end
 
 
+
     def test_living_players_all_alive
       game = Game.new
       player1 = Player.new(:name => 'a', :alive => true)
@@ -1104,6 +1163,39 @@ module Werewolf
     end
 
 
+      def test_dead_players_all_alive
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => true)
+      player2 = Player.new(:name => 'b', :alive => true)
+      player3 = Player.new(:name => 'c', :alive => true)
+
+      [player1, player2, player3].each {|p| game.join(p)}
+      assert_equal [], game.dead_players
+    end
+
+
+    def test_dead_players_all_dead
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => false)
+      player2 = Player.new(:name => 'b', :alive => false)
+      player3 = Player.new(:name => 'c', :alive => false)
+
+      [player1, player2, player3].each {|p| game.join(p)}
+      assert_equal [player1, player2, player3], game.dead_players
+    end
+
+
+    def test_living_players_some_dead_some_alive
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => false)
+      player2 = Player.new(:name => 'b', :alive => true)
+      player3 = Player.new(:name => 'c', :alive => false)
+
+      [player1, player2, player3].each {|p| game.join(p)}
+      assert_equal [player1, player3], game.dead_players
+    end
+
+
     def test_tally_starts_empty
       game = Game.new
       assert_equal Hash.new, game.vote_tally
@@ -1126,6 +1218,23 @@ module Werewolf
         'bill' => Set.new(['tom'])
       }
       assert_equal expected, game.vote_tally
+    end
+
+
+    def test_remaining_votes_after_voting
+      game = Game.new
+      game.add_username_to_game 'seth'
+      game.add_username_to_game 'tom'
+      game.add_username_to_game 'bill'
+      game.add_username_to_game 'jerry'
+      game.start
+      game.init_vote!
+      game.stubs(:time_period).returns('day')
+      game.vote voter_name: 'seth', candidate_name: 'tom'
+      game.vote voter_name: 'bill', candidate_name: 'tom'
+
+      expected = Set.new ['tom', 'jerry']
+      assert_equal expected, game.remaining_votes
     end
 
 
@@ -1288,7 +1397,7 @@ module Werewolf
     end
 
 
-    def test_tally_is_cleared_after_lynch
+    def test_init_vote_clears_tally
       game = Game.new
       game.add_username_to_game('seth')
       game.start
@@ -1297,8 +1406,43 @@ module Werewolf
       game.vote(voter_name: 'seth', candidate_name: 'seth')
       assert_equal 1, game.vote_tally.size
 
-      game.lynch
-      assert_equal 0, game.vote_tally.size
+      game.init_vote!
+      expected = {}
+      assert_equal expected, game.vote_tally
+    end
+
+
+    def test_remaining_votes_initially_empty
+      game = Game.new
+
+      expected = Set.new
+      assert_equal expected, game.remaining_votes
+    end
+
+
+    def test_remaining_votes_with_voters
+      game = Game.new
+
+      game.add_username_to_game('seth')
+      game.add_username_to_game('tom')
+      game.add_username_to_game('bill')
+      expected = Set.new ['bill', 'seth', 'tom']
+      assert_equal expected, game.remaining_votes 
+    end
+
+
+    def test_dead_players_not_included_remaining_votes
+      game = Game.new
+      players = [
+        Player.new(:name => 'devin', :alive => true),
+        Player.new(:name => 'tim', :alive => false),
+        Player.new(:name => 'seth', :alive => true),
+        Player.new(:name => 'kayleigh', :alive => true),
+        Player.new(:name => 'dan', :alive => false),
+      ]
+      players.each {|p| game.join(p)}
+      expected = Set.new ['devin', 'seth', 'kayleigh']
+      assert_equal expected, game.remaining_votes
     end
 
 
@@ -1875,7 +2019,6 @@ module Werewolf
     end
 
 
-
     def test_advance_time_resets_time_remaining_in_round
       game = Game.new
       game.time_remaining_in_round = 4187
@@ -1989,7 +2132,7 @@ module Werewolf
       game = Game.new
       bill = Werewolf::Player.new(:name => 'bill')
       tom = Werewolf::Player.new(:name => 'tom')
-      seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+      seth = Werewolf::Player.new(:name => 'seth')
       [bill, tom, seth].each {|p| game.join(p)}
 
       game.claim 'bill', 'i am the walrus'
@@ -1997,6 +2140,22 @@ module Werewolf
       # no claim for seth
 
       expected = {bill => 'i am the walrus', tom => 'i am the eggman', seth => nil}
+      assert_equal expected, game.claims
+    end
+
+
+    def test_claims_dont_include_dead_players
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom', :alive => false)
+      seth = Werewolf::Player.new(:name => 'seth')
+      [bill, tom, seth].each {|p| game.join(p)}
+
+      game.claim 'bill', 'i am the walrus'
+      game.claim 'tom', 'i am the eggman'
+      # no claim for seth
+
+      expected = {bill => 'i am the walrus', seth => nil}
       assert_equal expected, game.claims
     end
 
@@ -2130,12 +2289,14 @@ module Werewolf
       game.advance_time
 
       # Day 1
+      assert_equal 6, game.remaining_votes.size
       game.vote(voter_name: seer.name, candidate_name: villager.name)
       game.vote(voter_name: wolf.name, candidate_name: villager.name)
       game.vote(voter_name: lycan.name, candidate_name: villager.name)
       game.vote(voter_name: beholder.name, candidate_name: wolf.name)
       game.vote(voter_name: villager.name, candidate_name: seer.name)
       #cultist doesn't vote
+      assert_equal 1, game.remaining_votes.size
       assert !game.night_finished?
 
       game.vote_tally
@@ -2155,10 +2316,12 @@ module Werewolf
       assert beholder.dead?
 
       # Day 2
+      assert_equal 4, game.remaining_votes.size
       game.vote(voter_name: seer.name, candidate_name: cultist.name)
       game.vote(voter_name: wolf.name, candidate_name: cultist.name)
       game.vote(voter_name: lycan.name, candidate_name: cultist.name)
       game.vote(voter_name: cultist.name, candidate_name: seer.name)
+      assert_equal 0, game.remaining_votes.size
       assert_equal 2, game.vote_tally.size
       game.status
 

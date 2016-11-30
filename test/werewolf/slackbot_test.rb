@@ -211,7 +211,6 @@ module Werewolf
       expected = <<MESSAGE
 <@bill>:  i am the walrus
 <@tom>:  i am the eggman
-<@seth>:  -
 MESSAGE
       slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
 
@@ -455,31 +454,91 @@ MESSAGE
 
     def test_handle_tally
       slackbot = Werewolf::SlackBot.new
-      expected =
-        "Lynch tomx:  (2 votes) - sethx, billx\n" \
-        "Lynch billx:  (1 vote) - tomx"
-
-      slackbot.expects(:user).once.with('seth').returns(stub(:name => 'sethx'))
-      slackbot.expects(:user).twice.with('tom').returns(stub(:name => 'tomx'))
-      slackbot.expects(:user).twice.with('bill').returns(stub(:name => 'billx'))
-      slackbot.expects(:tell_all).once.with(expected)
+      expected_fields = [
+        {
+          title: ':memo: Town Ballot',
+          value: "Lynch tom:  (2 votes) - seth, bill\n" \
+                 "Lynch bill:  (1 vote) - tom",
+          short: false
+        },
+        {
+          title: ':hourglass: Remaining Voters',
+          value: 'betty, ca, katie',
+          short: false
+        }
+      ]
+      slackbot.expects(:tell_all).once.with('', fields: expected_fields)
 
       slackbot.handle_tally( {
         :vote_tally => {
           'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
-        }
+        },
+        :remaining_votes => Set.new(['katie', 'ca', 'betty'])
       } )
     end
 
 
     def test_handle_tally_when_empty
       slackbot = Werewolf::SlackBot.new
-      expected = "No votes yet :zero:"
 
-      slackbot.expects(:tell_all).once.with(expected)
+      expected_fields = [
+        {
+          title: ':memo: Town Ballot',
+          value: 'No votes yet :zero:',
+          short: false
+        },
+        {
+          title: ':hourglass: Remaining Voters',
+          value: 'Everyone has voted! :ballot_box_with_check:',
+          short: false
+        }
+      ]
+      slackbot.expects(:tell_all).once.with('', fields: expected_fields)
 
-      slackbot.handle_tally({ :vote_tally => {} })
+      slackbot.handle_tally({ :vote_tally => {}, :remaining_votes => Set.new })
+    end
+
+
+    def test_handle_tally_one_remaining_voter
+      slackbot = Werewolf::SlackBot.new
+
+      expected_fields = [
+        {
+          title: ':memo: Town Ballot',
+          value: "Lynch tom:  (2 votes) - seth, bill\n" \
+                 "Lynch bill:  (1 vote) - tom",
+          short: false
+        },
+        {
+          title: ':hourglass: Remaining Voters',
+          value: 'katie',
+          short: false
+        }
+      ]
+      slackbot.expects(:tell_all).once.with('', fields: expected_fields)
+
+      slackbot.handle_tally( {
+        :vote_tally => {
+          'tom' => Set.new(['seth', 'bill']),
+          'bill' => Set.new(['tom'])
+        },
+        :remaining_votes => Set.new(['katie'])
+      } )
+    end
+
+
+    def test_handle_roles
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth', :role => 'seer')
+
+      slackbot.expects(:tell_player).once.with(
+        player,
+        "Active roles: [beholder, lycan, seer]")
+
+      slackbot.handle_roles(
+        :player => player,
+        :active_roles => ['seer', 'beholder', 'lycan'])
     end
 
 
