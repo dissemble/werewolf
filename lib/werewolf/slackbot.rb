@@ -113,19 +113,32 @@ TITLE
 
 
     def handle_tally(options = {})
-      vote_hash = options[:vote_tally]
+      fields = []
 
+      vote_hash = options[:vote_tally]
       if vote_hash.empty?
-        message = "No votes yet :zero:"
+        tally_message = "No votes yet :zero:"
       else
         lines = vote_hash.map do |candidate, voterset|
           voters = voterset.map{|name| "#{get_name(name)}"}.join(', ')
           "Lynch #{get_name(candidate)}:  (#{pluralize_votes(voterset.size)}) - #{voters}"
         end
-        message = lines.join("\n")
+        tally_message = lines.join("\n")
       end
 
-      tell_all message
+      fields.push({title: ':memo: Town Ballot', value: tally_message, short: false})
+
+      remaining_votes = options[:remaining_votes]
+      if remaining_votes.empty?
+        remaining_message = "Everyone has voted! :ballot_box_with_check:"
+      else
+        remaining_message = remaining_votes.map{|name| "#{get_name(name)}"}.sort.join(', ')
+      end
+
+      fields.push({title: ':hourglass: Remaining Voters', value: remaining_message, short: false})
+
+      tell_all '', fields: fields
+
     end
 
 

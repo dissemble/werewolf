@@ -19,10 +19,10 @@ module Werewolf
       if game.active?
         if game.round_expired?
           game.advance_time
-        elsif game.voting_finished?
+        elsif game.day? && game.voting_finished?
           game.notify_all "All votes have been cast; dusk will come early."
           game.advance_time
-        elsif game.night_finished?
+        elsif game.night? && game.night_finished?
           game.notify_all "All night actions are complete; dawn will come early."
           game.advance_time
         else
