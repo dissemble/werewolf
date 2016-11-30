@@ -249,6 +249,11 @@ module Werewolf
     end
 
 
+    def dead_players
+      @players.values.find_all{|p| p.dead?}
+    end
+
+
     def wolf_players
       @players.values.find_all{|p| p.role == 'wolf'}
     end
@@ -548,6 +553,10 @@ module Werewolf
 
     def claims
       all_players.each {|p| @claims[p] = nil unless @claims[p]}
+
+      # we could do this once a round, not every time.  this is easy though
+      dead_players.each {|p| @claims.delete(p)}
+      
       @claims
     end
 

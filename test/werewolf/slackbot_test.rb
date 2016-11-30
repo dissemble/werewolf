@@ -211,7 +211,6 @@ module Werewolf
       expected = <<MESSAGE
 <@bill>:  i am the walrus
 <@tom>:  i am the eggman
-<@seth>:  -
 MESSAGE
       slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
 

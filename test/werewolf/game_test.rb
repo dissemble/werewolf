@@ -1129,6 +1129,7 @@ module Werewolf
     end
 
 
+
     def test_living_players_all_alive
       game = Game.new
       player1 = Player.new(:name => 'a', :alive => true)
@@ -1159,6 +1160,39 @@ module Werewolf
 
       [player1, player2, player3].each {|p| game.join(p)}
       assert_equal [player2], game.living_players
+    end
+
+
+      def test_dead_players_all_alive
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => true)
+      player2 = Player.new(:name => 'b', :alive => true)
+      player3 = Player.new(:name => 'c', :alive => true)
+
+      [player1, player2, player3].each {|p| game.join(p)}
+      assert_equal [], game.dead_players
+    end
+
+
+    def test_dead_players_all_dead
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => false)
+      player2 = Player.new(:name => 'b', :alive => false)
+      player3 = Player.new(:name => 'c', :alive => false)
+
+      [player1, player2, player3].each {|p| game.join(p)}
+      assert_equal [player1, player2, player3], game.dead_players
+    end
+
+
+    def test_living_players_some_dead_some_alive
+      game = Game.new
+      player1 = Player.new(:name => 'a', :alive => false)
+      player2 = Player.new(:name => 'b', :alive => true)
+      player3 = Player.new(:name => 'c', :alive => false)
+
+      [player1, player2, player3].each {|p| game.join(p)}
+      assert_equal [player1, player3], game.dead_players
     end
 
 
@@ -2098,7 +2132,7 @@ module Werewolf
       game = Game.new
       bill = Werewolf::Player.new(:name => 'bill')
       tom = Werewolf::Player.new(:name => 'tom')
-      seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+      seth = Werewolf::Player.new(:name => 'seth')
       [bill, tom, seth].each {|p| game.join(p)}
 
       game.claim 'bill', 'i am the walrus'
@@ -2106,6 +2140,22 @@ module Werewolf
       # no claim for seth
 
       expected = {bill => 'i am the walrus', tom => 'i am the eggman', seth => nil}
+      assert_equal expected, game.claims
+    end
+
+
+    def test_claims_dont_include_dead_players
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom', :alive => false)
+      seth = Werewolf::Player.new(:name => 'seth')
+      [bill, tom, seth].each {|p| game.join(p)}
+
+      game.claim 'bill', 'i am the walrus'
+      game.claim 'tom', 'i am the eggman'
+      # no claim for seth
+
+      expected = {bill => 'i am the walrus', seth => nil}
       assert_equal expected, game.claims
     end
 
