@@ -29,7 +29,7 @@ sleep 2
 
 seer = Werewolf::Player.new(:name => 'bill', :bot => true)
 wolf = Werewolf::Player.new(:name => 'tom', :bot => true)
-beholder = Werewolf::Player.new(:name => 'seth', :bot => true)
+beholder = Werewolf::Player.new(:name => 'wesley', :bot => true)
 villager2 = Werewolf::Player.new(:name => 'john', :bot => true)
 villager3 = Werewolf::Player.new(:name => 'monty', :bot => true)
 
@@ -57,7 +57,7 @@ game.advance_time
 # Day 1
 game.vote(voter_name: 'bill', candidate_name: 'john')
 game.vote(voter_name: 'tom', candidate_name: 'john')
-game.vote(voter_name: 'seth', candidate_name: 'bill')
+game.vote(voter_name: 'wesley', candidate_name: 'bill')
 game.vote(voter_name: 'john', candidate_name: 'tom')
 #villager3 doesn't vote
 game.vote_tally
@@ -78,7 +78,7 @@ game.players['monty'].dead?
 
 game.vote(voter_name: 'bill', candidate_name: 'tom')
 game.vote(voter_name: 'tom', candidate_name: 'bill')
-game.vote(voter_name: 'seth', candidate_name: 'tom')
+game.vote(voter_name: 'wesley', candidate_name: 'tom')
 game.vote_tally
 game.remaining_votes
 game.status

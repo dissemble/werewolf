@@ -7,7 +7,7 @@ module Werewolf
     include Observable
 
     cattr_accessor :roles_with_night_actions
-    @@roles_with_night_actions = {'bodyguard' => 'guard', 'wolf' => 'nightkill', 'seer' => 'view'}
+    @@roles_with_night_actions = {'bodyguard' => 'guard', 'wolf' => 'kill', 'seer' => 'view'}
 
     attr_reader :players
     attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
@@ -19,7 +19,7 @@ module Werewolf
 
 
     def reset
-      @players = Hash.new
+      @players = Hash.new   # {'player_name' => player}
       @active = false
       @active_roles = nil
       @time_period_generator = create_time_period_generator
@@ -117,7 +117,7 @@ module Werewolf
 
         # thought: beholder/cultist could be N0 actions for those roles
         # Provide no-op nightkill to fake out 'night_finished?' so N0 auto advances to D1
-        @night_actions['nightkill'] = lambda {}
+        @night_actions['kill'] = lambda {}
         @night_actions['guard'] = lambda {}
       end
     end
@@ -233,7 +233,7 @@ module Werewolf
       living_roles = Set.new(living_players.map {|p| p.role})
 
       # filter all possible night_actions to only those which might be performed
-      expected_actions = roles_with_night_actions.select {|r,_a| living_roles.include? r}.values
+      expected_actions = roles_with_night_actions.select {|role,_a| living_roles.include? role}.values
 
       (expected_actions - night_actions.keys).empty?
     end
@@ -311,7 +311,7 @@ module Werewolf
         authorize_nightkill(werewolf_name:werewolf_name, victim_name:victim_name)
       end
 
-      @night_actions['nightkill'] = lambda {
+      @night_actions['kill'] = lambda {
         if @guarded == victim_player
           notify_all "No one was killed during the night"
         else
@@ -322,7 +322,7 @@ module Werewolf
       }
 
       # acknowledge nightkill command immediately
-      notify_player wolf_player, 'Nightkill order acknowledged.  It will take affect at dawn.'
+      notify_player wolf_player, 'kill order acknowledged.  It will take affect at dawn.'
     end
 
 
@@ -476,18 +476,24 @@ module Werewolf
 
       if night?
         lynch
-        action = 'dusk'
+
+        changed
+        notify_observers(
+          :action => 'dusk',
+          :day_number => day_number,
+          :round_time => default_time_remaining_in_round)
+
+        prompt_for_night_actions
       else
         process_night_actions
         init_vote!
-        action = 'dawn'
-      end
 
-      changed
-      notify_observers(
-        :action => action,
-        :day_number => day_number,
-        :round_time => default_time_remaining_in_round)
+        changed
+        notify_observers(
+          :action => 'dawn',
+          :day_number => day_number,
+          :round_time => default_time_remaining_in_round)
+      end
     end
 
 
@@ -502,6 +508,7 @@ module Werewolf
 
 
     def create_time_period_generator
+      # TODO:  Enumerator is not thread safe!!!
       Enumerator.new do |yielder|
         times = ['night', 'day']
         i = 0
@@ -515,7 +522,7 @@ module Werewolf
 
 
     def process_night_actions
-      ['guard', 'nightkill', 'view'].each do |action_name|
+      ['guard', 'kill', 'view'].each do |action_name|
         action_lambda = @night_actions[action_name]
         if action_lambda
           action_lambda[]
@@ -558,6 +565,19 @@ module Werewolf
       dead_players.each {|p| @claims.delete(p)}
       
       @claims
+    end
+
+
+    def players_with_night_actions
+      living_players.select {|player| @@roles_with_night_actions[player.role] }
+    end
+
+
+    def prompt_for_night_actions
+      players_with_night_actions.each do |player|
+        action = @@roles_with_night_actions[player.role]
+        notify_player(player, "Night has fallen.  Reminder:  please use '#{action}' now")
+      end
     end
 
 
