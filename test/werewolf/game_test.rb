@@ -403,6 +403,14 @@ module Werewolf
     end
 
 
+    def test_advance_time_calls_prompt_for_night_actions
+      game = Game.new
+      game.stubs(:time_period).returns('night')
+      game.expects(:prompt_for_night_actions).once
+      game.advance_time
+    end
+
+
     def test_advance_time_notifies_of_dawn
       game = Game.new
       game.stubs(:time_period).returns('day')
@@ -441,7 +449,7 @@ module Werewolf
     def test_process_night_actions_applies_all_actions
       game = Game.new
       x = 10
-      game.night_actions['nightkill'] = lambda {x *= 2}
+      game.night_actions['kill'] = lambda {x *= 2}
       game.night_actions['view'] = lambda {x += 5}
 
       game.process_night_actions
@@ -452,7 +460,7 @@ module Werewolf
     def test_process_night_actions_leaves_night_actions_empty
       game = Game.new
       x = 10
-      game.night_actions['nightkill'] = lambda {x *= 2}
+      game.night_actions['kill'] = lambda {x *= 2}
       game.night_actions['view'] = lambda {x += 5}
       assert !game.night_actions.empty?
 
@@ -464,7 +472,7 @@ module Werewolf
     def test_process_night_actions_does_not_apply_unknown_actions
       game = Game.new
       x = 10
-      game.night_actions['nightkill'] = lambda {x *= 2}
+      game.night_actions['kill'] = lambda {x *= 2}
       game.night_actions['runningman'] = lambda {x += 5}
 
       game.process_night_actions
@@ -1087,7 +1095,7 @@ module Werewolf
 
 
     def test_roles_with_night_actions
-      expected = {'bodyguard' => 'guard', 'wolf' => 'nightkill', 'seer' => 'view'}
+      expected = {'bodyguard' => 'guard', 'wolf' => 'kill', 'seer' => 'view'}
       assert_equal expected, Game.roles_with_night_actions
     end
 
@@ -1587,7 +1595,7 @@ module Werewolf
 
       game.stubs(:day_number).returns(1)
       game.expects(:notify_player).once.with(
-        wolf, "Nightkill order acknowledged.  It will take affect at dawn.")
+        wolf, "kill order acknowledged.  It will take affect at dawn.")
 
       game.nightkill werewolf_name:'tom', victim_name:'seth'
     end
@@ -2259,6 +2267,47 @@ module Werewolf
       assert_raises(SecurityError) do
         game.notify_on_error(player_name) {raise SecurityError.new(error_message)}
       end
+    end
+
+
+    def test_players_with_night_actions
+      game = Game.new
+      seer = Player.new(:name => 'tom', :role => 'seer')
+      wolf1 = Player.new(:name => 'bill', :role => 'wolf')
+      wolf2 = Player.new(:name => 'ca', :role => 'wolf')
+      villager = Player.new(:name => 'john', :role => 'villager')
+      lycan = Player.new(:name => 'seth', :role => 'lycan')
+      bodyguard = Player.new(:name => 'katie', :role => 'bodyguard')
+      [seer, wolf1, wolf2, villager, lycan, bodyguard].each {|p| game.join(p)}
+      
+      expected = [seer, wolf1, wolf2, bodyguard]
+      assert_equal expected, game.players_with_night_actions
+    end
+
+
+    def test_prompt_for_night_actions
+      game = Game.new
+      seer = Player.new(:name => 'tom', :role => 'seer')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      bodyguard = Player.new(:name => 'john', :role => 'bodyguard')
+
+      game.stubs(:players_with_night_actions).returns([seer,bodyguard,wolf,])
+      game.expects(:notify_player).with(seer, "Night has fallen.  Reminder:  please use 'view' now")
+      game.expects(:notify_player).with(bodyguard, "Night has fallen.  Reminder:  please use 'guard' now")
+      game.expects(:notify_player).with(wolf, "Night has fallen.  Reminder:  please use 'kill' now")
+
+      game.prompt_for_night_actions
+    end
+
+
+    def test_prompt_for_night_actions_not_called_night_zero
+      game = Game.new
+      game.join(Player.new(:name => 'seth'))
+
+      game.expects(:prompt_for_night_actions).never
+
+      game.start
+      game.advance_time
     end
 
 
