@@ -10,7 +10,7 @@ module Werewolf
     @@roles_with_night_actions = {'bodyguard' => 'guard', 'wolf' => 'kill', 'seer' => 'view'}
 
     attr_reader :players
-    attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
+    attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period 
     attr_accessor :time_remaining_in_round, :vote_tally
 
     def initialize()
@@ -29,6 +29,7 @@ module Werewolf
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
       @guarded = nil
+      @event_log = []
     end
 
 
@@ -44,6 +45,16 @@ module Werewolf
 
     def active?
       @active
+    end
+
+
+    def event_log
+      @event_log
+    end
+
+
+    def record_event!(event)
+      @event_log << event
     end
 
 
@@ -268,18 +279,24 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
-          notify_all "The townsfolk couldn't decide - no one was lynched"
+          no_lynch
         else
           lynch_player @players[lynchee_name]
         end
       end
+    end
 
+
+    def no_lynch
+      record_event! "Tied vote, no one lynched"
+      notify_all "The townsfolk couldn't decide - no one was lynched"
     end
 
 
     def lynch_player(player)
       player.kill!
 
+      record_event! "#{player.name} (#{player.role}) was lynched"
       notify(
         :action => 'lynch_player',
         :player => player,
@@ -304,15 +321,27 @@ module Werewolf
 
       @night_actions['kill'] = lambda {
         if @guarded == victim_player
-          notify_all "No one was killed during the night"
+          unsuccessful_nightkill
         else
-          victim_player.kill!
-          notify(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+          successful_nightkill victim_player
         end
       }
 
       # acknowledge nightkill command immediately
       notify_player wolf_player, 'kill order acknowledged.  It will take affect at dawn.'
+    end
+
+
+    def unsuccessful_nightkill
+      record_event! "no nightkill"
+      notify_all "No one was killed during the night"
+    end
+
+
+    def successful_nightkill(victim_player)
+      victim_player.kill!
+      record_event! "#{victim_player.name} (#{victim_player.role}) was nightkilled"
+      notify(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
     end
 
 

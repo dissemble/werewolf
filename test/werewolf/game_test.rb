@@ -890,6 +890,15 @@ module Werewolf
     end
 
 
+    def test_reset_resets_event_log
+      game = Game.new
+      game.record_event!('foo')
+      assert_equal ['foo'], game.event_log
+      game.reset
+      assert_equal [], game.event_log
+    end
+
+
     def test_notify_of_active_roles
       game = Game.new
       game.stubs(:active_roles).returns(['a', 'b', 'c'])
@@ -2319,6 +2328,51 @@ module Werewolf
     end
 
 
+    def test_audit_starts_as_empty_array
+      game = Game.new
+      assert_equal [], game.event_log
+    end
+
+
+    def test_record_logs_new_values_to_audit
+      game = Game.new
+      game.record_event!(2)
+      game.record_event!(7)
+      game.record_event!(17)
+      assert_equal [2,7,17], game.event_log
+    end
+
+
+    def test_event_log_captures_no_lynch
+      game = Game.new
+      game.expects(:record_event!).with("Tied vote, no one lynched")
+      game.no_lynch
+    end
+
+
+    def test_event_log_captures_lynch_player
+      game = Game.new
+      player = Player.new(:name => 'seth', :role => 'villager')
+      game.expects(:record_event!).with("seth (villager) was lynched")
+      game.lynch_player player
+    end
+
+
+    def test_event_log_captures_successful_nightkill
+      game = Game.new
+      player = Player.new(:name => 'seth', :role => 'villager')
+      game.expects(:record_event!).with("seth (villager) was nightkilled")
+      game.successful_nightkill player
+    end
+
+
+    def test_event_log_captures_unsuccessful_nightkill
+      game = Game.new
+      game.expects(:record_event!).with("no nightkill")
+      game.unsuccessful_nightkill
+    end
+
+
     def test_aspirations_1
       game = Game.new
 
@@ -2395,6 +2449,11 @@ module Werewolf
       assert game.night_finished?
       game.advance_time
       assert seer.dead?
+
+      assert_match /\(villager\) was lynched/, game.event_log[0]
+      assert_match /\(beholder\) was nightkilled/, game.event_log[1]
+      assert_match /\(cultist\) was lynched/, game.event_log[2]
+      assert_match /\(seer\) was nightkilled/, game.event_log[3]
     end
 
   end
