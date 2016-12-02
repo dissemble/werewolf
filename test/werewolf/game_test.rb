@@ -2311,6 +2311,14 @@ module Werewolf
     end
 
 
+    def test_notify
+      game = Game.new
+      game.expects(:changed)
+      game.expects(:notify_observers).with(4, 7)
+      game.notify(4, 7)
+    end
+
+
     def test_aspirations_1
       game = Game.new
 
