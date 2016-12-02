@@ -18,6 +18,7 @@ module Werewolf
     def initialize(options = {})
       super options
       @slack_users = {}
+      @names_to_ids = {}
       @@instance = self
     end
 
@@ -34,12 +35,19 @@ module Werewolf
 
     def register_user(slack_id)
       @slack_users[slack_id] = get_slack_user_info(slack_id)
+      # user_name = @slack_users[slack_id].name
+      # @names_to_ids[user_name] = slack_id
     end
 
 
     def get_slack_user_info(slack_id)
       response = client.web_client.users_info(user: slack_id)
       response.user
+    end
+
+
+    def get_slack_id(user_name)
+      @names_to_ids[user_name]
     end
 
 
@@ -279,7 +287,9 @@ MESSAGE
       name = options[:name]
       message = options[:message]
       puts "tell_name:  #{name}, #{message}"
-      im = client.web_client.im_open(:user => "#{name}")
+
+      slack_id = get_slack_id(name)
+      im = client.web_client.im_open(:user => "#{slack_id}")
       client.say(text: message, channel: "#{im.channel.id}", mrkdwn: true)
     end
 
@@ -308,7 +318,8 @@ MESSAGE
     def tell_player(player, message)
       puts "tell_player:  #{player.name}, #{message}"
       unless player.bot?
-        im = client.web_client.im_open(:user => "#{player.name}")
+        slack_id = get_slack_id(player.name)
+        im = client.web_client.im_open(:user => "#{slack_id}")
         client.say(text: message, channel: "#{im.channel.id}", mrkdwn: true)
       end
     end

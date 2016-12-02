@@ -2,7 +2,8 @@ module Werewolf
   module Commands
     class Start < SlackRubyBot::Commands::Base
       command 'help' do |_client, data, _match|
-        Game.instance.help(data.user)
+        human_name = Werewolf::SlackBot.instance().get_user(data.user)
+        Game.instance.help(human_name)
       end
     end
   end

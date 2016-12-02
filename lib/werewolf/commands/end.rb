@@ -2,7 +2,8 @@ module Werewolf
   module Commands
     class Start < SlackRubyBot::Commands::Base
       command 'end' do |_client, data, _match|
-        Game.instance.end_game(data.user)
+        human_name = Werewolf::SlackBot.instance().get_user(data.user)
+        Game.instance.end_game(human_name)
       end
     end
   end

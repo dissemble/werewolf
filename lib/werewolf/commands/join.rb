@@ -15,7 +15,8 @@ module Werewolf
 
         slackbot = Werewolf::SlackBot.instance()
         slackbot.register_user(data.user)
-        Game.instance.add_username_to_game(data.user)
+        human_name = slackbot.get_user(data.user)
+        Game.instance.add_username_to_game(human_name)
       end
     end
   end
