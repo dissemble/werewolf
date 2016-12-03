@@ -9,7 +9,7 @@ module Werewolf
     cattr_accessor :roles_with_night_actions
     @@roles_with_night_actions = {'bodyguard' => 'guard', 'wolf' => 'kill', 'seer' => 'view'}
 
-    attr_reader :players
+    attr_reader :players, :tanner_victory
     attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
     attr_accessor :time_remaining_in_round, :vote_tally
 
@@ -29,6 +29,7 @@ module Werewolf
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
       @guarded = nil
+      @tanner_victory = false
     end
 
 
@@ -55,15 +56,12 @@ module Werewolf
     def join(player)
       if active?
         message = "game is active, joining is not allowed"
-        changed
-        notify_observers(:action => 'join_error', :player => player, :message => message)
+        notify(:action => 'join_error', :player => player, :message => message)
       elsif @players.has_key? player.name
-        changed
-        notify_observers(:action => 'join_error', :player => player, :message => 'you already joined!')
+        notify(:action => 'join_error', :player => player, :message => 'you already joined!')
       else
         @players[player.name] = player
-        changed
-        notify_observers(:action => 'join', :player => player)
+        notify(:action => 'join', :player => player)
       end
 
       status
@@ -78,8 +76,7 @@ module Werewolf
 
       @players.delete name
 
-      changed
-      notify_observers(:action => 'leave', :player => player)
+      notify(:action => 'leave', :player => player)
     end
 
 
@@ -125,14 +122,12 @@ module Werewolf
 
     def reveal_seer_to(beholder)
       seer = @players.values.find{|p| p.role == 'seer'}
-      changed
-      notify_observers(:action => 'behold', :beholder => beholder, :seer => seer, :message => 'The seer is:')
+      notify(:action => 'behold', :beholder => beholder, :seer => seer, :message => 'The seer is:')
     end
 
 
     def reveal_wolves_to(player)
-      changed
-      notify_observers(:action => 'reveal_wolves', :player => player, :wolves => wolf_players)
+      notify(:action => 'reveal_wolves', :player => player, :wolves => wolf_players)
     end
 
 
@@ -141,8 +136,7 @@ module Werewolf
 
       ender = @players[name]
 
-      changed
-      notify_observers(:action => 'end_game', :player => ender, :message => 'ended the game')
+      notify(:action => 'end_game', :player => ender, :message => 'ended the game')
 
       print_results
       reset
@@ -176,8 +170,7 @@ module Werewolf
       remove_vote! voter:voter
       add_vote! voter:voter, candidate:candidate
 
-      changed
-      notify_observers(
+      notify(
         :action => 'vote',
         :voter => @players[voter.name],
         :votee => @players[candidate.name],
@@ -288,8 +281,11 @@ module Werewolf
     def lynch_player(player)
       player.kill!
 
-      changed
-      notify_observers(
+      if (day_number == 1) && (player.role == 'tanner')
+        @tanner_victory = true
+      end
+
+      notify(
         :action => 'lynch_player',
         :player => player,
         :message => 'With pitchforks in hand, the townsfolk killed')
@@ -316,8 +312,7 @@ module Werewolf
           notify_all "No one was killed during the night"
         else
           victim_player.kill!
-          changed
-          notify_observers(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+          notify(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
         end
       }
 
@@ -372,8 +367,7 @@ module Werewolf
         # seer may be nightkilled after calling view, but before his night action is processed
         if seer.alive?
           team = seer.view target
-          changed
-          notify_observers(
+          notify(
             :action => 'view',
             :seer => seer,
             :target => target,
@@ -399,8 +393,7 @@ module Werewolf
     def help(name)
       player = Player.new(:name => name)
 
-      changed
-      notify_observers(
+      notify(
         :action => 'help',
         :player => player)
     end
@@ -409,8 +402,7 @@ module Werewolf
     def status()
       message = "#{format_time}"
 
-      changed
-      notify_observers(:action => 'status', :message => message, :players => players.values)
+      notify(:action => 'status', :message => message, :players => players.values)
     end
 
 
@@ -435,8 +427,8 @@ module Werewolf
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'beholder', 'villager', 'lycan', 'wolf'],
         6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
-        7 => ['seer', 'bodyguard', 'villager', 'villager', 'lycan', 'cultist', 'wolf'],
-        8 => ['seer', 'bodyguard', 'lycan', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
+        7 => ['seer', 'bodyguard', 'villager', 'villager', 'tanner', 'cultist', 'wolf'],
+        8 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
         9 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         10 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
@@ -477,19 +469,17 @@ module Werewolf
       if night?
         lynch
 
-        changed
-        notify_observers(
+        notify(
           :action => 'dusk',
           :day_number => day_number,
           :round_time => default_time_remaining_in_round)
 
-        prompt_for_night_actions
+        prompt_for_night_actions unless winner?
       else
         process_night_actions
         init_vote!
 
-        changed
-        notify_observers(
+        notify(
           :action => 'dawn',
           :day_number => day_number,
           :round_time => default_time_remaining_in_round)
@@ -543,6 +533,8 @@ module Werewolf
         'good'
       elsif wolves.size >= good.size
         'evil'
+      elsif tanner_victory
+        'tanner'
       else
         false
       end
@@ -582,8 +574,7 @@ module Werewolf
 
 
     def print_claims
-      changed
-      notify_observers(:action => 'claims', :claims => claims)
+      notify(:action => 'claims', :claims => claims)
     end
 
 
@@ -595,8 +586,7 @@ module Werewolf
         raise PrivateGameError.new("Game is not running") unless active?
       end
 
-      changed
-      notify_observers(:action => 'roles', :player => player, :active_roles => active_roles)
+      notify(:action => 'roles', :player => player, :active_roles => active_roles)
     end
 
 
@@ -604,8 +594,7 @@ module Werewolf
       if 'night' == time_period
         notify_all("Nightime.  No voting in progress.")
       else
-        changed
-        notify_observers(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes)
+        notify(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes)
       end
     end
 
@@ -617,8 +606,7 @@ module Werewolf
         message = "No winner, game was ended prematurely"
       end
 
-      changed
-      notify_observers(
+      notify(
         :action => 'game_results',
         :players => players,
         :message => message)
@@ -638,8 +626,7 @@ module Werewolf
 
 
     def notify_name(name, message)
-      changed
-      notify_observers(
+      notify(
         :action => 'tell_name',
         :name => name,
         :message => message)
@@ -647,16 +634,14 @@ module Werewolf
 
 
     def notify_all(message)
-      changed
-      notify_observers(
+      notify(
         :action => 'tell_all',
         :message => message)
     end
 
 
     def notify_player(player, message)
-      changed
-      notify_observers(
+      notify(
         :action => 'tell_player',
         :player => player,
         :message => message)
@@ -664,8 +649,7 @@ module Werewolf
 
 
     def notify_start(player)
-      changed
-      notify_observers(
+      notify(
         :action => 'start',
         :start_initiator => player,
         :active_roles => active_roles)
@@ -679,8 +663,7 @@ module Werewolf
         exhortation = "Go hunt some wolves!"
       end
 
-      changed
-      notify_observers(:action => 'notify_role', :player => player, :exhortation => exhortation)
+      notify(:action => 'notify_role', :player => player, :exhortation => exhortation)
 
       if 'beholder' == player.role
         reveal_seer_to player
@@ -697,6 +680,11 @@ module Werewolf
       notify_all "active roles:  [#{role_string}]"
     end
 
+
+    def notify(*args)
+      changed
+      notify_observers(*args)
+    end
 
   end
 
