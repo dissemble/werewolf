@@ -267,9 +267,11 @@ MESSAGE
       puts options[:claims]
       message = ""
       options[:claims].each do |player, claim|
-        formatted_player = slackify(player)
-        formatted_claim = claim || '-'
-        message.concat "#{formatted_player}:  #{formatted_claim}\n"
+        unless claim.nil?
+          formatted_player = slackify(player)
+          formatted_claim = claim || '-'
+          message.concat "#{formatted_player}:  #{formatted_claim}\n"
+        end
       end
 
       tell_all message, title: "Claims :thinking_face:"
