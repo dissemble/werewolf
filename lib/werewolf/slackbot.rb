@@ -8,8 +8,10 @@ module Werewolf
       beholder: ':eyes:',
       bodyguard: ':shield:',
       cultist: ':dagger_knife:',
+      golem: ':moyai:',
       lycan: ':see_no_evil:',
       seer: ':crystal_ball:',
+      tanner: ':snake:',
       villager: ':bust_in_silhouette:',
       wolf: ':wolf:'
     }
@@ -265,10 +267,21 @@ MESSAGE
     def handle_claims(options = {})
       puts options[:claims]
       message = ""
+      not_claiming = []
       options[:claims].each do |player, claim|
-        formatted_player = slackify(player)
-        formatted_claim = claim || '-'
-        message.concat "#{formatted_player}:  #{formatted_claim}\n"
+        if claim.nil?
+          not_claiming << slackify(player)
+        else
+          formatted_player = slackify(player)
+          message.concat "#{formatted_player}:  #{claim}\n"
+        end
+      end
+
+      unless not_claiming.empty?
+        no_claims_message = "No claims:  "
+        no_claims_message.concat not_claiming.join(', ')
+        message.concat no_claims_message
+        message.concat "\n"
       end
 
       tell_all message, title: "Claims :thinking_face:"
@@ -376,6 +389,11 @@ MESSAGE
             value: "team evil. knows the identity of the wolves.",
             short: true
           },
+        'golem' => {
+            :title => SlackBot.format_role('golem'),
+            :value => "team good.  immune to nightkills.",
+            :short => true
+          },
         'lycan' => {
             title: SlackBot.format_role('lycan'),
             value: "team good, but appears evil to seer.  no special powers.",
@@ -385,6 +403,11 @@ MESSAGE
             title: SlackBot.format_role('seer'),
             value: "team good.  views the alignment of one player each night.",
             short: true
+          },
+        'tanner' => {
+            :title => SlackBot.format_role('tanner'),
+            :value => "team good.  if lynched on day 1, tanner wins and everyone else loses.",
+            :short => true
           },
         'villager' => {
             title: SlackBot.format_role('villager'),
