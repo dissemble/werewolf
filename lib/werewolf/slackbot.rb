@@ -10,6 +10,7 @@ module Werewolf
       cultist: ':dagger_knife:',
       lycan: ':see_no_evil:',
       seer: ':crystal_ball:',
+      tanner: ':snake:',
       villager: ':bust_in_silhouette:',
       wolf: ':wolf:'
     }
@@ -385,6 +386,11 @@ MESSAGE
             title: SlackBot.format_role('seer'),
             value: "team good.  views the alignment of one player each night.",
             short: true
+          },
+        'tanner' => {
+            :title => ":snake: tanner",
+            :value => "team good.  if lynched on day 1, tanner wins and everyone else loses.",
+            :short => true
           },
         'villager' => {
             title: SlackBot.format_role('villager'),

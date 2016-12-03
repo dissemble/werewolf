@@ -634,6 +634,7 @@ module Werewolf
       assert_equal false, game.winner?
     end
 
+
   end
 
 end

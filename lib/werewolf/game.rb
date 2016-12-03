@@ -421,7 +421,7 @@ module Werewolf
 
     def define_roles
       rolesets = {
-        1 => ['seer'],
+        1 => ['tanner'],
         2 => ['bodyguard', 'wolf'],
         3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
@@ -454,13 +454,16 @@ module Werewolf
       end
     end
 
+
     def night?
       ('night' == time_period)
     end
 
+
     def day?
       !night?
     end
+
 
     def advance_time
       @time_remaining_in_round = default_time_remaining_in_round

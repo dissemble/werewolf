@@ -10,6 +10,7 @@ module Werewolf
         cultist: ':dagger_knife:',
         lycan: ':see_no_evil:',
         seer: ':crystal_ball:',
+        tanner: ':snake:',
         villager: ':bust_in_silhouette:',
         wolf: ':wolf:'
       }
@@ -39,6 +40,11 @@ module Werewolf
 
     def test_format_role_seer
       assert_equal ':crystal_ball: seer', Werewolf::SlackBot.format_role('seer')
+    end
+
+
+    def test_format_role_tanner
+      assert_equal ':snake: tanner', Werewolf::SlackBot.format_role('tanner')
     end
 
 
@@ -294,7 +300,7 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [beholder, bodyguard, cultist, lycan, seer, villager, wolf]", {
+        "Active roles: [beholder, bodyguard, cultist, lycan, seer, tanner, villager, wolf]", {
           :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
@@ -324,6 +330,11 @@ MESSAGE
               :short => true
             },
             {
+              :title => ":snake: tanner",
+              :value => "team good.  if lynched on day 1, tanner wins and everyone else loses.",
+              :short => true
+            },
+            {
               :title => ":bust_in_silhouette: villager",
               :value => "team good.  no special powers.",
               :short => true
@@ -338,7 +349,8 @@ MESSAGE
       )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard', 'lycan'])
+        :active_roles => 
+          ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard', 'tanner', 'lycan'])
     end
 
 
