@@ -9,7 +9,7 @@ module Werewolf
     cattr_accessor :roles_with_night_actions
     @@roles_with_night_actions = {'bodyguard' => 'guard', 'wolf' => 'kill', 'seer' => 'view'}
 
-    attr_reader :players
+    attr_reader :players, :tanner_victory
     attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
     attr_accessor :time_remaining_in_round, :vote_tally
 
@@ -29,6 +29,7 @@ module Werewolf
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
       @guarded = nil
+      @tanner_victory = false
     end
 
 
@@ -280,6 +281,10 @@ module Werewolf
     def lynch_player(player)
       player.kill!
 
+      if (day_number == 1) && (player.role == 'tanner')
+        @tanner_victory = true
+      end
+
       notify(
         :action => 'lynch_player',
         :player => player,
@@ -422,8 +427,8 @@ module Werewolf
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'beholder', 'villager', 'lycan', 'wolf'],
         6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
-        7 => ['seer', 'bodyguard', 'villager', 'villager', 'lycan', 'cultist', 'wolf'],
-        8 => ['seer', 'bodyguard', 'lycan', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
+        7 => ['seer', 'bodyguard', 'villager', 'villager', 'tanner', 'cultist', 'wolf'],
+        8 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
         9 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         10 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
@@ -469,7 +474,7 @@ module Werewolf
           :day_number => day_number,
           :round_time => default_time_remaining_in_round)
 
-        prompt_for_night_actions
+        prompt_for_night_actions unless winner?
       else
         process_night_actions
         init_vote!
@@ -528,6 +533,8 @@ module Werewolf
         'good'
       elsif wolves.size >= good.size
         'evil'
+      elsif tanner_victory
+        'tanner'
       else
         false
       end

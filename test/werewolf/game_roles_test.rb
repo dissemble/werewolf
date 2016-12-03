@@ -575,6 +575,65 @@ module Werewolf
       assert_equal [wolf1, wolf2], game.wolf_players
     end
 
+
+    def test_tanner_victory_initialized_to_false
+      game = Game.new
+      assert_equal false, game.tanner_victory
+      game.reset
+
+    end
+
+    def test_tanner_wins_when_lynched_on_day_1
+      game = Game.new
+      villager1 = Player.new(:name => 'tom', :role => 'villager')
+      villager2 = Player.new(:name => 'john', :role => 'villager')
+      tanner = Player.new(:name => 'bill', :role => 'tanner')
+      wolf = Player.new(:name => 'seth', :role => 'wolf')
+      [villager1, villager2, tanner, wolf].each{|p| game.join(p)}
+
+      game.stubs(:time_period).returns('night')
+      game.stubs(:day_number).returns(1)
+      game.lynch_player tanner
+
+      assert_equal 'tanner', game.winner?
+    end
+
+
+    def test_tanner_does_not_win_when_lynched_on_day_2
+      game = Game.new
+      villager1 = Player.new(:name => 'tom', :role => 'villager')
+      villager2 = Player.new(:name => 'john', :role => 'villager')
+      tanner = Player.new(:name => 'bill', :role => 'tanner')
+      wolf = Player.new(:name => 'seth', :role => 'wolf')
+      [villager1, villager2, tanner, wolf].each{|p| game.join(p)}
+
+      game.stubs(:time_period).returns('night')
+      game.stubs(:day_number).returns(2)
+      game.lynch_player tanner
+
+      assert_equal false, game.winner?
+    end
+
+
+    def test_tanner_counts_as_good_for_win_conditions
+      game = Game.new
+      tanner = Player.new(:name => 'bill', :role => 'tanner')
+      game.join(tanner)
+
+      assert_equal 'good', game.winner?
+    end
+
+
+    def test_tanner_counts_as_good_for_win_conditions_2
+      game = Game.new
+      villager1 = Player.new(:name => 'tom', :role => 'villager')
+      tanner = Player.new(:name => 'bill', :role => 'tanner')
+      wolf = Player.new(:name => 'seth', :role => 'wolf')
+      [villager1, tanner, wolf].each{|p| game.join(p)}
+
+      assert_equal false, game.winner?
+    end
+
   end
 
 end
