@@ -406,7 +406,17 @@ module Werewolf
     def test_advance_time_calls_prompt_for_night_actions
       game = Game.new
       game.stubs(:time_period).returns('night')
+      game.stubs(:winner?).returns(false)
       game.expects(:prompt_for_night_actions).once
+      game.advance_time
+    end
+
+
+    def test_advance_time_does_not_call_prompt_for_night_actions_if_game_is_done
+      game = Game.new
+      game.stubs(:time_period).returns('night')
+      game.stubs(:winner?).returns('evil')
+      game.expects(:prompt_for_night_actions).never
       game.advance_time
     end
 
@@ -1720,7 +1730,7 @@ module Werewolf
       wolf = Player.new(:name => 'bill', :role => 'wolf')
       bodyguard = Player.new(:name => 'john', :role => 'bodyguard')
 
-      game.stubs(:players_with_night_actions).returns([seer,bodyguard,wolf,])
+      game.stubs(:players_with_night_actions).returns([seer,bodyguard,wolf])
       game.expects(:notify_player).with(seer, "Night has fallen.  Reminder:  please use 'view' now")
       game.expects(:notify_player).with(bodyguard, "Night has fallen.  Reminder:  please use 'guard' now")
       game.expects(:notify_player).with(wolf, "Night has fallen.  Reminder:  please use 'kill' now")
@@ -1737,6 +1747,10 @@ module Werewolf
 
       game.start
       game.advance_time
+    end
+
+
+    def test_prompt_for_night_actions_not_called_if_game_is_done
     end
 
 
