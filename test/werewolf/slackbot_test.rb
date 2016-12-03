@@ -211,7 +211,8 @@ module Werewolf
       tom = Werewolf::Player.new(:name => 'tom')
       seth = Werewolf::Player.new(:name => 'seth', :alive => false)
       john = Werewolf::Player.new(:name => 'john')
-      [bill, tom, seth, john].each {|p| game.join(p)}
+      ca = Werewolf::Player.new(:name => 'ca')
+      [bill, tom, seth, john, ca].each {|p| game.join(p)}
       game.claim 'bill', 'i am the walrus'
       game.claim 'tom', 'i am the eggman'
       game.claim 'seth', 'i am dead'
@@ -219,6 +220,46 @@ module Werewolf
       expected = <<MESSAGE
 <@bill>:  i am the walrus
 <@tom>:  i am the eggman
+No claims:  <@john>, <@ca>
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
+
+      slackbot.handle_claims(
+        :claims => game.claims
+        )
+    end
+
+
+    def test_handle_claims_when_everyone_living_claims
+      slackbot = Werewolf::SlackBot.new
+
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+      [bill, seth].each {|p| game.join(p)}
+      game.claim 'bill', 'i am the walrus'
+
+      expected = <<MESSAGE
+<@bill>:  i am the walrus
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
+
+      slackbot.handle_claims(
+        :claims => game.claims
+        )
+    end
+
+
+    def test_handle_claims_when_no_one_claims
+      slackbot = Werewolf::SlackBot.new
+
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom')
+      [bill, tom].each {|p| game.join(p)}
+
+      expected = <<MESSAGE
+No claims:  <@bill>, <@tom>
 MESSAGE
       slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
 

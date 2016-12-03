@@ -266,12 +266,21 @@ MESSAGE
     def handle_claims(options = {})
       puts options[:claims]
       message = ""
+      not_claiming = []
       options[:claims].each do |player, claim|
-        unless claim.nil?
+        if claim.nil?
+          not_claiming << slackify(player)
+        else
           formatted_player = slackify(player)
-          formatted_claim = claim || '-'
-          message.concat "#{formatted_player}:  #{formatted_claim}\n"
+          message.concat "#{formatted_player}:  #{claim}\n"
         end
+      end
+
+      unless not_claiming.empty?
+        no_claims_message = "No claims:  "
+        no_claims_message.concat not_claiming.join(', ')
+        message.concat no_claims_message
+        message.concat "\n"
       end
 
       tell_all message, title: "Claims :thinking_face:"
