@@ -308,16 +308,21 @@ module Werewolf
       end
 
       @night_actions['kill'] = lambda {
-        if @guarded == victim_player
-          notify_all "No one was killed during the night"
-        else
-          victim_player.kill!
-          notify(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
-        end
+        execute_nightkill victim_player
       }
 
       # acknowledge nightkill command immediately
       notify_player wolf_player, 'kill order acknowledged.  It will take affect at dawn.'
+    end
+
+
+    def execute_nightkill(victim_player)
+      if (victim_player == @guarded) || (victim_player.role == 'golem')
+        notify_all "No one was killed during the night"
+      else
+        victim_player.kill!
+        notify(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
+      end
     end
 
 
@@ -421,15 +426,15 @@ module Werewolf
 
     def define_roles
       rolesets = {
-        1 => ['seer'],
+        1 => ['golem'],
         2 => ['bodyguard', 'wolf'],
         3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'beholder', 'villager', 'lycan', 'wolf'],
         6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
-        7 => ['seer', 'bodyguard', 'villager', 'villager', 'tanner', 'cultist', 'wolf'],
+        7 => ['seer', 'golem', 'villager', 'villager', 'tanner', 'wolf', 'wolf'],
         8 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        9 => ['seer', 'bodyguard', 'beholder', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        9 => ['seer', 'bodyguard', 'golem', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         10 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
         12 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
@@ -454,13 +459,16 @@ module Werewolf
       end
     end
 
+
     def night?
       ('night' == time_period)
     end
 
+
     def day?
       !night?
     end
+
 
     def advance_time
       @time_remaining_in_round = default_time_remaining_in_round

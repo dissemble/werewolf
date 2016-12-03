@@ -235,6 +235,21 @@ module Werewolf
     end
 
 
+    def test_golem_cannot_be_nightkilled
+      game = Game.new
+      golem = Player.new(:name => 'john', :role => 'golem')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      [golem, wolf].each {|p| game.join(p)}
+
+      game.stubs(:day_number).returns(1) # no nightkill on day 0
+
+      game.nightkill werewolf_name:wolf.name, victim_name:golem.name
+      game.process_night_actions
+
+      assert golem.alive?
+    end
+
+
     def test_guard_notifies_when_nightkill_is_prevented
       game = Game.new
       bodyguard = Player.new(:name => 'john', :role => 'bodyguard')
@@ -633,6 +648,8 @@ module Werewolf
 
       assert_equal false, game.winner?
     end
+
+
 
   end
 

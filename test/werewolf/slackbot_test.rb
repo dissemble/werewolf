@@ -8,8 +8,10 @@ module Werewolf
         beholder: ':eyes:',
         bodyguard: ':shield:',
         cultist: ':dagger_knife:',
+        golem: ':moyai:',
         lycan: ':see_no_evil:',
         seer: ':crystal_ball:',
+        tanner: ':snake:',
         villager: ':bust_in_silhouette:',
         wolf: ':wolf:'
       }
@@ -32,6 +34,11 @@ module Werewolf
     end
 
 
+    def test_format_role_golem
+      assert_equal ':moyai: golem', Werewolf::SlackBot.format_role('golem')
+    end
+
+
     def test_format_role_lycan
       assert_equal ':see_no_evil: lycan', Werewolf::SlackBot.format_role('lycan')
     end
@@ -39,6 +46,11 @@ module Werewolf
 
     def test_format_role_seer
       assert_equal ':crystal_ball: seer', Werewolf::SlackBot.format_role('seer')
+    end
+
+
+    def test_format_role_tanner
+      assert_equal ':snake: tanner', Werewolf::SlackBot.format_role('tanner')
     end
 
 
@@ -204,13 +216,56 @@ module Werewolf
       bill = Werewolf::Player.new(:name => 'bill')
       tom = Werewolf::Player.new(:name => 'tom')
       seth = Werewolf::Player.new(:name => 'seth', :alive => false)
-      [bill, tom, seth].each {|p| game.join(p)}
+      john = Werewolf::Player.new(:name => 'john')
+      ca = Werewolf::Player.new(:name => 'ca')
+      [bill, tom, seth, john, ca].each {|p| game.join(p)}
       game.claim 'bill', 'i am the walrus'
       game.claim 'tom', 'i am the eggman'
+      game.claim 'seth', 'i am dead'
 
       expected = <<MESSAGE
 <@bill>:  i am the walrus
 <@tom>:  i am the eggman
+No claims:  <@john>, <@ca>
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
+
+      slackbot.handle_claims(
+        :claims => game.claims
+        )
+    end
+
+
+    def test_handle_claims_when_everyone_living_claims
+      slackbot = Werewolf::SlackBot.new
+
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      seth = Werewolf::Player.new(:name => 'seth', :alive => false)
+      [bill, seth].each {|p| game.join(p)}
+      game.claim 'bill', 'i am the walrus'
+
+      expected = <<MESSAGE
+<@bill>:  i am the walrus
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
+
+      slackbot.handle_claims(
+        :claims => game.claims
+        )
+    end
+
+
+    def test_handle_claims_when_no_one_claims
+      slackbot = Werewolf::SlackBot.new
+
+      game = Game.new
+      bill = Werewolf::Player.new(:name => 'bill')
+      tom = Werewolf::Player.new(:name => 'tom')
+      [bill, tom].each {|p| game.join(p)}
+
+      expected = <<MESSAGE
+No claims:  <@bill>, <@tom>
 MESSAGE
       slackbot.expects(:tell_all).once.with(expected, {:title => "Claims :thinking_face:"})
 
@@ -294,7 +349,7 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [beholder, bodyguard, cultist, lycan, seer, villager, wolf]", {
+        "Active roles: [beholder, bodyguard, cultist, golem, lycan, seer, tanner, villager, wolf]", {
           :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
@@ -314,6 +369,11 @@ MESSAGE
               :short => true
             },
             {
+              :title => ":moyai: golem",
+              :value => "team good.  immune to nightkills.",
+              :short => true
+            },
+            {
               :title => ":see_no_evil: lycan",
               :value => "team good, but appears evil to seer.  no special powers.",
               :short => true
@@ -321,6 +381,11 @@ MESSAGE
             {
               :title => ":crystal_ball: seer",
               :value => "team good.  views the alignment of one player each night.",
+              :short => true
+            },
+            {
+              :title => ":snake: tanner",
+              :value => "team good.  if lynched on day 1, tanner wins and everyone else loses.",
               :short => true
             },
             {
@@ -338,7 +403,8 @@ MESSAGE
       )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :active_roles => ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard', 'lycan'])
+        :active_roles => 
+          ['villager', 'cultist', 'beholder', 'golem', 'seer', 'wolf', 'bodyguard', 'tanner', 'lycan'])
     end
 
 
