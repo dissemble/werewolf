@@ -8,6 +8,7 @@ module Werewolf
       beholder: ':eyes:',
       bodyguard: ':shield:',
       cultist: ':dagger_knife:',
+      golem: ':moyai:',
       lycan: ':see_no_evil:',
       seer: ':crystal_ball:',
       tanner: ':snake:',
@@ -388,6 +389,11 @@ MESSAGE
             value: "team evil. knows the identity of the wolves.",
             short: true
           },
+        'golem' => {
+            :title => SlackBot.format_role('golem'),
+            :value => "team good.  immune to nightkills.",
+            :short => true
+          },
         'lycan' => {
             title: SlackBot.format_role('lycan'),
             value: "team good, but appears evil to seer.  no special powers.",
@@ -399,7 +405,7 @@ MESSAGE
             short: true
           },
         'tanner' => {
-            :title => ":snake: tanner",
+            :title => SlackBot.format_role('tanner'),
             :value => "team good.  if lynched on day 1, tanner wins and everyone else loses.",
             :short => true
           },

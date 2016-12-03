@@ -8,6 +8,7 @@ module Werewolf
         beholder: ':eyes:',
         bodyguard: ':shield:',
         cultist: ':dagger_knife:',
+        golem: ':moyai:',
         lycan: ':see_no_evil:',
         seer: ':crystal_ball:',
         tanner: ':snake:',
@@ -30,6 +31,11 @@ module Werewolf
 
     def test_format_role_cultist
       assert_equal ':dagger_knife: cultist', Werewolf::SlackBot.format_role('cultist')
+    end
+
+
+    def test_format_role_golem
+      assert_equal ':moyai: golem', Werewolf::SlackBot.format_role('golem')
     end
 
 
@@ -343,7 +349,7 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [beholder, bodyguard, cultist, lycan, seer, tanner, villager, wolf]", {
+        "Active roles: [beholder, bodyguard, cultist, golem, lycan, seer, tanner, villager, wolf]", {
           :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
@@ -360,6 +366,11 @@ MESSAGE
             {
               :title => ":dagger_knife: cultist",
               :value => "team evil. knows the identity of the wolves.",
+              :short => true
+            },
+            {
+              :title => ":moyai: golem",
+              :value => "team good.  immune to nightkills.",
               :short => true
             },
             {
@@ -393,7 +404,7 @@ MESSAGE
       slackbot.handle_start(
         :start_initiator => initiator,
         :active_roles => 
-          ['villager', 'cultist', 'beholder', 'seer', 'wolf', 'bodyguard', 'tanner', 'lycan'])
+          ['villager', 'cultist', 'beholder', 'golem', 'seer', 'wolf', 'bodyguard', 'tanner', 'lycan'])
     end
 
 
