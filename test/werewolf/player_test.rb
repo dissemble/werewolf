@@ -78,6 +78,11 @@ module Werewolf
       assert_equal 'good', player.team
     end
 
+    def test_team_is_initially_good_for_sasquatch
+      player = Player.new(:name => 'seth', :role => 'sasquatch')
+      assert_equal 'good', player.team
+    end
+
     def test_team_is_good_for_seer
       player = Player.new(:name => 'seth', :role => 'seer')
       assert_equal 'good', player.team
@@ -130,6 +135,15 @@ module Werewolf
 
     def test_cultist_appears_evil_to_seer
       assert_equal 'evil', Player.new(:name => 'seth', :role => 'cultist').apparent_team
+    end
+
+    def test_original_role_is_same_as_role
+      # TODO:  move possible roles into Role class 
+      all_roles = %w(beholder bodyguard cultist golem lycan seer tanner villager wolf)
+      all_roles.each do |role|
+        player = Player.new(:name => 'seth', :role => role)
+        assert_equal player.role, player.original_role
+      end
     end
 
     def test_to_s

@@ -1,11 +1,13 @@
 module Werewolf
 
   class Player
+    attr_accessor :original_role
     attr_accessor :name, :role
 
     def initialize(args)
       @alive = true
       args.each { |k,v| instance_variable_set("@#{k}", v) }
+      @original_role = @role
     end
 
     def alive?

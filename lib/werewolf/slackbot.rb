@@ -10,6 +10,7 @@ module Werewolf
       cultist: ':dagger_knife:',
       golem: ':moyai:',
       lycan: ':see_no_evil:',
+      sasquatch: ':monkey:',
       seer: ':crystal_ball:',
       tanner: ':snake:',
       villager: ':bust_in_silhouette:',
@@ -253,7 +254,7 @@ MESSAGE
       message = ":tada: #{options[:message]}\n"
       options[:players].each do |_name,player|
         line = player.dead? ? '-' : "+"
-        line.concat " #{slackify(player)}: #{SlackBot.format_role player.role}"
+        line.concat " #{slackify(player)}: #{SlackBot.format_role player.original_role}"
         if player.dead?
           line.concat " :coffin:"
         end
@@ -398,6 +399,11 @@ MESSAGE
             title: SlackBot.format_role('lycan'),
             value: "team good, but appears evil to seer.  no special powers.",
             short: true
+          },
+        'sasquatch' => {
+            :title => SlackBot.format_role('sasquatch'),
+            :value => "starts on team good, but if there is ever a day without a lynch, he becomes a wolf.",
+            :short => true
           },
         'seer' => {
             title: SlackBot.format_role('seer'),

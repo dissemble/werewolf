@@ -10,6 +10,7 @@ module Werewolf
         cultist: ':dagger_knife:',
         golem: ':moyai:',
         lycan: ':see_no_evil:',
+        sasquatch: ':monkey:',
         seer: ':crystal_ball:',
         tanner: ':snake:',
         villager: ':bust_in_silhouette:',
@@ -345,11 +346,31 @@ MESSAGE
     end
 
 
+    def test_game_results_uses_original_role
+      slackbot = Werewolf::SlackBot.new
+      game = Game.new
+      game.join(Player.new(:name => 'bill', :role => 'sasquatch'))
+      game.no_lynch
+
+      expected = <<MESSAGE
+:tada: Evil won the game!
++ <@bill>: :monkey: sasquatch
+MESSAGE
+      slackbot.expects(:tell_all).once.with(expected)
+
+      slackbot.handle_game_results(
+        :action => 'game_results',
+        :players => game.players,
+        :message => "Evil won the game!"
+      )
+    end
+
+
     def test_handle_start_broadcasts_to_room
       slackbot = Werewolf::SlackBot.new
       initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [beholder, bodyguard, cultist, golem, lycan, seer, tanner, villager, wolf]", {
+        "Active roles: [beholder, bodyguard, cultist, golem, lycan, sasquatch, seer, tanner, villager, wolf]", {
           :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
@@ -379,6 +400,11 @@ MESSAGE
               :short => true
             },
             {
+              :title => ":monkey: sasquatch",
+              :value => "starts on team good, but if there is ever a day without a lynch, he becomes a wolf.",
+              :short => true
+            },
+            {
               :title => ":crystal_ball: seer",
               :value => "team good.  views the alignment of one player each night.",
               :short => true
@@ -403,8 +429,10 @@ MESSAGE
       )
       slackbot.handle_start(
         :start_initiator => initiator,
-        :active_roles => 
-          ['villager', 'cultist', 'beholder', 'golem', 'seer', 'wolf', 'bodyguard', 'tanner', 'lycan'])
+        :active_roles => [
+          'villager', 'cultist', 'beholder', 'golem', 'seer', 
+          'wolf', 'sasquatch', 'bodyguard', 'tanner', 'lycan'
+          ])
     end
 
 

@@ -269,12 +269,22 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
-          notify_all "The townsfolk couldn't decide - no one was lynched"
+          no_lynch
         else
           lynch_player @players[lynchee_name]
         end
       end
+    end
 
+
+    def no_lynch
+      notify_all "The townsfolk couldn't decide - no one was lynched"
+
+      sasquatches = living_players.find_all {|p| 'sasquatch' == p.role }
+      sasquatches.each do |player|
+        player.role = 'wolf'
+        notify_player player, 'You have transformed into a wolf.  Go kill some villagers!'
+      end
     end
 
 
@@ -426,18 +436,18 @@ module Werewolf
 
     def define_roles
       rolesets = {
-        1 => ['golem'],
+        1 => ['sasquatch'],
         2 => ['bodyguard', 'wolf'],
         3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
         5 => ['seer', 'beholder', 'villager', 'lycan', 'wolf'],
-        6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
-        7 => ['seer', 'golem', 'villager', 'villager', 'tanner', 'wolf', 'wolf'],
-        8 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        9 => ['seer', 'bodyguard', 'golem', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        10 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        12 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        6 => ['seer', 'sasquatch', 'villager', 'villager', 'cultist', 'wolf'],
+        7 => ['seer', 'sasquatch', 'villager', 'villager', 'tanner', 'wolf', 'wolf'],
+        8 => ['seer', 'golem', 'tanner', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
+        9 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
+        10 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        12 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
       }
 
       available_roles = rolesets[@players.size]

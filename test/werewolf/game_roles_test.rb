@@ -650,6 +650,56 @@ module Werewolf
     end
 
 
+    def test_sasquatch_is_initially_good
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      assert_equal 'good', player.team
+    end
+
+
+    def test_sasquatch_role_is_wolf_after_no_lynch
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join(player)
+      assert_equal 'sasquatch', player.role
+
+      game.no_lynch
+      assert_equal 'wolf', player.role
+    end
+
+
+    def test_sasquatch_team_is_evil_after_no_lynch
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join(player)
+      assert_equal 'good', player.team
+
+      game.no_lynch
+      assert_equal 'evil', player.team
+    end
+
+
+    def test_sasquatch_is_notified_when_converted_to_wolf
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join(player)
+
+      game.expects(:notify_player).once().with(
+        player, 
+        'You have transformed into a wolf.  Go kill some villagers!'
+        )
+
+      game.no_lynch
+    end
+
+
+    def test_sasquatch_original_role_is_sasquatch_after_no_lynch
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join(player)
+      game.no_lynch
+      assert_equal 'sasquatch', player.original_role
+      assert_equal 'wolf', player.role
+    end
 
   end
 
