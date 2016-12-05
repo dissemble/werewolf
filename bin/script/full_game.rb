@@ -19,7 +19,7 @@ slackbot.channel = channel
 game.add_observer(slackbot)
 slackbot.start_async
 
-event_loop = Werewolf::EventLoop.new(game)
+Werewolf::EventLoop.new(game)
 
 game.notify_all("SHALL WE PLAY A GAME?")
 

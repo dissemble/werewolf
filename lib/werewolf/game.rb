@@ -269,17 +269,27 @@ module Werewolf
 
         if vote_leaders.size > 1
           # tie
-          notify_all "The townsfolk couldn't decide - no one was lynched"
+          no_lynch
         else
           lynch_player @players[lynchee_name]
         end
       end
+    end
 
+
+    def no_lynch
+      notify_all "The townsfolk couldn't decide - no one was lynched"
+
+      sasquatches = living_players.find_all {|p| 'sasquatch' == p.role }
+      sasquatches.each do |player|
+        player.role = 'wolf'
+        notify_player player, 'You have transformed into a wolf.  Go kill some villagers!'
+      end
     end
 
 
     def lynch_player(player)
-      player.kill!
+      slay player
 
       if (day_number == 1) && (player.role == 'tanner')
         @tanner_victory = true
@@ -289,6 +299,24 @@ module Werewolf
         :action => 'lynch_player',
         :player => player,
         :message => 'With pitchforks in hand, the townsfolk killed')
+    end
+
+
+    def slay(player)
+      player.kill!
+
+      if 'seer' == player.role
+        promote_apprentice
+      end
+    end
+
+
+    def promote_apprentice
+      apprentices = living_players.find_all {|p| 'apprentice' == p.role }
+      apprentices.each do |player|
+        player.role = 'seer'  
+        notify_player player, 'You have been promoted to seer.  Go find some wolves!'
+      end
     end
 
 
@@ -320,7 +348,7 @@ module Werewolf
       if (victim_player == @guarded) || (victim_player.role == 'golem')
         notify_all "No one was killed during the night"
       else
-        victim_player.kill!
+        slay victim_player
         notify(:action => 'nightkill', :player => victim_player, :message => 'was killed during the night')
       end
     end
@@ -426,18 +454,18 @@ module Werewolf
 
     def define_roles
       rolesets = {
-        1 => ['golem'],
+        1 => ['apprentice'],
         2 => ['bodyguard', 'wolf'],
         3 => ['seer', 'bodyguard', 'wolf'],
         4 => ['seer', 'villager', 'villager', 'wolf'],
-        5 => ['seer', 'beholder', 'villager', 'lycan', 'wolf'],
-        6 => ['seer', 'beholder', 'villager', 'villager', 'cultist', 'wolf'],
-        7 => ['seer', 'golem', 'villager', 'villager', 'tanner', 'wolf', 'wolf'],
-        8 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'wolf', 'wolf'],
-        9 => ['seer', 'bodyguard', 'golem', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        10 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
-        12 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'villager', 'villager', 'cultist', 'wolf', 'wolf'],
+        5 => ['seer', 'villager', 'villager', 'sasquatch', 'wolf'],
+        6 => ['seer', 'golem', 'villager', 'villager', 'cultist', 'wolf'],
+        7 => ['seer', 'beholder', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
+        8 => ['seer', 'apprentice', 'villager', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
+        9 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
+        10 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        12 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
       }
 
       available_roles = rolesets[@players.size]
@@ -622,7 +650,7 @@ module Werewolf
 
 
 
-    def notify_on_error(name, &block)
+    def notify_on_error(name, &_block)
       yield
     rescue PrivateGameError => err
       notify_name(name, err.message)

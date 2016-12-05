@@ -16,6 +16,7 @@
 
 guard :minitest do
   # with Minitest::Unit
+  watch('lib/werewolf/game.rb')      { ['test/werewolf/game_roles_test.rb', 'test/werewolf/game_full_test.rb'] }
   watch(%r{^test/(.*)\/?test_(.*)\.rb$})
   watch(%r{^test/(.*)\/?(.*)_test\.rb$})
   #watch(%r{^lib/(.*/)?([^/]+)\.rb$})     { |m| "test/#{m[1]}test_#{m[2]}.rb" }
