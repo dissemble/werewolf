@@ -173,12 +173,25 @@ module Werewolf
     end
 
 
+    def test_nightkill_calls_slay
+      game = Game.new
+      villager = Player.new(:name => 'seth', :role => 'villager')
+      wolf = Player.new(:name => 'tom', :role => 'wolf')
+      [villager, wolf].each {|p| game.join(p)}
+
+      game.stubs(:day_number).returns(1)
+      game.expects(:slay).once.with(villager)
+
+      game.nightkill werewolf_name:'tom', victim_name:'seth'
+      game.process_night_actions
+    end
+
+
     def test_nightkill_action_is_acknowledged_immediately
       game = Game.new
       villager = Player.new(:name => 'seth', :role => 'villager')
       wolf = Player.new(:name => 'tom', :role => 'wolf')
-      game.join(villager)
-      game.join(wolf)
+      [villager, wolf].each {|p| game.join(p)}
 
       game.stubs(:day_number).returns(1)
       game.expects(:notify_player).once.with(
@@ -207,7 +220,7 @@ module Werewolf
     end
 
 
-    def test_nightfall_adds_a_deferred_action
+    def test_nightkill_adds_a_deferred_action
       game = Game.new
       game.join Player.new(:name => 'seth', :role => 'wolf')
       assert game.night_actions.empty?
@@ -216,6 +229,9 @@ module Werewolf
       game.nightkill werewolf_name:'seth', victim_name: 'seth'
       assert !game.night_actions.empty?
     end
+
+
+
 
 
     def test_guard_prevents_nightkill
@@ -650,6 +666,128 @@ module Werewolf
     end
 
 
+    def test_sasquatch_is_initially_good
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      assert_equal 'good', player.team
+    end
+
+
+    def test_sasquatch_role_is_wolf_after_no_lynch
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join(player)
+      assert_equal 'sasquatch', player.role
+
+      game.no_lynch
+      assert_equal 'wolf', player.role
+    end
+
+
+    def test_sasquatch_team_is_evil_after_no_lynch
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join(player)
+      assert_equal 'good', player.team
+
+      game.no_lynch
+      assert_equal 'evil', player.team
+    end
+
+
+    def test_sasquatch_is_notified_when_converted_to_wolf
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join player
+
+      game.expects(:notify_player).once().with(
+        player, 
+        'You have transformed into a wolf.  Go kill some villagers!'
+        )
+
+      game.no_lynch
+    end
+
+
+    def test_sasquatch_original_role_is_sasquatch_after_no_lynch
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'sasquatch')
+      game.join player
+      game.no_lynch
+      assert_equal 'sasquatch', player.original_role
+      assert_equal 'wolf', player.role
+    end
+
+
+    def test_no_lynch_without_sasquatch
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'villager')
+      game.join(player)
+      game.no_lynch
+    end
+
+
+    def test_promote_apprentice_called_when_seer_dies_and_apprentice_lives
+      game = Game.new
+      seer = Player.new(:name => 'tom', :role => 'seer')
+      apprentice = Player.new(:name => 'seth', :role => 'apprentice')
+      [seer, apprentice].each {|p| game.join p}
+
+      game.expects(:promote_apprentice).once
+
+      game.slay seer
+    end
+
+
+    def test_promote_apprentice_NOT_called_when_nonseer_dies
+      game = Game.new
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      apprentice = Player.new(:name => 'seth', :role => 'apprentice')
+      [villager, apprentice].each {|p| game.join p}
+
+      game.expects(:promote_apprentice).never
+
+      game.slay villager
+    end
+
+
+    def test_apprentice_role_is_seer_after_slay
+      game = Game.new
+      seer = Player.new(:name => 'tom', :role => 'seer')
+      apprentice = Player.new(:name => 'seth', :role => 'apprentice')
+      [seer, apprentice].each {|p| game.join p}
+      game.slay seer
+      assert_equal 'seer', apprentice.role
+    end
+
+
+    def test_slay_without_apprentice
+      game = Game.new
+      villager = Player.new(:name => 'tom', :role => 'villager')
+      game.join villager
+      game.slay villager
+    end
+
+
+    def test_apprentice_original_role_is_apprentice_after_slay
+      game = Game.new
+      seer = Player.new(:name => 'tom', :role => 'seer')
+      apprentice = Player.new(:name => 'seth', :role => 'apprentice')
+      [seer, apprentice].each {|p| game.join p}
+      game.slay seer
+      assert_equal 'apprentice', apprentice.original_role
+    end
+
+
+    def test_apprentice_is_notified_when_promoted_to_seer
+      game = Game.new
+      player = Player.new(:name => 'tom', :role => 'apprentice')
+      game.join player
+
+      game.expects(:notify_player).once().with(
+        player, 'You have been promoted to seer.  Go find some wolves!')
+
+      game.promote_apprentice
+    end
 
   end
 

@@ -1193,18 +1193,53 @@ module Werewolf
     end
 
 
-    def test_lynch_tie_notifies
+    def test_lynch_player_calls_slay
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join player
+      game.expects(:slay).once.with player
+      game.lynch_player player
+    end
+
+
+    def test_lynch_calls_lynch_player_if_no_tie
       game = Game.new
       player1 = Player.new(:name => 'seth')
       player2 = Player.new(:name => 'tom', :role => 'wolf')
       [player1, player2].each {|p| game.join(p)}
 
-      game.expects(:assign_roles).once
       game.start
-      game.advance_time
+      game.stubs(:time_period).returns('day')
+
+      game.vote voter_name: 'seth', candidate_name: 'tom'
+      game.vote voter_name: 'tom', candidate_name: 'tom'
+
+      game.expects(:lynch_player).once
+
+      game.lynch
+    end
+
+
+    def test_lynch_tie_calls_no_lynch
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      player2 = Player.new(:name => 'tom', :role => 'wolf')
+      [player1, player2].each {|p| game.join(p)}
+
+      game.start
+      game.stubs(:time_period).returns('day')
 
       game.vote voter_name: 'seth', candidate_name: 'tom'
       game.vote voter_name: 'tom', candidate_name: 'seth'
+
+      game.expects(:no_lynch).once
+
+      game.lynch
+    end
+
+
+    def test_no_lynch_notifies
+      game = Game.new
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -1212,7 +1247,7 @@ module Werewolf
         :message => "The townsfolk couldn't decide - no one was lynched")
       game.add_observer mock_observer
 
-      game.lynch
+      game.no_lynch
     end
 
 
@@ -1760,8 +1795,6 @@ module Werewolf
       game.expects(:notify_observers).with(4, 7)
       game.notify(4, 7)
     end
-
-
 
 
   end

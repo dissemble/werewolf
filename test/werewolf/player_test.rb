@@ -63,29 +63,44 @@ module Werewolf
       assert_equal 'chaotic good', seer.view(villager)
     end
 
-    def test_team_is_good_for_seer
-      seer = Player.new(:name => 'seth', :role => 'seer')
-      assert_equal 'good', seer.team
-    end
-
-    def test_team_is_good_for_villager
-      villager = Player.new(:name => 'seth', :role => 'villager')
-      assert_equal 'good', villager.team
-    end
-
-    def test_team_is_evil_for_wolf
-      villager = Player.new(:name => 'seth', :role => 'wolf')
-      assert_equal 'evil', villager.team
-    end
-
     def test_team_is_evil_for_cultist
-      villager = Player.new(:name => 'seth', :role => 'cultist')
-      assert_equal 'evil', villager.team
+      player = Player.new(:name => 'seth', :role => 'cultist')
+      assert_equal 'evil', player.team
+    end
+    
+    def test_team_is_good_for_golem
+      player = Player.new(:name => 'seth', :role => 'golem')
+      assert_equal 'good', player.team
     end
 
     def test_team_is_good_for_lycan
-      villager = Player.new(:name => 'seth', :role => 'lycan')
-      assert_equal 'good', villager.team
+      player = Player.new(:name => 'seth', :role => 'lycan')
+      assert_equal 'good', player.team
+    end
+
+    def test_team_is_initially_good_for_sasquatch
+      player = Player.new(:name => 'seth', :role => 'sasquatch')
+      assert_equal 'good', player.team
+    end
+
+    def test_team_is_good_for_seer
+      player = Player.new(:name => 'seth', :role => 'seer')
+      assert_equal 'good', player.team
+    end
+
+    def test_team_is_good_for_tanner
+      player = Player.new(:name => 'seth', :role => 'tanner')
+      assert_equal 'good', player.team
+    end
+
+    def test_team_is_good_for_villager
+      player = Player.new(:name => 'seth', :role => 'villager')
+      assert_equal 'good', player.team
+    end
+
+    def test_team_is_evil_for_wolf
+      player = Player.new(:name => 'seth', :role => 'wolf')
+      assert_equal 'evil', player.team
     end
 
     def test_normal_players_are_not_bots
@@ -120,6 +135,15 @@ module Werewolf
 
     def test_cultist_appears_evil_to_seer
       assert_equal 'evil', Player.new(:name => 'seth', :role => 'cultist').apparent_team
+    end
+
+    def test_original_role_is_same_as_role
+      # TODO:  move possible roles into Role class 
+      all_roles = %w(beholder bodyguard cultist golem lycan seer tanner villager wolf)
+      all_roles.each do |role|
+        player = Player.new(:name => 'seth', :role => role)
+        assert_equal player.role, player.original_role
+      end
     end
 
     def test_to_s
