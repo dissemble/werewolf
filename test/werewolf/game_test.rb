@@ -513,7 +513,8 @@ module Werewolf
       mock_observer.expects(:update).once.with(
         :action => 'tally',
         :vote_tally => game.vote_tally,
-        :remaining_votes => game.remaining_votes)
+        :remaining_votes => game.remaining_votes,
+        :abstained => [])
       game.add_observer(mock_observer)
 
       game.print_tally
@@ -853,6 +854,13 @@ module Werewolf
       game.vote voter_name: 'seth', candidate_name: 'seth'
     end
 
+    def test_abstain
+      game = Game.new
+      game.add_username_to_game 'seth'
+      game.start
+      game.stubs(:time_period).returns('day')
+      game.abstain voter_name: 'seth'
+    end
 
     def test_can_only_vote_for_real_players
       game = Game.new
@@ -903,6 +911,24 @@ module Werewolf
       assert_match /You may not vote at night/, err.message
     end
 
+    def test_can_only_abstain_during_day
+      game = Game.new
+      player1 = Player.new(:name => 'seth')
+      game.join(player1)
+
+      game.start
+      assert_equal 'night', game.time_period
+
+      # game.stubs(:voting_finished?).returns(false)
+      game.stubs(:time_remaining_in_round).returns(19)
+      game.expects(:notify_all).once.with('You may not abstain at night.  Night ends in 19 seconds')
+      err = assert_raises(PublicGameError) {
+        game.abstain voter_name: 'seth'
+      }
+      assert_match /You may not abstain at night/, err.message
+    end
+
+
 
     def test_only_real_players_can_vote
       game = Game.new
@@ -912,6 +938,18 @@ module Werewolf
       game.expects(:notify_name).once.with('babar', expected_message)
       err = assert_raises(PrivateGameError) {
         game.vote voter_name: 'babar', candidate_name: 'seth'
+      }
+      assert_match expected_message, err.message
+    end
+
+    def test_only_real_players_can_abstain
+      game = Game.new
+      game.add_username_to_game 'seth'
+      game.start
+      expected_message = 'invalid player name'
+      game.expects(:notify_name).once.with('babar', expected_message)
+      err = assert_raises(PrivateGameError) {
+        game.abstain voter_name: 'babar'
       }
       assert_match expected_message, err.message
     end
@@ -929,6 +967,18 @@ module Werewolf
       assert_equal expected_message, err.message
     end
 
+    def test_can_only_abstain_when_game_is_live
+      game = Game.new
+      player_name = 'seth'
+      expected_message = 'Game has not started'
+      game.add_username_to_game player_name
+      game.expects(:notify_all).once.with(expected_message)
+      err = assert_raises(PublicGameError) {
+        game.abstain voter_name: player_name
+      }
+      assert_equal expected_message, err.message
+    end
+
 
     def test_vote_calls_print_tally
       game = Game.new
@@ -939,6 +989,14 @@ module Werewolf
       game.vote voter_name: 'seth', candidate_name: 'seth'
     end
 
+    def test_abstain_calls_print_tally
+      game = Game.new
+      game.add_username_to_game 'seth'
+      game.start
+      game.stubs(:time_period).returns('day')
+      game.expects(:print_tally).once
+      game.abstain voter_name: 'seth'
+    end
 
     def test_voting_finished_when_all_votes_are_in
       game = Game.new
@@ -1348,7 +1406,7 @@ module Werewolf
       game.add_username_to_game('tom')
       game.add_username_to_game('bill')
       expected = Set.new ['bill', 'seth', 'tom']
-      assert_equal expected, game.remaining_votes 
+      assert_equal expected, game.remaining_votes
     end
 
 
