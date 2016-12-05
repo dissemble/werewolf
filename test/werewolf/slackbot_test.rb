@@ -5,6 +5,7 @@ module Werewolf
 
     def test_role_icons
       expected = {
+        apprentice: ':stopwatch:',
         beholder: ':eyes:',
         bodyguard: ':shield:',
         cultist: ':dagger_knife:',
@@ -370,10 +371,15 @@ MESSAGE
       slackbot = Werewolf::SlackBot.new
       initiator = Player.new(:name => "seth")
       slackbot.expects(:tell_all).once.with(
-        "Active roles: [beholder, bodyguard, cultist, golem, lycan, sasquatch, seer, tanner, villager, wolf]", {
+        "Active roles: [apprentice, beholder, bodyguard, cultist, golem, lycan, sasquatch, seer, tanner, villager, wolf]", {
           :title => "<@#{initiator.name}> has started the game. :partyparrot:",
           :color => "good",
           :fields => [
+            {
+              :title => ":stopwatch: apprentice",
+              :value => "team good.  starts as a villager, but is promoted to seer if the original seer dies",
+              :short => true
+            },
             {
               :title => ":eyes: beholder",
               :value => "team good. knows the identity of the seer.",
@@ -431,7 +437,7 @@ MESSAGE
         :start_initiator => initiator,
         :active_roles => [
           'villager', 'cultist', 'beholder', 'golem', 'seer', 
-          'wolf', 'sasquatch', 'bodyguard', 'tanner', 'lycan'
+          'wolf', 'sasquatch', 'bodyguard', 'tanner', 'lycan', 'apprentice'
           ])
     end
 

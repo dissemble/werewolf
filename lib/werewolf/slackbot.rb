@@ -5,6 +5,7 @@ module Werewolf
     attr_writer :channel
 
     ROLE_ICONS = {
+      apprentice: ':stopwatch:',
       beholder: ':eyes:',
       bodyguard: ':shield:',
       cultist: ':dagger_knife:',
@@ -375,15 +376,20 @@ MESSAGE
 
     def role_descriptions
       {
+        'apprentice' => {
+            title: SlackBot.format_role('apprentice'),
+            value: "team good.  starts as a villager, but is promoted to seer if the original seer dies",
+            short: true
+          },
         'beholder' => {
             title: SlackBot.format_role('beholder'),
             value: "team good. knows the identity of the seer.",
             short: true
           },
         'bodyguard' => {
-            :title => SlackBot.format_role('bodyguard'),
-            :value => "team good.  protects one player from the wolves each night.",
-            :short => true
+            title: SlackBot.format_role('bodyguard'),
+            value: "team good.  protects one player from the wolves each night.",
+            short: true
           },
         'cultist' => {
             title: SlackBot.format_role('cultist'),
@@ -391,9 +397,9 @@ MESSAGE
             short: true
           },
         'golem' => {
-            :title => SlackBot.format_role('golem'),
-            :value => "team good.  immune to nightkills.",
-            :short => true
+            title: SlackBot.format_role('golem'),
+            value: "team good.  immune to nightkills.",
+            short: true
           },
         'lycan' => {
             title: SlackBot.format_role('lycan'),
@@ -401,9 +407,9 @@ MESSAGE
             short: true
           },
         'sasquatch' => {
-            :title => SlackBot.format_role('sasquatch'),
-            :value => "starts on team good, but if there is ever a day without a lynch, he becomes a wolf.",
-            :short => true
+            title: SlackBot.format_role('sasquatch'),
+            value: "starts on team good, but if there is ever a day without a lynch, he becomes a wolf.",
+            short: true
           },
         'seer' => {
             title: SlackBot.format_role('seer'),
@@ -411,9 +417,9 @@ MESSAGE
             short: true
           },
         'tanner' => {
-            :title => SlackBot.format_role('tanner'),
-            :value => "team good.  if lynched on day 1, tanner wins and everyone else loses.",
-            :short => true
+            title: SlackBot.format_role('tanner'),
+            value: "team good.  if lynched on day 1, tanner wins and everyone else loses.",
+            short: true
           },
         'villager' => {
             title: SlackBot.format_role('villager'),

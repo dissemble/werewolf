@@ -1193,6 +1193,15 @@ module Werewolf
     end
 
 
+    def test_lynch_player_calls_slay
+      game = Game.new
+      player = Player.new(:name => 'seth')
+      game.join player
+      game.expects(:slay).once.with player
+      game.lynch_player player
+    end
+
+
     def test_lynch_calls_lynch_player_if_no_tie
       game = Game.new
       player1 = Player.new(:name => 'seth')
@@ -1786,8 +1795,6 @@ module Werewolf
       game.expects(:notify_observers).with(4, 7)
       game.notify(4, 7)
     end
-
-
 
 
   end
