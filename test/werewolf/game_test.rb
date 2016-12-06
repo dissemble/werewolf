@@ -425,7 +425,7 @@ module Werewolf
       game = Game.new
       game.stubs(:time_period).returns('day')
       game.stubs(:day_number).returns(17)
-      game.stubs(:default_time_remaining_in_round).returns(42)
+      game.stubs(:round_time).returns(42)
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -442,7 +442,7 @@ module Werewolf
       game = Game.new
       game.stubs(:time_period).returns('night')
       game.stubs(:day_number).returns(17)
-      game.stubs(:default_time_remaining_in_round).returns(42)
+      game.stubs(:round_time).returns(42)
 
       mock_observer = mock('observer')
       mock_observer.expects(:update).once.with(
@@ -823,7 +823,7 @@ module Werewolf
       game = Game.new
       game.time_remaining_in_round = 99981
       game.reset
-      assert_equal game.default_time_remaining_in_round, game.time_remaining_in_round
+      assert_equal game.round_time, game.time_remaining_in_round
     end
 
 
@@ -1505,7 +1505,7 @@ module Werewolf
       game = Game.new
       game.time_remaining_in_round = 4187
       game.advance_time
-      assert_equal game.default_time_remaining_in_round, game.time_remaining_in_round
+      assert_equal game.round_time, game.time_remaining_in_round
     end
 
 
@@ -1785,10 +1785,6 @@ module Werewolf
     end
 
 
-    def test_prompt_for_night_actions_not_called_if_game_is_done
-    end
-
-
     def test_notify
       game = Game.new
       game.expects(:changed)
@@ -1796,6 +1792,63 @@ module Werewolf
       game.notify(4, 7)
     end
 
+
+    def test_round_time_default
+      game = Game.new
+      assert_equal 60*70, game.round_time
+    end
+
+
+    def test_round_time_can_be_set
+      game = Game.new
+      game.round_time = 888
+      assert_equal 888, game.round_time
+    end
+
+
+    def test_round_time_can_not_be_set_when_game_in_progress
+      game = Game.new
+      game.stubs(:active?).returns(true)
+      game.round_time = 5
+      assert_equal Game::DEFAULT_ROUND_TIME_IN_SECONDS, game.round_time
+    end
+
+
+    def test_reset_sets_round_time_to_default
+      game = Game.new
+      game.round_time = 600
+      game.reset
+      assert_equal Game::DEFAULT_ROUND_TIME_IN_SECONDS, game.round_time
+    end
+
+
+    def test_changing_round_time_notifies_room
+      game = Game.new
+      game.expects(:notify_all).with("Round time changed to 600 seconds")
+      game.round_time = 600
+    end
+
+
+    def test_attempting_to_change_round_time_when_game_active_notifies_room
+      game = Game.new
+      game.stubs(:active?).returns(true)
+      game.expects(:notify_all).with("Round time can't be changed during a game")
+      game.round_time = 500
+    end
+
+
+    def test_changing_round_time_to_non_integer
+      game = Game.new
+      game.expects(:notify_all).with("Round time must be a whole number")
+      game.round_time = '0.5'
+    end
+
+
+    def test_changing_round_time_to_less_than_60_seconds
+      game = Game.new
+      game.expects(:notify_all).with("Round time must be more than 60 seconds")
+      game.round_time = '50'
+    end
 
   end
 

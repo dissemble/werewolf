@@ -6,10 +6,12 @@ module Werewolf
   class Game
     include Observable
 
+    DEFAULT_ROUND_TIME_IN_SECONDS = 60*70
+
     cattr_accessor :roles_with_night_actions
     @@roles_with_night_actions = {'bodyguard' => 'guard', 'wolf' => 'kill', 'seer' => 'view'}
 
-    attr_reader :players, :tanner_victory
+    attr_reader :players, :tanner_victory, :round_time
     attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
     attr_accessor :time_remaining_in_round, :vote_tally
 
@@ -26,20 +28,36 @@ module Werewolf
       @time_period, @day_number = @time_period_generator.next
       @vote_tally = {}      # {'candidate' => Set.new([voter_name_1, vote_name_2])}
       @night_actions = {}   # {'action_name' => lambda}
-      @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
       @guarded = nil
       @tanner_victory = false
-    end
-
-
-    def default_time_remaining_in_round
-      60 * 70
+      @round_time = DEFAULT_ROUND_TIME_IN_SECONDS
+      @time_remaining_in_round = round_time
     end
 
 
     def Game.instance()
       @instance ||= Game.new
+    end
+
+
+    def round_time=(duration_in_seconds)
+      if active?
+        notify_all "Round time can't be changed during a game"
+      else
+        begin
+          duration = Integer(duration_in_seconds)
+
+          if duration < 60
+            notify_all "Round time must be more than 60 seconds"
+          else
+            @round_time = duration_in_seconds
+            notify_all "Round time changed to #{@round_time} seconds"
+          end
+        rescue ArgumentError
+          notify_all "Round time must be a whole number"
+        end
+      end
     end
 
 
@@ -499,7 +517,7 @@ module Werewolf
 
 
     def advance_time
-      @time_remaining_in_round = default_time_remaining_in_round
+      @time_remaining_in_round = round_time
       @time_period, @day_number = @time_period_generator.next
 
       if night?
@@ -508,7 +526,7 @@ module Werewolf
         notify(
           :action => 'dusk',
           :day_number => day_number,
-          :round_time => default_time_remaining_in_round)
+          :round_time => round_time)
 
         prompt_for_night_actions unless winner?
       else
@@ -518,7 +536,7 @@ module Werewolf
         notify(
           :action => 'dawn',
           :day_number => day_number,
-          :round_time => default_time_remaining_in_round)
+          :round_time => round_time)
       end
     end
 
