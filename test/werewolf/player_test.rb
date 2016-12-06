@@ -146,6 +146,25 @@ module Werewolf
       end
     end
 
+    def test_original_role_when_role_assigned_twice
+      player = Player.new(:name => 'seth')
+      player.role = 'sasquatch'
+      player.role = 'wolf'
+
+      assert_equal 'wolf', player.role
+      assert_equal 'sasquatch', player.original_role
+    end
+
+    def test_original_role_when_role_assigned_after_init
+      player = Player.new(:name => 'seth', :role => 'sasquatch')
+      player.role = 'wolf'
+
+      assert_equal 'wolf', player.role
+      assert_equal 'sasquatch', player.original_role
+    end
+
+
+
     def test_to_s
       player = Player.new(:name => 'seth', :alive => false, :role => 'villager', :bot => false)
       assert_equal "#<Player name=seth>", player.to_s
