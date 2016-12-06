@@ -132,6 +132,12 @@ TITLE
 
       fields.push({title: ':memo: Town Ballot', value: tally_message, short: false})
 
+      abstainees = options[:abstained]
+      if !abstainees.empty?
+          abstainees_message = abstainees.map { |name| "#{get_name(name)}"}.sort.join(', ')
+          fields.push({title: ':sleeping_accommodation: Votes of No Confidence', value: abstainees_message, short: false})
+      end
+
       remaining_votes = options[:remaining_votes]
       if remaining_votes.empty?
         remaining_message = "Everyone has voted! :ballot_box_with_check:"
@@ -205,6 +211,10 @@ TITLE
       tell_all "#{slackify(options[:voter])} #{options[:message]} #{slackify(options[:votee])}"
     end
 
+    def handle_abstain(options = {})
+      tell_all "#{slackify(options[:voter])} #{options[:message]}"
+    end
+
 
     def handle_lynch_player(options = {})
       tell_all "***** #{options[:message]} #{slackify(options[:player])} (#{SlackBot.format_role options[:player].role})"
@@ -215,7 +225,7 @@ TITLE
       message = <<MESSAGE
 Commands you can use:
 ```
-help:     this command 
+help:     this command
           'w help' (DM)
 join:     join the game
           'w join' (before the game starts)
@@ -223,25 +233,25 @@ leave:    leave the game
           'w leave' (before the game starts)
 start:    start the game
           'w start' (only after players have joined)
-end:      terminate the running game.  
+end:      terminate the running game.
           'w end'
-status:   should probably work...  
+status:   should probably work...
           'w status'
-tally:    show lynch-vote tally 
+tally:    show lynch-vote tally
           'w tally' (only during day)
 kill:     as a werewolf, nightkill a player.
           'w kill @name' (DM, only at night).
 view:     as the seer, reveals the alignment of another player.
           'w view @name' (DM, only at night).
-guard:    as the bodyguard, protects one player from nightkill.  
+guard:    as the bodyguard, protects one player from nightkill.
           'w guard @name' (DM, only at night)
 vote:     vote to lynch a player.
           'w vote @name' (only during day)
-claim:    register a claim.  
+claim:    register a claim.
           'w claim i am the walrus'
-claims:   view all claims.  
+claims:   view all claims.
           'w claims'
-roles:    show all roles for the current game.  
+roles:    show all roles for the current game.
           'w roles' (DM)
 ```
 MESSAGE
@@ -354,7 +364,7 @@ MESSAGE
         slack_user = user(player.name)
         if slack_user
           slack_user.name
-        else 
+        else
           "<@#{player.name}>"
         end
       end
@@ -365,7 +375,7 @@ MESSAGE
       slack_user = user(slack_id)
       if slack_user
         slack_user.name
-      else 
+      else
         slack_id
       end
     end

@@ -11,7 +11,7 @@ module Werewolf
 
     attr_reader :players, :tanner_victory
     attr_accessor :active_roles, :day_number, :guarded, :night_actions, :time_period
-    attr_accessor :time_remaining_in_round, :vote_tally
+    attr_accessor :time_remaining_in_round, :vote_tally, :abstained
 
     def initialize()
       reset
@@ -25,6 +25,7 @@ module Werewolf
       @time_period_generator = create_time_period_generator
       @time_period, @day_number = @time_period_generator.next
       @vote_tally = {}      # {'candidate' => Set.new([voter_name_1, vote_name_2])}
+      @abstained = []
       @night_actions = {}   # {'action_name' => lambda}
       @time_remaining_in_round = default_time_remaining_in_round
       @claims = {}
@@ -159,6 +160,7 @@ module Werewolf
           @vote_tally.delete(k)
         end
       end
+      @abstained.delete(voter)
     end
 
 
@@ -179,6 +181,24 @@ module Werewolf
       print_tally
     end
 
+    def abstain(voter_name:)
+      voter = notify_on_error(voter_name) do
+          authorize_abstain(voter_name:voter_name)
+      end
+
+      remove_vote!(voter:voter)
+      @abstained.push(voter)
+
+
+      changed
+      notify_observers(
+        :action => 'abstain',
+        :voter => @players[voter.name],
+        :message => "abstained")
+
+      print_tally
+    end
+
 
     def authorize_vote(voter_name:, candidate_name:)
       voter = validate_player voter_name
@@ -194,6 +214,18 @@ module Werewolf
       return voter, candidate
     end
 
+    def authorize_abstain(voter_name:)
+      voter = validate_player voter_name
+
+      raise PublicGameError.new("Game has not started") unless active?
+
+      unless 'day' == time_period
+        message = "You may not abstain at night.  Night ends in #{time_remaining_in_round} seconds"
+        raise PublicGameError.new(message)
+      end
+
+      return voter
+    end
 
     def init_vote!
       @vote_tally = {}
@@ -206,7 +238,7 @@ module Werewolf
 
 
     def vote_count
-      @vote_tally.values.reduce(0) {|count, s| count + s.size}
+      @vote_tally.values.reduce(0) {|count, s| count + s.size} + @abstained.length
     end
 
 
@@ -314,7 +346,7 @@ module Werewolf
     def promote_apprentice
       apprentices = living_players.find_all {|p| 'apprentice' == p.role }
       apprentices.each do |player|
-        player.role = 'seer'  
+        player.role = 'seer'
         notify_player player, 'You have been promoted to seer.  Go find some wolves!'
       end
     end
@@ -591,7 +623,7 @@ module Werewolf
 
       # we could do this once a round, not every time.  this is easy though
       dead_players.each {|p| @claims.delete(p)}
-      
+
       @claims
     end
 
@@ -630,7 +662,7 @@ module Werewolf
       if 'night' == time_period
         notify_all("Nightime.  No voting in progress.")
       else
-        notify(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes)
+        notify(:action => 'tally', :vote_tally => vote_tally, :remaining_votes => remaining_votes, :abstained => abstained)
       end
     end
 

@@ -574,7 +574,8 @@ MESSAGE
           'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
         },
-        :remaining_votes => Set.new(['katie', 'ca', 'betty'])
+        :remaining_votes => Set.new(['katie', 'ca', 'betty']),
+        :abstained => []
       } )
     end
 
@@ -596,7 +597,7 @@ MESSAGE
       ]
       slackbot.expects(:tell_all).once.with('', fields: expected_fields)
 
-      slackbot.handle_tally({ :vote_tally => {}, :remaining_votes => Set.new })
+      slackbot.handle_tally({ :vote_tally => {}, :remaining_votes => Set.new, :abstained => [] })
     end
 
 
@@ -623,7 +624,8 @@ MESSAGE
           'tom' => Set.new(['seth', 'bill']),
           'bill' => Set.new(['tom'])
         },
-        :remaining_votes => Set.new(['katie'])
+        :remaining_votes => Set.new(['katie']),
+        :abstained => []
       } )
     end
 
