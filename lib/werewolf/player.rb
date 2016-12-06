@@ -1,8 +1,8 @@
 module Werewolf
 
   class Player
-    attr_accessor :original_role
-    attr_accessor :name, :role
+    attr_reader :role
+    attr_accessor :name, :original_role
 
     def initialize(args)
       @alive = true
@@ -25,6 +25,11 @@ module Werewolf
         @alive = false
         true
       end
+    end
+
+    def role=(rolename)
+      @role = rolename
+      @original_role ||= @role
     end
 
     def team
