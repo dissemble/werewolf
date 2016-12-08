@@ -176,7 +176,7 @@ TITLE
 
     def handle_nightkill(options = {})
       player = options[:player]
-      tell_all ":skull_and_crossbones: #{slackify(player)} (#{SlackBot.format_role player.role}) #{options[:message]}", title: "Murder!", color: "danger"
+      tell_all ":skull_and_crossbones: #{slackify(player)} (#{SlackBot.format_role player.original_role}) #{options[:message]}", title: "Murder!", color: "danger"
     end
 
 
@@ -207,7 +207,7 @@ TITLE
 
 
     def handle_lynch_player(options = {})
-      tell_all "***** #{options[:message]} #{slackify(options[:player])} (#{SlackBot.format_role options[:player].role})"
+      tell_all "***** #{options[:message]} #{slackify(options[:player])} (#{SlackBot.format_role options[:player].original_role})"
     end
 
 

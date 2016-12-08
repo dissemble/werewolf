@@ -185,6 +185,18 @@ module Werewolf
     end
 
 
+    def test_handle_nightkill_uses_original_role
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth', :role => 'sasquatch')
+      player.role = 'wolf'
+      message = "i see the moon, and the moon sees me"
+      slackbot.expects(:tell_all).once.with(":skull_and_crossbones: <@seth> (:monkey: sasquatch) #{message}", {:title => "Murder!", :color => "danger"})
+      slackbot.handle_nightkill(
+        :player => player,
+        :message => message)
+    end
+
+
     def test_handle_reveal_wolves_with_one_wolf
       slackbot = Werewolf::SlackBot.new
       cultist = Player.new(:name => 'tom', :role => 'cultist')
@@ -536,6 +548,20 @@ MESSAGE
     end
 
 
+    def test_handle_lynch_player_shows_original_role
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth', :role => 'sasquatch')
+      player.role = 'wolf'
+      message = 'and with its head, he went galumphing back'
+
+      slackbot.expects(:tell_all).once.with("***** #{message} <@#{player.name}> (:monkey: sasquatch)")
+
+      slackbot.handle_lynch_player(
+        :player => player,
+        :message => message)
+    end
+
+
     def test_game_notifies_on_join_error
       game = Game.new
       slackbot = Werewolf::SlackBot.new
@@ -672,7 +698,7 @@ MESSAGE
 
       game.stubs(:players).returns({:foo => 123})
       slackbot.expects(:handle_status).once.with(
-        :message => ":no_entry: No game running",
+        :message => ":no_entry: No game running.  (next game: #{game.round_time}s rounds)",
         :players => [123])
 
       game.status
