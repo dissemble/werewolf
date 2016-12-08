@@ -465,7 +465,7 @@ module Werewolf
           ":sunrise: It is daylight (day #{day_number}).  The sun will set again in #{time_remaining_in_round} seconds. :hourglass:"
         end
       else
-        ":no_entry: No game running"
+        ":no_entry: No game running.  (next game: #{round_time}s rounds)"
       end
     end
 

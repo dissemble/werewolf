@@ -317,7 +317,8 @@ module Werewolf
     def test_format_time_when_game_inactive
       game = Game.new
       game.stubs(:active?).returns(false)
-      assert_equal ":no_entry: No game running", game.format_time
+      expected = ":no_entry: No game running.  (next game: #{game.round_time}s rounds)"
+      assert_equal expected, game.format_time
     end
 
 
