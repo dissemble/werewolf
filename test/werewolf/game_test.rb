@@ -1349,7 +1349,7 @@ module Werewolf
       game.add_username_to_game('tom')
       game.add_username_to_game('bill')
       expected = Set.new ['bill', 'seth', 'tom']
-      assert_equal expected, game.remaining_votes 
+      assert_equal expected, game.remaining_votes
     end
 
 
@@ -1754,7 +1754,7 @@ module Werewolf
       lycan = Player.new(:name => 'seth', :role => 'lycan')
       bodyguard = Player.new(:name => 'katie', :role => 'bodyguard')
       [seer, wolf1, wolf2, villager, lycan, bodyguard].each {|p| game.join(p)}
-      
+
       expected = [seer, wolf1, wolf2, bodyguard]
       assert_equal expected, game.players_with_night_actions
     end
@@ -1803,6 +1803,13 @@ module Werewolf
     def test_round_time_can_be_set
       game = Game.new
       game.round_time = 888
+      assert_equal 888, game.round_time
+    end
+
+
+    def test_round_time_can_be_set_with_string
+      game = Game.new
+      game.round_time = "888"
       assert_equal 888, game.round_time
     end
 
