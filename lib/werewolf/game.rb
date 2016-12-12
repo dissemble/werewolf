@@ -51,7 +51,7 @@ module Werewolf
           if duration < 60
             notify_all "Round time must be more than 60 seconds"
           else
-            @round_time = duration_in_seconds
+            @round_time = duration
             notify_all "Round time changed to #{@round_time} seconds"
           end
         rescue ArgumentError
@@ -332,7 +332,7 @@ module Werewolf
     def promote_apprentice
       apprentices = living_players.find_all {|p| 'apprentice' == p.role }
       apprentices.each do |player|
-        player.role = 'seer'  
+        player.role = 'seer'
         notify_player player, 'You have been promoted to seer.  Go find some wolves!'
       end
     end
@@ -609,7 +609,7 @@ module Werewolf
 
       # we could do this once a round, not every time.  this is easy though
       dead_players.each {|p| @claims.delete(p)}
-      
+
       @claims
     end
 
