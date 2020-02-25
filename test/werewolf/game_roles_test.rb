@@ -62,7 +62,7 @@ module Werewolf
     end
 
 
-   def test_nightkill_is_available_to_wolves
+    def test_nightkill_is_available_to_wolves
       game = Game.new
       game.join Player.new(:name => 'seth', :role => 'wolf')
       game.join Player.new(:name => 'tom', :role => 'villager')
