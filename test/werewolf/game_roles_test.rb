@@ -80,7 +80,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) {
         game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
-      assert_match /player must be alive/, err.message
+      assert_match(/player must be alive/, err.message)
     end
 
 
@@ -90,7 +90,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) {
         game.nightkill werewolf_name:'lupin', victim_name:'tom'
       }
-      assert_match /invalid player name/, err.message
+      assert_match(/invalid player name/, err.message)
     end
 
 
@@ -101,7 +101,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) {
         game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
-      assert_match /Only wolves may nightkill/, err.message
+      assert_match(/Only wolves may nightkill/, err.message)
     end
 
 
@@ -117,7 +117,7 @@ module Werewolf
         game.nightkill werewolf_name:'seth', victim_name:'bill'
         game.process_night_actions
       }
-      assert_match /player must be alive/, err.message
+      assert_match(/player must be alive/, err.message)
     end
 
 
@@ -126,7 +126,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) {
         game.nightkill werewolf_name:nil, victim_name:'bigfoot'
       }
-      assert_match /invalid player name/, err.message
+      assert_match(/invalid player name/, err.message)
     end
 
 
@@ -153,7 +153,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) {
         game.nightkill werewolf_name:'seth', victim_name:'tom'
       }
-      assert_match /no nightkill on night 0/, err.message
+      assert_match(/no nightkill on night 0/, err.message)
     end
 
 
@@ -329,7 +329,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.guard(bodyguard_name: seer.name, target_name: villager1.name)
       end
-      assert_match /Only the bodyguard can guard/, err.message
+      assert_match(/Only the bodyguard can guard/, err.message)
     end
 
 
@@ -355,7 +355,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.guard bodyguard_name:bodyguard.name, target_name:'whitneyhouston'
       end
-      assert_match /invalid player name/, err.message
+      assert_match(/invalid player name/, err.message)
     end
 
 
@@ -369,7 +369,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.guard bodyguard_name:bodyguard.name, target_name:bodyguard.name
       end
-      assert_match /Can only guard at night/, err.message
+      assert_match(/Can only guard at night/, err.message)
     end
 
 
@@ -420,7 +420,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.view seer_name:'bartelby', target_name:'tom'
       end
-      assert_match /invalid player name/, err.message
+      assert_match(/invalid player name/, err.message)
     end
 
 
@@ -444,7 +444,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.view seer_name:'seth', target_name:'hercules'
       end
-      assert_match /invalid player name/, err.message
+      assert_match(/invalid player name/, err.message)
     end
 
 
@@ -468,7 +468,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.view seer_name:'seth', target_name:'seth'
       end
-      assert_match /player must be alive/, err.message
+      assert_match(/player must be alive/, err.message)
     end
 
 
