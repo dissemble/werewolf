@@ -9,8 +9,8 @@ https://github.com/dissemble/werewolf/wiki
 ### Ruby Setup ###
 brew install chruby
 brew install ruby-install
-ruby-install ruby
-ruby --version #2.3.1
+ruby-install ruby 2.7.0
+ruby --version #2.7.0
 # add to .bash_profile
    source /usr/local/opt/chruby/share/chruby/chruby.sh
    source /usr/local/opt/chruby/share/chruby/auto.sh
