@@ -139,7 +139,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler (~> 2.1.2)
+  bundler (>= 2.0.2)
   celluloid-io (= 0.17.3)
   codeclimate-test-reporter (= 1.0.0.pre.rc2)
   guard (= 2.14.0)
