@@ -1072,7 +1072,7 @@ module Werewolf
     end
 
 
-    def test_living_players_some_dead_some_alive
+    def test_living_players_some_dead_some_alive_2
       game = Game.new
       player1 = Player.new(:name => 'a', :alive => false)
       player2 = Player.new(:name => 'b', :alive => true)
@@ -1573,7 +1573,7 @@ module Werewolf
     end
 
 
-    def test_notify_player
+    def test_notify_player_2
       game = Game.new
 
       player_name = 'charybdis'
