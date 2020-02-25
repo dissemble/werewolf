@@ -14,7 +14,7 @@ ruby --version #2.7.0
 # add to .bash_profile
    source /usr/local/opt/chruby/share/chruby/chruby.sh
    source /usr/local/opt/chruby/share/chruby/auto.sh
-echo ruby-2.3.1 > ~/.ruby-version
+echo ruby-2.7.0 > ~/.ruby-version
 
 ### Important ###
 # close terminal, open new one.  or source .bash_profile
