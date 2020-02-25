@@ -20,5 +20,5 @@ end
 
 
 group :development do
-  gem 'rubocop', '0.43.0'
+  gem 'rubocop', '0.80.0'
 end
