@@ -154,5 +154,8 @@ DEPENDENCIES
   slack-ruby-bot (= 0.12.0)
   werewolf!
 
+RUBY VERSION
+   ruby 2.7.0p0
+
 BUNDLED WITH
    2.1.2
