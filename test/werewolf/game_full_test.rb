@@ -40,6 +40,7 @@ module Werewolf
       game.advance_time
       assert seer.dead?
       assert 'seer' == apprentice.role
+      assert tanner.alive?
 
       # Night 1, former apprentice views, villager is nightkilled
       game.view seer_name:apprentice.name, target_name:wolf.name
