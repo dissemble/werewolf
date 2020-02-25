@@ -3,9 +3,9 @@ source 'https://rubygems.org'
 # Specify your gem's dependencies in werewolf.gemspec
 gemspec
 
-gem 'slack-ruby-bot', '0.9.0'
+gem 'slack-ruby-bot', '0.12.0'
 gem 'celluloid-io', '0.17.3'
-
+gem 'rake', '>=13.0.1'
 
 group :test do
   gem 'rb-fsevent', '0.9.7'
@@ -20,5 +20,5 @@ end
 
 
 group :development do
-  gem 'rubocop', '0.43.0'
+  gem 'rubocop', '0.80.0'
 end

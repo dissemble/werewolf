@@ -40,7 +40,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         player.kill!
       }
-      assert_match /already dead/, err.message
+      assert_match(/already dead/, err.message)
     end
 
     def test_seer_can_view
@@ -53,7 +53,7 @@ module Werewolf
       err = assert_raises(RuntimeError) {
         player.view(player)
       }
-      assert_match /only seer may see/, err.message
+      assert_match(/only seer may see/, err.message)
     end
 
     def test_view_shows_team

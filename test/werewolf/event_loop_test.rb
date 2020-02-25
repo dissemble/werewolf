@@ -33,9 +33,9 @@ module Werewolf
 
     def test_next_with_nil_game
       err = assert_raises(RuntimeError) do
-        event_loop = EventLoop.new(nil)
+        EventLoop.new(nil)
       end
-      assert_match /game must not be nil/, err.message
+      assert_match(/game must not be nil/, err.message)
     end
 
 

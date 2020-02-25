@@ -95,7 +95,6 @@ module Werewolf
 
     def test_handle_dawn
       slackbot = Werewolf::SlackBot.new
-      title = "[:sunrise: Dawn], day 4"
       message = "The sun will set again in 47 seconds :hourglass:."
       slackbot.expects(:tell_all).once.with(message, anything)
       slackbot.handle_dawn(
@@ -107,7 +106,6 @@ module Werewolf
 
     def test_handle_dusk
       slackbot = Werewolf::SlackBot.new
-      title = "[:night_with_stars: Dusk], day 5"
       message = "The sun will rise again in 57 seconds :hourglass:."
       slackbot.expects(:tell_all).once.with(message, anything)
       slackbot.handle_dusk(
@@ -651,20 +649,6 @@ MESSAGE
         },
         :remaining_votes => Set.new(['katie'])
       } )
-    end
-
-
-    def test_handle_roles
-      slackbot = Werewolf::SlackBot.new
-      player = Player.new(:name => 'seth', :role => 'seer')
-
-      slackbot.expects(:tell_player).once.with(
-        player,
-        "Active roles: [beholder, lycan, seer]")
-
-      slackbot.handle_roles(
-        :player => player,
-        :active_roles => ['seer', 'beholder', 'lycan'])
     end
 
 

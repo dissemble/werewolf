@@ -107,7 +107,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.leave 'tintin'
       end
-      assert_match /must be player to leave game/, err.message
+      assert_match(/must be player to leave game/, err.message)
     end
 
 
@@ -119,7 +119,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.leave player.name
       end
-      assert_match /can't leave an active game/, err.message
+      assert_match(/can't leave an active game/, err.message)
     end
 
 
@@ -263,7 +263,7 @@ module Werewolf
       err = assert_raises(NotImplementedError) {
         game.define_roles
       }
-      assert_match /no rolesets/, err.message
+      assert_match(/no rolesets/, err.message)
     end
 
 
@@ -553,7 +553,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.print_roles('fake-player-name')
       end
-      assert_match /You are not playing/, err.message
+      assert_match(/You are not playing/, err.message)
     end
 
 
@@ -566,7 +566,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.print_roles(player.name)
       end
-      assert_match /Game is not running/, err.message
+      assert_match(/Game is not running/, err.message)
     end
 
 
@@ -749,7 +749,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) {
         game.end_game
       }
-      assert_match /Game is not active/, err.message
+      assert_match(/Game is not active/, err.message)
     end
 
 
@@ -901,7 +901,7 @@ module Werewolf
       err = assert_raises(PublicGameError) {
         game.vote voter_name: 'seth', candidate_name: 'seth'
       }
-      assert_match /You may not vote at night/, err.message
+      assert_match(/You may not vote at night/, err.message)
     end
 
 
@@ -1050,7 +1050,7 @@ module Werewolf
     end
 
 
-      def test_dead_players_all_alive
+    def test_dead_players_all_alive
       game = Game.new
       player1 = Player.new(:name => 'a', :alive => true)
       player2 = Player.new(:name => 'b', :alive => true)
@@ -1072,7 +1072,7 @@ module Werewolf
     end
 
 
-    def test_living_players_some_dead_some_alive
+    def test_living_players_some_dead_some_alive_2
       game = Game.new
       player1 = Player.new(:name => 'a', :alive => false)
       player2 = Player.new(:name => 'b', :alive => true)
@@ -1573,7 +1573,7 @@ module Werewolf
     end
 
 
-    def test_notify_player
+    def test_notify_player_2
       game = Game.new
 
       player_name = 'charybdis'
@@ -1677,7 +1677,7 @@ module Werewolf
       err = assert_raises(PrivateGameError) do
         game.claim 'bill', 'i am the walrus'
       end
-      assert_match /claim is only available to players/, err.message
+      assert_match(/claim is only available to players/, err.message)
     end
 
 
