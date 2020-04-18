@@ -7,20 +7,16 @@ https://github.com/dissemble/werewolf/wiki
 # Get hacking
 ```sh
 ### Ruby Setup ###
-brew install chruby
-brew install ruby-install
-ruby-install ruby 2.7.0
-ruby --version #2.7.0
-# add to .bash_profile
-   source /usr/local/opt/chruby/share/chruby/chruby.sh
-   source /usr/local/opt/chruby/share/chruby/auto.sh
-echo ruby-2.7.0 > ~/.ruby-version
+install RVM
+rvm install 2.6.6
+ruby --version #2.6.6
+rvm install 2.6.6
 
 ### Important ###
 # close terminal, open new one.  or source .bash_profile
 
-### Install bundler, ruby dependency manager
-gem install bundler
+### Install bundler, ruby dependency manager.  Use the version heroku uses
+gem install bundler -v 2.0.1
 
 ### Get the source
 https://github.com/dissemble/werewolf.git
