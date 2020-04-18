@@ -4,7 +4,7 @@ ruby "2.6.6"
 # Specify your gem's dependencies in werewolf.gemspec
 gemspec
 
-gem 'bundler', '2.0.1'
+# gem 'bundler', '2.0.1'
 gem 'slack-ruby-bot', '0.12.0'
 gem 'celluloid-io', '0.17.3'
 gem 'rake', '>=13.0.1'
