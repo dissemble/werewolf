@@ -107,6 +107,9 @@ module Werewolf
         assign_roles
         @active = true
 
+        # clear any claims made pre-game
+        @claims = {}
+
         begin
           starting_player = validate_player(starter_name)
         rescue PrivateGameError
@@ -321,10 +324,15 @@ module Werewolf
 
 
     def slay(player)
-      player.kill!
+      dead = player.kill!
 
-      if 'seer' == player.role
-        promote_apprentice
+      if dead
+        if 'seer' == player.role
+          promote_apprentice
+        end
+      else
+        # player survived the kill attempt
+        notify_all "#{player.name} survives!!!  A murder attempt fails"
       end
     end
 
@@ -486,15 +494,14 @@ module Werewolf
         3 => ['seer', 'lycan', 'wolf'],
         4 => ['seer', 'bodyguard', 'tanner', 'wolf'],
         5 => ['seer', 'apprentice', 'tanner', 'sasquatch', 'wolf'],
-        6 => ['seer', 'bodyguard', 'lycan', 'tanner', 'sasquatch', 'wolf'],
-        7 => ['seer', 'beholder', 'bodyguard', 'tanner', 'lycan', 'wolf', 'wolf'],
-        8 => ['seer', 'apprentice', 'bodyguard', 'bodyguard', 'lycan', 'sasquatch', 'wolf', 'wolf'],
-        9 => ['seer', 'bodyguard', 'tanner', 'beholder', 'apprentice', 'cultist', 'cultist', 'wolf', 'wolf'],
-        10 => ['seer', 'bodyguard', 'beholder', 'tanner', 'apprentice', 'lycan', 'sasquatch', 'cultist', 'wolf', 'wolf'],
-        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'tanner', 'apprentice', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
-        12 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
-        13 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'lycan', 'sasquatch', 'cultist', 'wolf', 'wolf'],
-
+        6 => ['seer', 'lumberjack', 'villager', 'villager', 'cultist', 'wolf'],
+        7 => ['seer', 'lumberjack', 'villager', 'villager', 'lycan', 'wolf', 'wolf'],
+        8 => ['seer', 'bodyguard', 'lumberjack', 'villager', 'villager', 'tanner', 'wolf', 'wolf'],
+        9 => ['seer', 'bodyguard', 'lumberjack', 'villager', 'villager', 'villager', 'cultist', 'cultist', 'wolf'],
+        10 => ['seer', 'bodyguard', 'beholder', 'lumberjack', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        11 => ['seer', 'lumberjack', 'apprentice', 'lycan', 'tanner', 'apprentice', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        12 => ['seer', 'bodyguard', 'beholder', 'tanner', 'lumberjack', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        13 => ['seer', 'bodyguard', 'beholder', 'tanner', 'lumberjack', 'villager', 'villager', 'villager', 'lycan', 'sasquatch', 'cultist', 'wolf', 'wolf'],
       }
 
       available_roles = rolesets[@players.size]

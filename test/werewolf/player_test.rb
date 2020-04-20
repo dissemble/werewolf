@@ -43,6 +43,19 @@ module Werewolf
       assert_match(/already dead/, err.message)
     end
 
+    def test_killing_lumberjack_once_does_not_kill
+      player = Player.new(:name => 'seth',  :role => 'lumberjack')
+      player.kill!
+      assert player.alive?
+    end
+
+    def test_killing_lumberjack_twice_does_kill
+      player = Player.new(:name => 'seth',  :role => 'lumberjack')
+      assert !player.kill!
+      assert player.kill!
+      assert !player.alive?
+    end
+
     def test_seer_can_view
       player = Player.new(:name => 'seth', :role => 'seer')
       player.view(player)

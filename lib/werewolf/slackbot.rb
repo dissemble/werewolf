@@ -10,6 +10,7 @@ module Werewolf
       bodyguard: ':shield:',
       cultist: ':dagger_knife:',
       golem: ':moyai:',
+      lumberjack: ':axe:',
       lycan: ':see_no_evil:',
       sasquatch: ':monkey:',
       seer: ':crystal_ball:',
@@ -406,6 +407,11 @@ MESSAGE
         'golem' => {
             title: SlackBot.format_role('golem'),
             value: "team good.  immune to nightkills.",
+            short: true
+          },
+        'lumberjack' => {
+            title: SlackBot.format_role('lumberjack'),
+            value: "team good.  a brawny villager who will survive the first attempt on his life.",
             short: true
           },
         'lycan' => {

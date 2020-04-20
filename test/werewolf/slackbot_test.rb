@@ -10,6 +10,7 @@ module Werewolf
         bodyguard: ':shield:',
         cultist: ':dagger_knife:',
         golem: ':moyai:',
+        lumberjack: ':axe:',
         lycan: ':see_no_evil:',
         sasquatch: ':monkey:',
         seer: ':crystal_ball:',
