@@ -238,15 +238,18 @@ module Werewolf
     end
 
 
-    def test_define_roles_create_right_number_of_roles
-      valid_roles = Set.new ['seer', 'beholder', 'villager', 'cultist', 'wolf', 'bodyguard']
+    def test_define_roles_create_right_number_of_valid_roles
+      valid_roles = Set.new ['seer', 'beholder', 'villager', 'cultist', 'wolf',
+                             'bodyguard', 'tanner', 'lycan', 'apprentice', 'sasquatch']
 
       1.upto(12) do |num_roles|
         game = Game.new
         1.upto(num_roles) { |i| game.add_username_to_game("#{i}") }
         defined_roles = game.define_roles
         assert_equal num_roles, defined_roles.size
-        defined_roles.each {|r| valid_roles.include? r}
+        defined_roles.each do |role| 
+          assert valid_roles.include?(role), "no such role " + role
+        end
       end
     end
 
