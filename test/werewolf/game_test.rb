@@ -1942,6 +1942,28 @@ module Werewolf
       game.round_time = '50'
     end
 
+
+    def test_claims_are_cleared_on_game_start
+      game = Game.new
+      player = Werewolf::Player.new(:name => 'seth')
+      game.join(player)
+
+      # no claims
+      assert_nil game.claims[player]
+
+      # add a claim pregame
+      game.claim(player.name, 'some bs claim')
+      assert game.claims[player]
+
+      # start game
+      game.start
+      assert_nil game.claims[player]
+
+      # can still add claim
+      game.claim(player.name, 'some bs claim')
+      assert game.claims[player]
+    end
+
   end
 
 end

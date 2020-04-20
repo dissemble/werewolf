@@ -107,6 +107,9 @@ module Werewolf
         assign_roles
         @active = true
 
+        # clear any claims made pre-game
+        @claims = {}
+
         begin
           starting_player = validate_player(starter_name)
         rescue PrivateGameError
