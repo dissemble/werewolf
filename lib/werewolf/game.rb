@@ -476,7 +476,7 @@ module Werewolf
         2 => ['seer', 'wolf'],
         3 => ['seer', 'lycan', 'wolf'],
         #4 => ['seer', 'villager', 'villager', 'wolf'],
-        4 => ['seer', 'bodyguard', 'tanner', 'wolf'],
+        4 => ['seer', 'bodyguard', 'tanner', 'wolfzz'],
         #5 => ['seer', 'villager', 'villager', 'sasquatch', 'wolf'],
         5 => ['seer', 'apprentice', 'tanner', 'sasquatch', 'wolf'],
         #6 => ['seer', 'golem', 'villager', 'villager', 'cultist', 'wolf'],

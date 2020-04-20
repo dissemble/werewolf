@@ -233,7 +233,7 @@ module Werewolf
     def test_define_roles_4_player_game
       game = Game.new
       1.upto(4) { |i| game.add_username_to_game("#{i}") }
-      expected = ['seer', 'villager', 'villager', 'wolf']
+      expected = ['seer', 'bodyguard', 'tanner', 'wolf']
       assert_equal expected, game.define_roles
     end
 
