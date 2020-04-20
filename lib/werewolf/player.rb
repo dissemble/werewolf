@@ -21,6 +21,10 @@ module Werewolf
     def kill!
       if(dead?)
         raise RuntimeError.new("already dead")
+      elsif('lumberjack' == role && @previous_kill_attempt.nil?)
+        # Don't kill lumberjack on first kill attempt, give them a mulligan
+        @previous_kill_attempt = true
+        false
       else
         @alive = false
         true

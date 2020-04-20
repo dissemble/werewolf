@@ -239,8 +239,11 @@ module Werewolf
 
 
     def test_define_roles_create_right_number_of_valid_roles
-      valid_roles = Set.new ['seer', 'beholder', 'villager', 'cultist', 'wolf',
-                             'bodyguard', 'tanner', 'lycan', 'apprentice', 'sasquatch']
+      valid_roles = Set.new [
+        'apprentice', 'beholder', 'bodyguard', 'cultist', 'lumberjack', 'lycan',  
+        'sasquatch', 'seer', 'tanner', 'villager', 'wolf'
+      ]
+                             
 
       1.upto(12) do |num_roles|
         game = Game.new
@@ -1179,6 +1182,84 @@ module Werewolf
       game.lynch_player player
       assert player.dead?
     end
+
+
+    def test_lynch_lumberjack_does_not_kill_them
+      game = Game.new
+      player = Player.new(:name => 'seth', :role => 'lumberjack')
+      game.join player
+      game.lynch_player player
+      assert !player.dead?
+    end
+
+
+    def test_lynch_lumberjack_twice_kills_them
+      game = Game.new
+      player = Player.new(:name => 'seth', :role => 'lumberjack')
+      game.join player
+      game.lynch_player player
+      game.lynch_player player
+      assert player.dead?
+    end
+
+
+    def test_nightkill_player_makes_them_dead
+      game = Game.new
+      player = Player.new(:name => 'seth', :role => 'seer')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      [player, wolf].each {|p| game.join(p)}
+
+      game.stubs(:day_number).returns(1)
+      game.nightkill werewolf_name:wolf.name, victim_name:player.name
+      game.process_night_actions
+
+      assert player.dead?
+    end
+
+
+    def test_nightkill_lumberjack_does_not_kill_them
+      game = Game.new
+      lumberjack = Player.new(:name => 'seth', :role => 'lumberjack')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      [lumberjack, wolf].each {|p| game.join(p)}
+
+      game.stubs(:day_number).returns(1)
+      game.nightkill werewolf_name:wolf.name, victim_name:lumberjack.name
+      game.process_night_actions
+
+      assert !lumberjack.dead?
+    end
+
+
+    def test_nightkill_lumberjack_notifies_of_attempt
+      game = Game.new
+      lumberjack = Player.new(:name => 'seth', :role => 'lumberjack')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      [lumberjack, wolf].each {|p| game.join(p)}
+
+      game.expects(:notify_all).once.with("seth survives!!!  A murder attempt fails")
+
+      game.stubs(:day_number).returns(1)
+      game.nightkill werewolf_name:wolf.name, victim_name:lumberjack.name
+      game.process_night_actions
+
+      assert !lumberjack.dead?
+    end
+
+
+    def test_nightkill_lumberjack_does_not_kill_them
+      game = Game.new
+      lumberjack = Player.new(:name => 'seth', :role => 'lumberjack')
+      wolf = Player.new(:name => 'bill', :role => 'wolf')
+      [lumberjack, wolf].each {|p| game.join(p)}
+
+      game.stubs(:day_number).returns(1)
+      game.nightkill werewolf_name:wolf.name, victim_name:lumberjack.name
+      game.process_night_actions
+
+      assert !lumberjack.dead?
+    end
+
 
 
     def test_lynch_player_notifies

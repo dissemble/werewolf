@@ -321,10 +321,15 @@ module Werewolf
 
 
     def slay(player)
-      player.kill!
+      dead = player.kill!
 
-      if 'seer' == player.role
-        promote_apprentice
+      if dead
+        if 'seer' == player.role
+          promote_apprentice
+        end
+      else
+        # player survived the kill attempt
+        notify_all "#{player.name} survives!!!  A murder attempt fails"
       end
     end
 
@@ -486,7 +491,7 @@ module Werewolf
         3 => ['seer', 'lycan', 'wolf'],
         4 => ['seer', 'bodyguard', 'tanner', 'wolf'],
         5 => ['seer', 'apprentice', 'tanner', 'sasquatch', 'wolf'],
-        6 => ['seer', 'bodyguard', 'lycan', 'tanner', 'sasquatch', 'wolf'],
+        6 => ['seer', 'bodyguard', 'lycan', 'tanner', 'lumberjack', 'wolf'],
         7 => ['seer', 'beholder', 'bodyguard', 'tanner', 'lycan', 'wolf', 'wolf'],
         8 => ['seer', 'apprentice', 'bodyguard', 'bodyguard', 'lycan', 'sasquatch', 'wolf', 'wolf'],
         9 => ['seer', 'bodyguard', 'tanner', 'beholder', 'apprentice', 'cultist', 'cultist', 'wolf', 'wolf'],
@@ -494,7 +499,6 @@ module Werewolf
         11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'tanner', 'apprentice', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
         12 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
         13 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'lycan', 'sasquatch', 'cultist', 'wolf', 'wolf'],
-
       }
 
       available_roles = rolesets[@players.size]
