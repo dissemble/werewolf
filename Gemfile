@@ -11,8 +11,9 @@ gem 'rake', '>=13.0.1'
 
 group :test do
   gem 'rb-fsevent', '0.9.7'
-  gem 'guard', '2.14.0'
-  gem 'guard-minitest', '2.4.6'
+  gem 'guard', '>=2.16.1'
+  gem 'guard-minitest', '>=2.4.6'
+  gem 'thor', '0.19.1'
   gem 'minitest', '5.9.1'
   gem 'minitest-reporters', '1.1.11'
   gem 'mocha', '1.1.0'
