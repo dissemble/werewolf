@@ -470,27 +470,31 @@ module Werewolf
     end
 
 
+
+    # classic rolesets
+    # 4 => ['seer', 'villager', 'villager', 'wolf'],
+    # 5 => ['seer', 'villager', 'villager', 'sasquatch', 'wolf'],
+    # 6 => ['seer', 'golem', 'villager', 'villager', 'cultist', 'wolf'],
+    # 7 => ['seer', 'beholder', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
+    # 8 => ['seer', 'apprentice', 'villager', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
+    # 9 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
+    # 10 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
     def define_roles
       rolesets = {
         1 => ['tanner'],
         2 => ['seer', 'wolf'],
         3 => ['seer', 'lycan', 'wolf'],
-        #4 => ['seer', 'villager', 'villager', 'wolf'],
         4 => ['seer', 'bodyguard', 'tanner', 'wolf'],
-        #5 => ['seer', 'villager', 'villager', 'sasquatch', 'wolf'],
         5 => ['seer', 'apprentice', 'tanner', 'sasquatch', 'wolf'],
-        #6 => ['seer', 'golem', 'villager', 'villager', 'cultist', 'wolf'],
         6 => ['seer', 'bodyguard', 'lycan', 'tanner', 'sasquatch', 'wolf'],
-        # 7 => ['seer', 'beholder', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
         7 => ['seer', 'beholder', 'bodyguard', 'tanner', 'lycan', 'wolf', 'wolf'],
-        # 8 => ['seer', 'apprentice', 'villager', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
         8 => ['seer', 'apprentice', 'bodyguard', 'bodyguard', 'lycan', 'sasquatch', 'wolf', 'wolf'],
-        #9 => ['seer', 'bodyguard', 'tanner', 'villager', 'villager', 'villager', 'sasquatch', 'wolf', 'wolf'],
         9 => ['seer', 'bodyguard', 'tanner', 'beholder', 'apprentice', 'cultist', 'cultist', 'wolf', 'wolf'],
-        # 10 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
-        10 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
-        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        10 => ['seer', 'bodyguard', 'beholder', 'tanner', 'apprentice', 'lycan', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        11 => ['seer', 'bodyguard', 'beholder', 'lycan', 'tanner', 'apprentice', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
         12 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+        13 => ['seer', 'bodyguard', 'beholder', 'tanner', 'villager', 'villager', 'villager', 'villager', 'lycan', 'sasquatch', 'cultist', 'wolf', 'wolf'],
+
       }
 
       available_roles = rolesets[@players.size]
