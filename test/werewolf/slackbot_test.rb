@@ -163,6 +163,15 @@ module Werewolf
     end
 
 
+    def test_handle_failed_kill_broadcast_to_room
+      slackbot = Werewolf::SlackBot.new
+      player = Player.new(:name => 'seth')
+
+      slackbot.expects(:tell_all).once.with("<@#{player.name}> survives!!!  A murder attempt fails", {:color => "warning"})
+      slackbot.handle_failed_kill(:player => player)
+    end
+
+
     def test_handle_help
       slackbot = Werewolf::SlackBot.new
       player = Player.new(:name => 'seth')
@@ -393,7 +402,7 @@ MESSAGE
             },
             {
               :title => ":eyes: beholder",
-              :value => "team good. knows the identity of the seer.",
+              :value => "team good.  knows the identity of the seer.",
               :short => true
             },
             {
@@ -403,7 +412,7 @@ MESSAGE
             },
             {
               :title => ":dagger_knife: cultist",
-              :value => "team evil. knows the identity of the wolves.",
+              :value => "team evil.  knows the identity of the wolves.",
               :short => true
             },
             {
@@ -463,12 +472,12 @@ MESSAGE
           :fields => [
             {
               :title => ":eyes: beholder",
-              :value => "team good. knows the identity of the seer.",
+              :value => "team good.  knows the identity of the seer.",
               :short => true
             },
             {
               :title => ":dagger_knife: cultist",
-              :value => "team evil. knows the identity of the wolves.",
+              :value => "team evil.  knows the identity of the wolves.",
               :short => true
             },
             {

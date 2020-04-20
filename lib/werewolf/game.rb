@@ -332,7 +332,9 @@ module Werewolf
         end
       else
         # player survived the kill attempt
-        notify_all "#{player.name} survives!!!  A murder attempt fails"
+        notify(
+          :action => 'failed_kill',
+          :player => player)
       end
     end
 

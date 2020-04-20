@@ -102,6 +102,11 @@ TITLE
     end
 
 
+    def handle_failed_kill(options = {})
+      tell_all "#{slackify(options[:player])} survives!!!  A murder attempt fails", color: "warning"
+    end
+
+
     def handle_status(options = {})
       tell_all("#{options[:message]}\n#{format_players(options[:players])}", title: "Game Status :wolf:")
     end
@@ -391,7 +396,7 @@ MESSAGE
           },
         'beholder' => {
             title: SlackBot.format_role('beholder'),
-            value: "team good. knows the identity of the seer.",
+            value: "team good.  knows the identity of the seer.",
             short: true
           },
         'bodyguard' => {
@@ -401,7 +406,7 @@ MESSAGE
           },
         'cultist' => {
             title: SlackBot.format_role('cultist'),
-            value: "team evil. knows the identity of the wolves.",
+            value: "team evil.  knows the identity of the wolves.",
             short: true
           },
         'golem' => {

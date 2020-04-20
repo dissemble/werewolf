@@ -137,6 +137,22 @@ module Werewolf
     end
 
 
+    def test_failed_kill_notifies_room
+      game = Game.new
+      player = Player.new(:name => 'seth', :role => 'lumberjack')
+      game.join player
+
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'failed_kill',
+        :player => player
+      )
+      game.add_observer mock_observer
+
+      game.slay player
+    end
+
+
     def test_game_can_be_started
       game = Game.new
       game.join Player.new(:name => 'seth')
@@ -1231,17 +1247,20 @@ module Werewolf
     end
 
 
-    def test_nightkill_lumberjack_notifies_of_attempt
+    def test_slay_lumberjack_notifies_of_attempt
       game = Game.new
       lumberjack = Player.new(:name => 'seth', :role => 'lumberjack')
       wolf = Player.new(:name => 'bill', :role => 'wolf')
       [lumberjack, wolf].each {|p| game.join(p)}
 
-      game.expects(:notify_all).once.with("seth survives!!!  A murder attempt fails")
+      mock_observer = mock('observer')
+      mock_observer.expects(:update).once.with(
+        :action => 'failed_kill',
+        :player => lumberjack
+      )
+      game.add_observer mock_observer
 
-      game.stubs(:day_number).returns(1)
-      game.nightkill werewolf_name:wolf.name, victim_name:lumberjack.name
-      game.process_night_actions
+      game.slay lumberjack
 
       assert !lumberjack.dead?
     end
